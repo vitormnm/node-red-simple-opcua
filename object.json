@@ -1,0 +1,65 @@
+{
+    "objects": [],
+    "folders": [
+        {
+            "name": "site",
+            "folders": [
+                {
+                    "name": "line1",
+                    "folders": [],
+                    "objects": [
+                        {
+                            "name": "motor",
+                            "folders": [],
+                            "objects": [],
+                            "variables": [
+                                {
+                                    "name": "speed",
+                                    "type": "Float",
+                                    "value": "",
+                                    "access": "readonly",
+                                    "description": "",
+                                    "displayName": ""
+                                }
+                            ],
+                            "method": [
+                                {
+                                    "name": "cmd_on",
+                                    "description": "",
+                                    "displayName": "",
+                                    "inputs": [
+                                        {
+                                            "name": "sp_speed",
+                                            "type": "Float",
+                                            "displayName": ""
+                                        },
+                                        {
+                                            "name": "cmd_on",
+                                            "type": "Boolean",
+                                            "displayName": ""
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "name": "sts_spped",
+                                            "type": "Float",
+                                            "displayName": ""
+                                        },
+                                        {
+                                            "name": "sts_motor",
+                                            "type": "Boolean",
+                                            "displayName": ""
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "variables": []
+                }
+            ],
+            "objects": [],
+            "variables": []
+        }
+    ]
+}
