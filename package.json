@@ -1,6 +1,6 @@
 {
   "name": "@vitormnm/node-red-simple-opcua",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publishConfig": {
     "access": "public"
   },
@@ -15,10 +15,6 @@
       "opcua-client": "client/opcua-client.js"
     }
   },
-  "files": [
-    "resources/*",
-    "examples/*"
-  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
