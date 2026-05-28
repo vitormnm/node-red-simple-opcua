@@ -1,12 +1,13 @@
 {
   "name": "@vitormnm/node-red-simple-opcua",
-  "version": "1.0.1",
-    "publishConfig": {
+  "version": "1.0.2",
+  "publishConfig": {
     "access": "public"
   },
   "description": "Custom Node-RED OPC UA server node powered by node-opcua",
   "main": "server/opcua-server.js",
   "node-red": {
+    "version": ">=3.0.0",
     "nodes": {
       "opc-ua-server": "server/opcua-server.js",
       "opcua-server-io": "server/opcua-server-io.js",
@@ -14,6 +15,10 @@
       "opcua-client": "client/opcua-client.js"
     }
   },
+  "files": [
+    "resources/*",
+    "examples/*"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -29,7 +34,7 @@
     "opcua-server"
   ],
   "dependencies": {
-    "node-opcua": "2.158.0"
+    "node-opcua": "2.173.1"
   },
   "repository": {
     "type": "git",

@@ -112,7 +112,7 @@ class OpcUaServerMethods {
             (inputArguments, context, callback) => {
                 const eventId = inputArguments[0].value;
                 const comment = inputArguments[1].value;
-
+                
                 const alarm = context.object;
                 // severity atual
                 const severity = alarm.severity.readValue().value.value;
