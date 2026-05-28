@@ -37,11 +37,14 @@ const SECURITY_MODE_MAP = {
 
 const DATA_TYPE_MAP = {
     Int16: DataType.Int16,
+    UInt16: DataType.UInt16,
     Int32: DataType.Int32,
+    UInt32: DataType.UInt32,
     Float: DataType.Float,
     Boolean: DataType.Boolean,
     String: DataType.String,
-    ByteString : DataType.ByteString
+    ByteString : DataType.ByteString,
+    LocalizedText : DataType.LocalizedText
 };
 
 function normalizePort(port) {

@@ -409,11 +409,14 @@ class OpcUaServerConfigParser {
         const normalized = typeof type === "string" ? type.trim() : "";
         const aliases = {
             int16: "Int16",
+            uint16: "UInt16",
             int32: "Int32",
+            uint32: "UInt32",
             float: "Float",
             boolean: "Boolean",
             string: "String",
-            bytestring: "ByteString"
+            bytestring: "ByteString",
+            localizedText: "LocalizedText",
         };
         const canonical = aliases[normalized.toLowerCase()] || normalized;
         if (!DATA_TYPE_MAP[canonical]) {
