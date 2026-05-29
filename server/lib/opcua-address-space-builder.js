@@ -40,7 +40,7 @@ class OpcUaAddressSpaceBuilder {
     }
 
     rebuild(treeConfig) {
-        
+
         this.sync(treeConfig, { fullReset: true });
     }
 
@@ -52,7 +52,7 @@ class OpcUaAddressSpaceBuilder {
         const settings = options || {};
         const desiredEntries = this.collectDesiredEntries(treeConfig);
 
-        
+
 
         if (settings.fullReset) {
             this.clearDynamicNodes();
@@ -282,11 +282,11 @@ class OpcUaAddressSpaceBuilder {
         // create duplicate nodes on top of the ones the lib already created.
         // Only extra children defined directly on the instance (not inherited) are added here.
         const instanceOnlyConfig = {
-            folders:      Array.isArray(instanceConfig.folders)     ? instanceConfig.folders     : [],
-            objects:      Array.isArray(instanceConfig.objects)     ? instanceConfig.objects      : [],
-            variables:    Array.isArray(instanceConfig.variables)   ? instanceConfig.variables   : [],
-            methods:      Array.isArray(instanceConfig.methods)     ? instanceConfig.methods     : [],
-            alarms:       Array.isArray(instanceConfig.alarms)      ? instanceConfig.alarms      : [],
+            folders: Array.isArray(instanceConfig.folders) ? instanceConfig.folders : [],
+            objects: Array.isArray(instanceConfig.objects) ? instanceConfig.objects : [],
+            variables: Array.isArray(instanceConfig.variables) ? instanceConfig.variables : [],
+            methods: Array.isArray(instanceConfig.methods) ? instanceConfig.methods : [],
+            alarms: Array.isArray(instanceConfig.alarms) ? instanceConfig.alarms : [],
             objectsTypes: Array.isArray(instanceConfig.objectsTypes) ? instanceConfig.objectsTypes : []
         };
         this.collectBranchChildren(desiredEntries, instanceOnlyConfig, path, "componentOf", objectTypeConfigs, Object.assign({}, options, {
@@ -514,7 +514,7 @@ class OpcUaAddressSpaceBuilder {
     createNode(definition) {
         const parentNode = this.resolveParentNode(definition.parentPath);
 
-        
+
 
         if (definition.kind === "folder") {
             this.addFolder(parentNode, definition.config, definition.parentPath, definition.relationship, definition.path);
@@ -706,10 +706,10 @@ class OpcUaAddressSpaceBuilder {
         // Extract the type's nodeId value prefix (e.g. "Motor_type2") and the
         // instance's nodeId value prefix (e.g. "server1.newObjectType") so we can
         // rewrite every child nodeId from the type to the instance on-the-fly.
-        const typeNodeId      = typeEntry.config.nodeId || "";
-        const instanceNodeId  = instanceConfig.nodeId   || "";
-        const typePrefix      = this.extractNodeIdStringValue(typeNodeId);
-        const instancePrefix  = this.extractNodeIdStringValue(instanceNodeId);
+        const typeNodeId = typeEntry.config.nodeId || "";
+        const instanceNodeId = instanceConfig.nodeId || "";
+        const typePrefix = this.extractNodeIdStringValue(typeNodeId);
+        const instancePrefix = this.extractNodeIdStringValue(instanceNodeId);
 
         this.createInheritedBranchChildren(typeEntry.config, instanceNode, instancePath, typePrefix, instancePrefix);
     }
@@ -730,9 +730,9 @@ class OpcUaAddressSpaceBuilder {
 
     createInheritedBranchChildren(typeConfig, parentOpcNode, parentPath, typePrefix, instancePrefix) {
         const variables = Array.isArray(typeConfig.variables) ? typeConfig.variables : [];
-        const methods   = Array.isArray(typeConfig.methods)   ? typeConfig.methods   : [];
-        const folders   = Array.isArray(typeConfig.folders)   ? typeConfig.folders   : [];
-        const objects   = Array.isArray(typeConfig.objects)   ? typeConfig.objects   : [];
+        const methods = Array.isArray(typeConfig.methods) ? typeConfig.methods : [];
+        const folders = Array.isArray(typeConfig.folders) ? typeConfig.folders : [];
+        const objects = Array.isArray(typeConfig.objects) ? typeConfig.objects : [];
 
         variables.forEach((varConfig) => {
             const childPath = this.buildPath(parentPath, varConfig.name);
@@ -775,7 +775,7 @@ class OpcUaAddressSpaceBuilder {
         });
     }
 
-        addAlarm(parentNode, alarmConfig, parentPath, relationship, pathOverride) {
+    addAlarm(parentNode, alarmConfig, parentPath, relationship, pathOverride) {
 
 
 
@@ -1031,11 +1031,12 @@ class OpcUaAddressSpaceBuilder {
         const namespace = this.getNamespaceForConfig(methodConfig);
         const methodName = methodConfig.name;
         const path = pathOverride || this.buildPath(parentPath, methodName);
+        const nodeId = this.resolveNodeId(methodConfig, path, namespace)
         const methodNode = namespace.addMethod(parentNode, {
             browseName: methodConfig.displayName || methodName,
             displayName: methodConfig.displayName || methodName,
             description: { text: methodConfig.description || "" },
-            nodeId: this.resolveNodeId(methodConfig, path, namespace),
+            nodeId: nodeId,
             modellingRule: this.isObjectTypePath(parentPath) ? "Mandatory" : undefined,
             inputArguments: methodConfig.inputs.map((arg) => ({
                 name: arg.name,
@@ -1054,8 +1055,14 @@ class OpcUaAddressSpaceBuilder {
 
             this.registry.emitMethodCall({
                 methodName: methodConfig.name,
+                nodeId: nodeId,
                 callId,
                 inputArguments,
+                outputArguments: methodConfig.outputs.map((arg) => ({
+                    name: arg.name,
+                    description: { text: arg.description || "" },
+                    dataType: DATA_TYPE_MAP[arg.type]
+                })),
                 serverName: this.serverName
             });
 

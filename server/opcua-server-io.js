@@ -6,7 +6,7 @@ module.exports = function (RED) {
     RED.httpAdmin.get("/opcua-server-io/servers", RED.auth.needsPermission("flows.read"), function (req, res) {
         try {
             res.json(registry.listActiveServers());
-         
+
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -65,7 +65,7 @@ module.exports = function (RED) {
                     await handleEvent(node, msg, send);
                 }
 
-                  if (node.mode === "activeAlarms") {
+                if (node.mode === "activeAlarms") {
                     await handleActiveAlarms(node, msg, send);
                 }
 
@@ -132,10 +132,12 @@ module.exports = function (RED) {
                 });
 
                 node.send({
+                    topic : msg.data.nodeId,
                     payload: msg.data.inputArguments,
                     opcua: {
                         server: msg.data.serverName,
-                        method: msg.data.methodName
+                        method: msg.data.methodName,
+                        data: msg.data
                     },
                     _callId: msg.data.callId
                 });
@@ -160,10 +162,12 @@ module.exports = function (RED) {
                 });
 
                 node.send({
+                    topic: msg.data.nodeId,
                     payload: msg.data.inputArguments,
                     opcua: {
                         server: msg.data.serverName,
-                        method: msg.data.methodName
+                        method: msg.data.methodName,
+                        data: msg.data
                     },
                     _callId: msg.data.callId
                 });
@@ -238,7 +242,7 @@ module.exports = function (RED) {
         }, { waitForServer: true, timeoutMs: 5000 });
     }
 
-     async function handleActiveAlarms(node, msg) {
+    async function handleActiveAlarms(node, msg) {
 
         // let serverName = null
         // if (msg.opcua.server === undefined) {
