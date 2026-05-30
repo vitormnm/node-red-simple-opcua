@@ -1,1 +1,2851 @@
-[{"id":"8cfd21c364c2df03","type":"tab","label":"opcua server","disabled":false,"info":"","env":[]},{"id":"151212437222dae0","type":"tab","label":"opcua client","disabled":false,"info":"","env":[]},{"id":"7c4416993db757dd","type":"tab","label":"opcua client browse all tags","disabled":false,"info":"","env":[]},{"id":"2c50499b89653464","type":"group","z":"8cfd21c364c2df03","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["24d49fb4730ddb0e","c4be4c26dc82c1e0","aa98d508aa93d8a4","fc4adb1b41b878d1","cea374e6d3345ea4","23d02e0b9d8214c0","b89df44c1e418bb3","bab77d6d3da6a778","7fa5b7577fb457c9"],"x":74,"y":1179,"w":872,"h":222},{"id":"d0ee96529905f5f9","type":"group","z":"8cfd21c364c2df03","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["445f843e25c0a0d5","ac96540b903f3ba5","1dc6b0317f7865e5","640b4ac3bd6d7603","ef8956faa8f46c82","10098330bac46e38","ec7f4d67c496c5d1","0292e098827fb16e","94c8e2c954522cf9","5660f34e554bb6f5"],"x":74,"y":839,"w":902,"h":302},{"id":"60b19848ebbc5356","type":"group","z":"8cfd21c364c2df03","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["a49f5a89da5155bc","14b097a343c4f0df","1b598fc1781b29e1","ee5372a7e7a8edbd","b9d2a0cfd9e9b4ac"],"x":74,"y":479,"w":912,"h":142},{"id":"6052786fca1151e5","type":"group","z":"8cfd21c364c2df03","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["2539932222902ee0","3496dfa358242797","2c5bd58258277ca0","eebad7aed2185cda","7ba31a677445ec83","25e830d51c339c4e","2ac26da7c2c45837"],"x":64,"y":219,"w":812,"h":222},{"id":"b33901b7b12af86c","type":"group","z":"8cfd21c364c2df03","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["272ce77b614d8cc3","f5824dbc89d628fa","e84bb307d95e6a70"],"x":74,"y":659,"w":482,"h":142},{"id":"3ccc34feec0630dd","type":"group","z":"8cfd21c364c2df03","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["8a78dbc7de4c8cc9","72a79bc79b4cc0bb","ab84f0db1e246e82","e15d8d090c4d94a1"],"x":74,"y":39,"w":752,"h":142},{"id":"8ccd7a60c46f9762","type":"group","z":"151212437222dae0","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["8f829d3785d42f88","5b22ed56f0a54f73","ccf537fdb44b4318","e7fa2bb906fc87c6","a34ce9528509a2c9","f3f0115e9d6b6b7a","3da807b7d25b85a9","ce2f03338a7cf2f5","33be489edef189fb","f6b7ea864ee0abfb","49f11177029d14ec","e812bef55f237f13","81af739c946465e4","09825afc617c880f","3f191c29e1ff64d8"],"x":54,"y":19,"w":1052,"h":482},{"id":"66eeced42fde3a96","type":"group","z":"151212437222dae0","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["59def5e9e9b0d450","01fb75eb1f813561","18307b76be9fc4b8","9a0b96daf2932d2c","fe096aef2045d911","7585676656604416","b389c0b3ac04d24e","163f37291329348b","de736fbb70b3bed4","d3fc0790651831ba"],"x":54,"y":559,"w":792,"h":382},{"id":"5aa5f21d2362ae83","type":"group","z":"151212437222dae0","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["559d41bd53945bd5","748d5c965bafe12f","a0c7740ad5c228df","523deb9018b6ed8f","c7018fe1a57d52df","9022c388f2a0a7b4","931f4a35aad5bb36","c00210b53afb879f","79119ea93930df91","5d4533a3ba0f04e8","0f459071b408f013","1bd1baf1884a61f9","99978349bb284a24","ed4187aa4995ac37","d146a15bf3c1ef33","f42f94894ccf2130","8e3c2676e9261e83"],"x":54,"y":959,"w":1072,"h":442},{"id":"7d087d18c99ee40b","type":"group","z":"151212437222dae0","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["ec63f36201edeb79","0e0a2fafc6969bbe","b534f3ac9840bdbc","0d0e206efa537357"],"x":54,"y":1439,"w":702,"h":142},{"id":"964be834f8995b1f","type":"group","z":"7c4416993db757dd","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["15e6db0599d497f4","244f561362390d9b","a16b3ffac4577d7c","e15fbd6363db8dbf","264e04316ce1bd12","3c245643349610db","90cf455439e6ab19","bcf7a54f2db2b4d1","acf7ead8b3b60917","f567148921a5d156","2ff0239edb93715c","79ebb05980a75f4f","410af6a25e62ab73","98b977cfe3480521","f0a29574ae62147a","100264ab897a4b75","4a8db72f8adb2859"],"x":34,"y":99,"w":1572,"h":482},{"id":"e7ababb4a28f644f","type":"group","z":"151212437222dae0","style":{"stroke":"#999999","stroke-opacity":"1","fill":"none","fill-opacity":"1","label":true,"label-position":"nw","color":"#a4a4a4"},"nodes":["b2d099b89f3514cd","38cb1e7a2e2937a7","e2cf88d7252bc0aa","cefc4b175cd724d0","4d17a07cc2dd4180","02dbd16c9b764114","34ade9caad375180","2434820a659402c4"],"x":54,"y":1639,"w":912,"h":242},{"id":"b09a1570957d3c44","type":"opcua-client-config","name":"","endpoint":"opc.tcp://localhost:5840/","securityPolicy":"None","securityMode":"None","authType":"anonymous"},{"id":"8a78dbc7de4c8cc9","type":"opc-ua-server","z":"8cfd21c364c2df03","g":"3ccc34feec0630dd","name":"","resourcePath":"/","serverName":"myServer1","allowAnonymous":true,"port":"5840","maxConnections":10,"securityPolicy":"None","securityMode":"None","namespaceUri":"urn:node-red:opc-ua-server","tree":"{\n  \"objects\": [],\n  \"folders\": [\n    {\n      \"name\": \"myServer1\",\n      \"displayName\": \"\",\n      \"description\": \"\",\n      \"nodeId\": \"\",\n      \"namespaceId\": 2,\n      \"objectsType\": \"\",\n      \"folders\": [\n        {\n          \"name\": \"folderMethod\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [],\n          \"alarms\": [],\n          \"methods\": [\n            {\n              \"name\": \"methodSum\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"inputs\": [\n                {\n                  \"name\": \"var1\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                },\n                {\n                  \"name\": \"var2\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ],\n              \"outputs\": [\n                {\n                  \"name\": \"result\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ]\n            },\n            {\n              \"name\": \"methodMultiplication\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"inputs\": [\n                {\n                  \"name\": \"var1\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                },\n                {\n                  \"name\": \"var2\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ],\n              \"outputs\": [\n                {\n                  \"name\": \"result\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ]\n            }\n          ],\n          \"objectsTypes\": []\n        },\n        {\n          \"name\": \"folderAlarms\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [],\n          \"alarms\": [\n            {\n              \"name\": \"levelAlarm1\",\n              \"variableNodeId\": \"myServer1.variableLevelAlarm\",\n              \"type\": \"levelAlarm\",\n              \"enabled\": true,\n              \"severity\": 500,\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"highHighLimit\": 90,\n              \"highHighMessage\": \"High High alarm\",\n              \"highLimit\": 80,\n              \"highMessage\": \"High alarm\",\n              \"lowLimit\": 20,\n              \"lowMessage\": \"Low alarm\",\n              \"lowLowLimit\": 10,\n              \"lowLowMessage\": \"Low Low alarm\",\n              \"normalStateValue\": 0,\n              \"digitalMessage\": \"Digital alarm\"\n            },\n            {\n              \"name\": \"digitalAlarm1\",\n              \"variableNodeId\": \"myServer1.variableDigitalAlarm\",\n              \"type\": \"digitalAlarm\",\n              \"enabled\": true,\n              \"severity\": 500,\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"highHighLimit\": 100,\n              \"highHighMessage\": \"High High alarm\",\n              \"highLimit\": 80,\n              \"highMessage\": \"High alarm\",\n              \"lowLimit\": 20,\n              \"lowMessage\": \"Low alarm\",\n              \"lowLowLimit\": 0,\n              \"lowLowMessage\": \"Low Low alarm\",\n              \"normalStateValue\": 0,\n              \"digitalMessage\": \"Digital alarm\"\n            }\n          ],\n          \"methods\": [],\n          \"objectsTypes\": []\n        },\n        {\n          \"name\": \"folderCustomObjectType\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [],\n          \"alarms\": [],\n          \"methods\": [],\n          \"objectsTypes\": [\n            {\n              \"name\": \"customObjectType1\",\n              \"displayName\": \"\",\n              \"description\": \"\",\n              \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType1\",\n              \"namespaceId\": 2,\n              \"objectsType\": \"customObjectType\",\n              \"folders\": [],\n              \"objects\": [],\n              \"variables\": [],\n              \"alarms\": [],\n              \"methods\": [],\n              \"objectsTypes\": []\n            },\n            {\n              \"name\": \"customObjectType2\",\n              \"displayName\": \"\",\n              \"description\": \"\",\n              \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType2\",\n              \"namespaceId\": 2,\n              \"objectsType\": \"customObjectType\",\n              \"folders\": [],\n              \"objects\": [],\n              \"variables\": [],\n              \"alarms\": [],\n              \"methods\": [],\n              \"objectsTypes\": []\n            }\n          ]\n        }\n      ],\n      \"objects\": [\n        {\n          \"name\": \"newObject\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [\n            {\n              \"name\": \"newVariable\",\n              \"type\": \"Int32\",\n              \"value\": \"\",\n              \"access\": \"readwrite\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2\n            },\n            {\n              \"name\": \"newVariable2\",\n              \"type\": \"Float\",\n              \"value\": \"123.3\",\n              \"access\": \"readwrite\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2\n            }\n          ],\n          \"alarms\": [],\n          \"methods\": [],\n          \"objectsTypes\": []\n        }\n      ],\n      \"variables\": [\n        {\n          \"name\": \"variableLevelAlarm\",\n          \"type\": \"Int32\",\n          \"value\": \"50\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2\n        },\n        {\n          \"name\": \"variableDigitalAlarm\",\n          \"type\": \"Boolean\",\n          \"value\": \"0\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2\n        }\n      ],\n      \"alarms\": [],\n      \"methods\": [],\n      \"objectsTypes\": []\n    }\n  ],\n  \"objectsTypes\": [\n    {\n      \"name\": \"customObjectType\",\n      \"displayName\": \"\",\n      \"description\": \"\",\n      \"nodeId\": \"ns=2;s=customObjectType\",\n      \"namespaceId\": 2,\n      \"objectsType\": \"\",\n      \"folders\": [],\n      \"objects\": [],\n      \"variables\": [\n        {\n          \"name\": \"var1\",\n          \"type\": \"Int32\",\n          \"value\": \"\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"ns=2;s=customObjectType.var1\",\n          \"namespaceId\": 2\n        },\n        {\n          \"name\": \"var2\",\n          \"type\": \"Int32\",\n          \"value\": \"\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"ns=2;s=customObjectType.var2\",\n          \"namespaceId\": 2\n        }\n      ],\n      \"alarms\": [],\n      \"methods\": [],\n      \"objectsTypes\": []\n    }\n  ],\n  \"nameSpaces\": [\n    {\n      \"id\": 2,\n      \"name\": \"urn:node-red:opc-ua-server\"\n    },\n    {\n      \"id\": 3,\n      \"name\": \"urn:plant2:3\"\n    }\n  ]\n}","x":730,"y":140,"wires":[]},{"id":"2539932222902ee0","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"6052786fca1151e5","name":"","serverRef":"myServer1","mode":"method-input","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"methodSum","intervalMs":500,"inputs":0,"outputs":1,"x":170,"y":300,"wires":[["2c5bd58258277ca0"]]},{"id":"3496dfa358242797","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"6052786fca1151e5","name":"","serverRef":"myServer1","mode":"method-output","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"methodSum","intervalMs":500,"inputs":1,"outputs":0,"x":730,"y":300,"wires":[]},{"id":"2c5bd58258277ca0","type":"function","z":"8cfd21c364c2df03","g":"6052786fca1151e5","name":"function 2","func":"var input1 = msg.payload[0].value\nvar input2 = msg.payload[1].value\n\nmsg.payload = [\n    {\n        dataType: \"Float\",\n        value: input1 + input2\n    }\n];\n\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":520,"y":300,"wires":[["3496dfa358242797"]]},{"id":"a49f5a89da5155bc","type":"inject","z":"8cfd21c364c2df03","g":"60b19848ebbc5356","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":220,"y":580,"wires":[["14b097a343c4f0df"]]},{"id":"14b097a343c4f0df","type":"function","z":"8cfd21c364c2df03","g":"60b19848ebbc5356","name":"function 47","func":"const min = 30;\nconst max = 40;\nconst randomInt1 = Math.floor(Math.random() * (max - min + 1)) + min;\nconst randomInt2 = Math.floor(Math.random() * (max - min + 1)) + min;\nconst randomInt3 = Math.floor(Math.random() * (max - min + 1)) + min;\n\n\nmsg.payload = [\n    {\n        \"nodePath\": \"myServer1.newObject\",\n        \"severity\": 0,\n        \"message\": \"newObject message\"\n    },\n    {\n        \"nodePath\": \"myServer1.newObject\",\n        \"severity\": 500,\n        \"message\": \"newObject message 2\"\n    },\n    {\n        \"nodePath\": \"myServer1.newObject\",\n        \"severity\": 1000,\n        \"message\": \"newObject message 3\"\n    }\n]\n\n\n\n\n\n\n\n\nreturn msg","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":450,"y":580,"wires":[["ee5372a7e7a8edbd"]]},{"id":"1b598fc1781b29e1","type":"debug","z":"8cfd21c364c2df03","g":"60b19848ebbc5356","name":"debug 38","active":false,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":880,"y":580,"wires":[]},{"id":"ee5372a7e7a8edbd","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"60b19848ebbc5356","name":"","serverRef":"myServer1","mode":"event","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"","intervalMs":500,"inputs":1,"outputs":1,"x":660,"y":580,"wires":[["1b598fc1781b29e1"]]},{"id":"b9d2a0cfd9e9b4ac","type":"comment","z":"8cfd21c364c2df03","g":"60b19848ebbc5356","name":"event","info":"","x":170,"y":520,"wires":[]},{"id":"72a79bc79b4cc0bb","type":"inject","z":"8cfd21c364c2df03","g":"3ccc34feec0630dd","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":220,"y":140,"wires":[["ab84f0db1e246e82"]]},{"id":"ab84f0db1e246e82","type":"template","z":"8cfd21c364c2df03","g":"3ccc34feec0630dd","name":"","field":"payload","fieldType":"msg","format":"json","syntax":"mustache","template":"{\n    \"objects\": [],\n    \"folders\": [\n        {\n            \"name\": \"myServer1\",\n            \"displayName\": \"\",\n            \"description\": \"\",\n            \"nodeId\": \"\",\n            \"namespaceId\": 2,\n            \"objectsType\": \"\",\n            \"folders\": [\n                {\n                    \"name\": \"folderMethod\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [],\n                    \"alarms\": [],\n                    \"methods\": [\n                        {\n                            \"name\": \"methodSum\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"inputs\": [\n                                {\n                                    \"name\": \"var1\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                },\n                                {\n                                    \"name\": \"var2\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ],\n                            \"outputs\": [\n                                {\n                                    \"name\": \"result\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"methodMultiplication\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"inputs\": [\n                                {\n                                    \"name\": \"var1\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                },\n                                {\n                                    \"name\": \"var2\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ],\n                            \"outputs\": [\n                                {\n                                    \"name\": \"result\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ]\n                        }\n                    ],\n                    \"objectsTypes\": []\n                },\n                {\n                    \"name\": \"folderAlarms\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [],\n                    \"alarms\": [\n                        {\n                            \"name\": \"levelAlarm1\",\n                            \"variableNodeId\": \"myServer1.variableLevelAlarm\",\n                            \"type\": \"levelAlarm\",\n                            \"enabled\": true,\n                            \"severity\": 500,\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"highHighLimit\": 90,\n                            \"highHighMessage\": \"High High alarm\",\n                            \"highLimit\": 80,\n                            \"highMessage\": \"High alarm\",\n                            \"lowLimit\": 20,\n                            \"lowMessage\": \"Low alarm\",\n                            \"lowLowLimit\": 10,\n                            \"lowLowMessage\": \"Low Low alarm\",\n                            \"normalStateValue\": 0,\n                            \"digitalMessage\": \"Digital alarm\"\n                        },\n                        {\n                            \"name\": \"digitalAlarm1\",\n                            \"variableNodeId\": \"myServer1.variableDigitalAlarm\",\n                            \"type\": \"digitalAlarm\",\n                            \"enabled\": true,\n                            \"severity\": 500,\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"highHighLimit\": 100,\n                            \"highHighMessage\": \"High High alarm\",\n                            \"highLimit\": 80,\n                            \"highMessage\": \"High alarm\",\n                            \"lowLimit\": 20,\n                            \"lowMessage\": \"Low alarm\",\n                            \"lowLowLimit\": 0,\n                            \"lowLowMessage\": \"Low Low alarm\",\n                            \"normalStateValue\": 0,\n                            \"digitalMessage\": \"Digital alarm\"\n                        }\n                    ],\n                    \"methods\": [],\n                    \"objectsTypes\": []\n                },\n                {\n                    \"name\": \"folderCustomObjectType\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [],\n                    \"alarms\": [],\n                    \"methods\": [],\n                    \"objectsTypes\": [\n                        {\n                            \"name\": \"customObjectType1\",\n                            \"displayName\": \"\",\n                            \"description\": \"\",\n                            \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType1\",\n                            \"namespaceId\": 2,\n                            \"objectsType\": \"customObjectType\",\n                            \"folders\": [],\n                            \"objects\": [],\n                            \"variables\": [],\n                            \"alarms\": [],\n                            \"methods\": [],\n                            \"objectsTypes\": []\n                        },\n                        {\n                            \"name\": \"customObjectType2\",\n                            \"displayName\": \"\",\n                            \"description\": \"\",\n                            \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType2\",\n                            \"namespaceId\": 2,\n                            \"objectsType\": \"customObjectType\",\n                            \"folders\": [],\n                            \"objects\": [],\n                            \"variables\": [],\n                            \"alarms\": [],\n                            \"methods\": [],\n                            \"objectsTypes\": []\n                        }\n                    ]\n                }\n            ],\n            \"objects\": [\n                {\n                    \"name\": \"newObject\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [\n                        {\n                            \"name\": \"newVariable\",\n                            \"type\": \"Int32\",\n                            \"value\": \"\",\n                            \"access\": \"readwrite\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2\n                        },\n                        {\n                            \"name\": \"newVariable2\",\n                            \"type\": \"Float\",\n                            \"value\": \"123.3\",\n                            \"access\": \"readwrite\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2\n                        }\n                    ],\n                    \"alarms\": [],\n                    \"methods\": [],\n                    \"objectsTypes\": []\n                }\n            ],\n            \"variables\": [\n                {\n                    \"name\": \"variableLevelAlarm\",\n                    \"type\": \"Int32\",\n                    \"value\": \"50\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2\n                },\n                {\n                    \"name\": \"variableDigitalAlarm\",\n                    \"type\": \"Boolean\",\n                    \"value\": \"0\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2\n                }\n            ],\n            \"alarms\": [],\n            \"methods\": [],\n            \"objectsTypes\": []\n        }\n    ],\n    \"objectsTypes\": [\n        {\n            \"name\": \"customObjectType\",\n            \"displayName\": \"\",\n            \"description\": \"\",\n            \"nodeId\": \"ns=2;s=customObjectType\",\n            \"namespaceId\": 2,\n            \"objectsType\": \"\",\n            \"folders\": [],\n            \"objects\": [],\n            \"variables\": [\n                {\n                    \"name\": \"var1\",\n                    \"type\": \"Int32\",\n                    \"value\": \"\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"ns=2;s=customObjectType.var1\",\n                    \"namespaceId\": 2\n                },\n                {\n                    \"name\": \"var2\",\n                    \"type\": \"Int32\",\n                    \"value\": \"\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"ns=2;s=customObjectType.var2\",\n                    \"namespaceId\": 2\n                }\n            ],\n            \"alarms\": [],\n            \"methods\": [],\n            \"objectsTypes\": []\n        }\n    ],\n    \"nameSpaces\": [\n        {\n            \"id\": 2,\n            \"name\": \"urn:node-red:opc-ua-server\"\n        },\n        {\n            \"id\": 3,\n            \"name\": \"urn:plant2:3\"\n        }\n    ]\n}","output":"json","x":480,"y":140,"wires":[["8a78dbc7de4c8cc9"]]},{"id":"272ce77b614d8cc3","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"b33901b7b12af86c","name":"","serverRef":"myServer1","mode":"events","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"","intervalMs":"1000","inputs":0,"outputs":1,"x":180,"y":760,"wires":[["f5824dbc89d628fa"]]},{"id":"f5824dbc89d628fa","type":"debug","z":"8cfd21c364c2df03","g":"b33901b7b12af86c","name":"debug 1","active":false,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":450,"y":760,"wires":[]},{"id":"e84bb307d95e6a70","type":"comment","z":"8cfd21c364c2df03","g":"b33901b7b12af86c","name":"events server read and write(clients)","info":"","x":240,"y":700,"wires":[]},{"id":"445f843e25c0a0d5","type":"inject","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"alarm on","props":[{"p":"payload"},{"p":"topic","vt":"str"},{"p":"payload1","v":"92","vt":"num"},{"p":"payload2","v":"true","vt":"bool"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":180,"y":980,"wires":[["1dc6b0317f7865e5"]]},{"id":"ac96540b903f3ba5","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"","serverRef":"myServer1","mode":"write","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"","intervalMs":500,"inputs":1,"outputs":1,"x":640,"y":940,"wires":[["640b4ac3bd6d7603"]]},{"id":"1dc6b0317f7865e5","type":"function","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"function 1","func":"msg.payload = [\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"path\": \"myServer1.variableLevelAlarm\",\n    \"value\" : msg.payload1\n  },\n  {\n    \"name\": \"variablDigitalAlarm\",\n    \"path\": \"myServer1.variableDigitalAlarm\",\n    \"value\" : msg.payload2\n  }\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":460,"y":940,"wires":[["ac96540b903f3ba5"]]},{"id":"640b4ac3bd6d7603","type":"debug","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"debug 2","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":870,"y":920,"wires":[]},{"id":"ef8956faa8f46c82","type":"comment","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"write","info":"","x":150,"y":880,"wires":[]},{"id":"24d49fb4730ddb0e","type":"inject","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":240,"y":1360,"wires":[["c4be4c26dc82c1e0"]]},{"id":"c4be4c26dc82c1e0","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"read direct","serverRef":"myServer1","mode":"read","identifierType":"path","tagPath":"myServer1.variableLevelAlarm","tagNodeId":"","methodName":"","intervalMs":500,"inputs":1,"outputs":1,"x":540,"y":1360,"wires":[["aa98d508aa93d8a4"]]},{"id":"aa98d508aa93d8a4","type":"debug","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"debug 3","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":760,"y":1360,"wires":[]},{"id":"10098330bac46e38","type":"inject","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"alarm off","props":[{"p":"payload"},{"p":"topic","vt":"str"},{"p":"payload1","v":"50","vt":"num"},{"p":"payload2","v":"false","vt":"bool"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":180,"y":940,"wires":[["1dc6b0317f7865e5"]]},{"id":"ec7f4d67c496c5d1","type":"comment","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"write single","info":"","x":200,"y":1040,"wires":[]},{"id":"0292e098827fb16e","type":"inject","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"51","props":[{"p":"payload"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"51","payloadType":"num","x":170,"y":1100,"wires":[["94c8e2c954522cf9"]]},{"id":"94c8e2c954522cf9","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"write direct","serverRef":"myServer1","mode":"write","identifierType":"path","tagPath":"myServer1.variableLevelAlarm","tagNodeId":"","methodName":"","intervalMs":500,"inputs":1,"outputs":1,"x":400,"y":1100,"wires":[["5660f34e554bb6f5"]]},{"id":"5660f34e554bb6f5","type":"debug","z":"8cfd21c364c2df03","g":"d0ee96529905f5f9","name":"debug 4","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":640,"y":1100,"wires":[]},{"id":"fc4adb1b41b878d1","type":"inject","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":220,"y":1280,"wires":[["cea374e6d3345ea4"]]},{"id":"cea374e6d3345ea4","type":"function","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"function 3","func":"msg.payload = [\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"path\": \"myServer1.variableLevelAlarm\",\n    \"value\" : msg.payload1\n  },\n  {\n    \"name\": \"variablDigitalAlarm\",\n    \"path\": \"myServer1.variableDigitalAlarm\",\n    \"value\" : msg.payload2\n  }\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":440,"y":1280,"wires":[["23d02e0b9d8214c0"]]},{"id":"23d02e0b9d8214c0","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"","serverRef":"myServer1","mode":"read","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"","intervalMs":500,"inputs":1,"outputs":1,"x":640,"y":1280,"wires":[["b89df44c1e418bb3"]]},{"id":"b89df44c1e418bb3","type":"debug","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"debug 5","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":840,"y":1280,"wires":[]},{"id":"bab77d6d3da6a778","type":"comment","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"read","info":"","x":150,"y":1220,"wires":[]},{"id":"7fa5b7577fb457c9","type":"comment","z":"8cfd21c364c2df03","g":"2c50499b89653464","name":"read single","info":"","x":200,"y":1320,"wires":[]},{"id":"eebad7aed2185cda","type":"comment","z":"8cfd21c364c2df03","g":"6052786fca1151e5","name":"methods","info":"","x":160,"y":260,"wires":[]},{"id":"7ba31a677445ec83","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"6052786fca1151e5","name":"","serverRef":"myServer1","mode":"method-input","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"methodMultiplication","intervalMs":500,"inputs":0,"outputs":1,"x":190,"y":400,"wires":[["2ac26da7c2c45837"]]},{"id":"25e830d51c339c4e","type":"opcua-server-io","z":"8cfd21c364c2df03","g":"6052786fca1151e5","name":"","serverRef":"myServer1","mode":"method-output","identifierType":"path","tagPath":"","tagNodeId":"","methodName":"methodMultiplication","intervalMs":500,"inputs":1,"outputs":0,"x":750,"y":400,"wires":[]},{"id":"2ac26da7c2c45837","type":"function","z":"8cfd21c364c2df03","g":"6052786fca1151e5","name":"function 4","func":"var input1 = msg.payload[0].value\nvar input2 = msg.payload[1].value\n\nmsg.payload = [\n    {\n        dataType: \"Float\",\n        value: input1 * input2\n    }\n];\n\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":520,"y":400,"wires":[["25e830d51c339c4e"]]},{"id":"e15d8d090c4d94a1","type":"comment","z":"8cfd21c364c2df03","g":"3ccc34feec0630dd","name":"server","info":"","x":190,"y":80,"wires":[]},{"id":"8f829d3785d42f88","type":"opcua-client","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"client read direct","connection":"b09a1570957d3c44","mode":"read","selectedItems":"[\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n    \"type\": \"Int32\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"variableDigitalAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n    \"type\": \"Boolean\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":440,"y":120,"wires":[["ccf537fdb44b4318"]]},{"id":"5b22ed56f0a54f73","type":"inject","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":120,"wires":[["8f829d3785d42f88"]]},{"id":"ccf537fdb44b4318","type":"debug","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"debug 6","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":640,"y":120,"wires":[]},{"id":"e7fa2bb906fc87c6","type":"opcua-client","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"client read ","connection":"b09a1570957d3c44","mode":"read","selectedItems":"[]","samplingInterval":250,"publishingInterval":250,"x":630,"y":240,"wires":[["f3f0115e9d6b6b7a"]]},{"id":"a34ce9528509a2c9","type":"inject","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":240,"wires":[["3da807b7d25b85a9"]]},{"id":"f3f0115e9d6b6b7a","type":"debug","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"debug 7","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":880,"y":240,"wires":[]},{"id":"3da807b7d25b85a9","type":"function","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"function 5","func":"msg.payload = [\n    {\n        \"name\": \"variableLevelAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n        \"type\": \"Int32\"\n    },\n    {\n        \"name\": \"variableDigitalAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n        \"type\": \"Boolean\"\n    }\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":420,"y":240,"wires":[["e7fa2bb906fc87c6"]]},{"id":"ce2f03338a7cf2f5","type":"opcua-client","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"client read Subscripition","connection":"b09a1570957d3c44","mode":"subscription","selectedItems":"[]","samplingInterval":"500","publishingInterval":"500","x":670,"y":380,"wires":[["f6b7ea864ee0abfb"]]},{"id":"33be489edef189fb","type":"inject","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":380,"wires":[["49f11177029d14ec"]]},{"id":"f6b7ea864ee0abfb","type":"debug","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"debug 8","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":1000,"y":380,"wires":[]},{"id":"49f11177029d14ec","type":"function","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"function 6","func":"msg.payload = [\n    {\n        \"name\": \"variableLevelAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n        \"type\": \"Int32\"\n    },\n    {\n        \"name\": \"variableDigitalAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n        \"type\": \"Boolean\"\n    }\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":420,"y":380,"wires":[["ce2f03338a7cf2f5"]]},{"id":"e812bef55f237f13","type":"opcua-client","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"client read Subscripition direct","connection":"b09a1570957d3c44","mode":"subscription","selectedItems":"[\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n    \"type\": \"Int32\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"variableDigitalAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n    \"type\": \"Boolean\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":"500","publishingInterval":"500","x":690,"y":460,"wires":[["09825afc617c880f"]]},{"id":"81af739c946465e4","type":"inject","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":460,"wires":[["e812bef55f237f13"]]},{"id":"09825afc617c880f","type":"debug","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"debug 9","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":1000,"y":460,"wires":[]},{"id":"3f191c29e1ff64d8","type":"comment","z":"151212437222dae0","g":"8ccd7a60c46f9762","name":"read","info":"","x":130,"y":60,"wires":[]},{"id":"59def5e9e9b0d450","type":"comment","z":"151212437222dae0","g":"66eeced42fde3a96","name":"write","info":"","x":130,"y":600,"wires":[]},{"id":"01fb75eb1f813561","type":"opcua-client","z":"151212437222dae0","g":"66eeced42fde3a96","name":"client write direct","connection":"b09a1570957d3c44","mode":"write","selectedItems":"[\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n    \"type\": \"Int32\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload1\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"variableDigitalAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n    \"type\": \"Boolean\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload2\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":430,"y":680,"wires":[["18307b76be9fc4b8"]]},{"id":"18307b76be9fc4b8","type":"debug","z":"151212437222dae0","g":"66eeced42fde3a96","name":"debug 10","active":false,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":620,"y":680,"wires":[]},{"id":"9a0b96daf2932d2c","type":"inject","z":"151212437222dae0","g":"66eeced42fde3a96","name":"alarm on","props":[{"p":"payload"},{"p":"topic","vt":"str"},{"p":"payload1","v":"92","vt":"num"},{"p":"payload2","v":"true","vt":"bool"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":160,"y":740,"wires":[["01fb75eb1f813561"]]},{"id":"fe096aef2045d911","type":"inject","z":"151212437222dae0","g":"66eeced42fde3a96","name":"alarm off","props":[{"p":"payload"},{"p":"topic","vt":"str"},{"p":"payload1","v":"50","vt":"num"},{"p":"payload2","v":"false","vt":"bool"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":160,"y":680,"wires":[["01fb75eb1f813561"]]},{"id":"7585676656604416","type":"opcua-client","z":"151212437222dae0","g":"66eeced42fde3a96","name":"client write ","connection":"b09a1570957d3c44","mode":"write","selectedItems":"[]","samplingInterval":250,"publishingInterval":250,"x":570,"y":820,"wires":[["b389c0b3ac04d24e"]]},{"id":"b389c0b3ac04d24e","type":"debug","z":"151212437222dae0","g":"66eeced42fde3a96","name":"debug 11","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":740,"y":820,"wires":[]},{"id":"163f37291329348b","type":"inject","z":"151212437222dae0","g":"66eeced42fde3a96","name":"alarm on","props":[{"p":"payload"},{"p":"topic","vt":"str"},{"p":"payload1","v":"92","vt":"num"},{"p":"payload2","v":"true","vt":"bool"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":160,"y":900,"wires":[["d3fc0790651831ba"]]},{"id":"de736fbb70b3bed4","type":"inject","z":"151212437222dae0","g":"66eeced42fde3a96","name":"alarm off","props":[{"p":"payload"},{"p":"topic","vt":"str"},{"p":"payload1","v":"50","vt":"num"},{"p":"payload2","v":"false","vt":"bool"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":160,"y":840,"wires":[["d3fc0790651831ba"]]},{"id":"d3fc0790651831ba","type":"function","z":"151212437222dae0","g":"66eeced42fde3a96","name":"function 7","func":"msg.payload = [\n    {\n        \"name\": \"variableLevelAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n        \"type\": \"Int32\",\n        \"nodeClass\": \"Variable\",\n        \"value\" : msg.payload1\n \n    },\n    {\n        \"name\": \"variableDigitalAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n        \"type\": \"Boolean\",\n        \"nodeClass\": \"Variable\",\n        \"value\" : msg.payload2\n\n    }\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":400,"y":820,"wires":[["7585676656604416"]]},{"id":"559d41bd53945bd5","type":"opcua-client","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"client method","connection":"b09a1570957d3c44","mode":"method","selectedItems":"[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":830,"y":1100,"wires":[["a0c7740ad5c228df"]]},{"id":"748d5c965bafe12f","type":"inject","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":1100,"wires":[["c7018fe1a57d52df"]]},{"id":"a0c7740ad5c228df","type":"debug","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"debug 52","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":1020,"y":1100,"wires":[]},{"id":"523deb9018b6ed8f","type":"function","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"method refresh","func":"msg.payload = [\n    {\n        \"name\": \"metodo1\",\n        \"nodeID\": \"ns=0;i=3875\",\n        \"inputs\": [\n            {\n                \"name\": \"i1\",\n                \"type\": \"UInt32\",\n                \"value\": msg.payload\n            },\n        ]\n    },\n\n \n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":660,"y":1100,"wires":[["559d41bd53945bd5"]]},{"id":"c7018fe1a57d52df","type":"opcua-client","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"client get id","connection":"b09a1570957d3c44","mode":"getSubscriptionId","selectedItems":"[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":450,"y":1100,"wires":[["523deb9018b6ed8f"]]},{"id":"9022c388f2a0a7b4","type":"comment","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"method refresh","info":"","x":160,"y":1000,"wires":[]},{"id":"ec63f36201edeb79","type":"opcua-client","z":"151212437222dae0","g":"7d087d18c99ee40b","name":"client Events","connection":"b09a1570957d3c44","mode":"events","selectedItems":"[\n  {\n    \"name\": \"Server\",\n    \"nodeID\": \"ns=0;i=2253\",\n    \"nodeClass\": \"Object\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=2004\",\n      \"browseName\": \"ServerType\",\n      \"displayName\": \"ServerType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":450,"y":1540,"wires":[["b534f3ac9840bdbc"]]},{"id":"0e0a2fafc6969bbe","type":"inject","z":"151212437222dae0","g":"7d087d18c99ee40b","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":1540,"wires":[["ec63f36201edeb79"]]},{"id":"b534f3ac9840bdbc","type":"debug","z":"151212437222dae0","g":"7d087d18c99ee40b","name":"debug 12","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":650,"y":1540,"wires":[]},{"id":"0d0e206efa537357","type":"comment","z":"151212437222dae0","g":"7d087d18c99ee40b","name":"events","info":"","x":130,"y":1480,"wires":[]},{"id":"931f4a35aad5bb36","type":"inject","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":1220,"wires":[["79119ea93930df91"]]},{"id":"c00210b53afb879f","type":"opcua-client","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"client method","connection":"b09a1570957d3c44","mode":"method","selectedItems":"[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":670,"y":1220,"wires":[["5d4533a3ba0f04e8"]]},{"id":"79119ea93930df91","type":"function","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"method methodSum","func":"msg.payload = [\n    {\n        \"name\": \"methodSum\",\n        \"nodeID\": \"ns=2;s=myServer1.folderMethod.methodSum\",\n        \"inputs\": [\n            {\n                \"name\": \"var1\",\n                \"type\": \"Float\",\n                \"value\": 5\n            },\n            {\n                \"name\": \"var2\",\n                \"type\": \"Float\",\n                \"value\": 5\n            }\n        ]\n    }\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":460,"y":1220,"wires":[["c00210b53afb879f"]]},{"id":"5d4533a3ba0f04e8","type":"debug","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"debug 13","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":850,"y":1220,"wires":[]},{"id":"0f459071b408f013","type":"comment","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"refresh event","info":"","x":150,"y":1060,"wires":[]},{"id":"1bd1baf1884a61f9","type":"comment","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"methodSum","info":"","x":150,"y":1160,"wires":[]},{"id":"99978349bb284a24","type":"opcua-client","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"client method","connection":"b09a1570957d3c44","mode":"method","selectedItems":"[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":830,"y":1360,"wires":[["f42f94894ccf2130"]]},{"id":"ed4187aa4995ac37","type":"inject","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":1360,"wires":[["d146a15bf3c1ef33"]]},{"id":"d146a15bf3c1ef33","type":"function","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"levelAlarm1-Acknowledge","func":"\n\nmsg.payload = [\n    {\n        \"name\": \"metodo1\",\n        \"nodeID\": \"ns=2;s=myServer1.folderAlarms.levelAlarm1-Acknowledge\",\n        \"inputs\": [\n            {\n                \"name\": \"i1\",\n                \"type\": \"ByteString\",\n                \"value\": \"\"\n            },\n            {\n                \"name\": \"i2\",\n                \"type\": \"LocalizedText\",\n                \"value\": \"\"\n            },\n        ]\n    },\n\n\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":510,"y":1360,"wires":[["99978349bb284a24"]]},{"id":"f42f94894ccf2130","type":"debug","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"debug 14","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":990,"y":1360,"wires":[]},{"id":"8e3c2676e9261e83","type":"comment","z":"151212437222dae0","g":"5aa5f21d2362ae83","name":"method Acknowledge","info":"","x":180,"y":1300,"wires":[]},{"id":"b2d099b89f3514cd","type":"opcua-client","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"client browse direct","connection":"b09a1570957d3c44","mode":"browse","selectedItems":"[\n  {\n    \"name\": \"myServer1\",\n    \"nodeID\": \"ns=2;s=myServer1\",\n    \"nodeClass\": \"Object\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=61\",\n      \"browseName\": \"FolderType\",\n      \"displayName\": \"FolderType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"folderAlarms\",\n    \"nodeID\": \"ns=2;s=myServer1.folderAlarms\",\n    \"nodeClass\": \"Object\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=61\",\n      \"browseName\": \"FolderType\",\n      \"displayName\": \"FolderType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]","samplingInterval":250,"publishingInterval":250,"x":450,"y":1740,"wires":[["cefc4b175cd724d0"]]},{"id":"38cb1e7a2e2937a7","type":"comment","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"browse ","info":"","x":130,"y":1680,"wires":[]},{"id":"e2cf88d7252bc0aa","type":"inject","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":1740,"wires":[["b2d099b89f3514cd"]]},{"id":"cefc4b175cd724d0","type":"debug","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"debug 15","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":660,"y":1740,"wires":[]},{"id":"4d17a07cc2dd4180","type":"opcua-client","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"client browse ","connection":"b09a1570957d3c44","mode":"browse","selectedItems":"[]","samplingInterval":250,"publishingInterval":250,"x":630,"y":1840,"wires":[["34ade9caad375180"]]},{"id":"02dbd16c9b764114","type":"inject","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":200,"y":1840,"wires":[["2434820a659402c4"]]},{"id":"34ade9caad375180","type":"debug","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"debug 16","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":860,"y":1840,"wires":[]},{"id":"2434820a659402c4","type":"function","z":"151212437222dae0","g":"e7ababb4a28f644f","name":"browse ","func":"msg.payload = [\n    {\n        \"name\": \"myServer1\",\n        \"nodeID\": \"ns=2;s=myServer1\",\n   \n    },\n    {\n        \"name\": \"folderAlarms\",\n        \"nodeID\": \"ns=2;s=myServer1.folderAlarms\",\n    \n    }\n]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":420,"y":1840,"wires":[["4d17a07cc2dd4180"]]},{"id":"15e6db0599d497f4","type":"opcua-client","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"","connection":"b09a1570957d3c44","mode":"browse","selectedItems":"[]","samplingInterval":250,"publishingInterval":250,"x":590,"y":340,"wires":[["e15fbd6363db8dbf","410af6a25e62ab73"]]},{"id":"244f561362390d9b","type":"inject","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":180,"y":340,"wires":[["a16b3ffac4577d7c","410af6a25e62ab73"]]},{"id":"a16b3ffac4577d7c","type":"function","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"ns=2;s=myServer1","func":"msg.payload = [{\n    \"nodeId\" : \"ns=2;s=myServer1\"\n}]\n\nflow.set(\"variables\", [])\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":400,"y":340,"wires":[["15e6db0599d497f4"]]},{"id":"e15fbd6363db8dbf","type":"change","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"","rules":[{"t":"set","p":"payload","pt":"msg","to":"payload[0].browse","tot":"msg"}],"action":"","property":"","from":"","to":"","reg":false,"x":810,"y":340,"wires":[["264e04316ce1bd12"]]},{"id":"264e04316ce1bd12","type":"split","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"","splt":"\\n","spltType":"str","arraySplt":1,"arraySpltType":"len","stream":false,"addname":"","property":"payload","x":1010,"y":340,"wires":[["3c245643349610db"]]},{"id":"3c245643349610db","type":"switch","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"","property":"payload.nodeClass","propertyType":"msg","rules":[{"t":"eq","v":"Object","vt":"str"},{"t":"eq","v":"Variable","vt":"str"}],"checkall":"true","repair":false,"outputs":2,"x":1170,"y":340,"wires":[["90cf455439e6ab19"],["bcf7a54f2db2b4d1"]]},{"id":"90cf455439e6ab19","type":"function","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"function 39","func":"msg.payload = [msg.payload]\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":810,"y":140,"wires":[["15e6db0599d497f4"]]},{"id":"bcf7a54f2db2b4d1","type":"function","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"flow.set(\"variables\")","func":"var variables = flow.get(\"variables\")\n\nvariables.push(  {\n    \"name\": msg.payload.browseName ,\n    \"nodeID\": msg.payload.nodeID\n  })\n\nflow.set(\"variables\" , variables)\n\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":1390,"y":380,"wires":[["f0a29574ae62147a"]]},{"id":"acf7ead8b3b60917","type":"opcua-client","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"Subscription all variables in server","connection":"b09a1570957d3c44","mode":"subscription","selectedItems":"[]","samplingInterval":250,"publishingInterval":250,"x":640,"y":540,"wires":[["2ff0239edb93715c"]]},{"id":"f567148921a5d156","type":"change","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"","rules":[{"t":"set","p":"payload","pt":"msg","to":"variables","tot":"flow"}],"action":"","property":"","from":"","to":"","reg":false,"x":370,"y":540,"wires":[["acf7ead8b3b60917"]]},{"id":"2ff0239edb93715c","type":"debug","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"debug 32","active":false,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","statusVal":"","statusType":"auto","x":900,"y":540,"wires":[]},{"id":"79ebb05980a75f4f","type":"trigger","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"","op1":"","op2":"","op1type":"nul","op2type":"payl","duration":"2","extend":false,"overrideDelay":false,"units":"s","reset":"","bytopic":"all","topic":"topic","outputs":1,"x":180,"y":540,"wires":[["f567148921a5d156"]]},{"id":"410af6a25e62ab73","type":"function","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"reset","func":"msg.reset = 1\nreturn msg;","outputs":1,"timeout":0,"noerr":0,"initialize":"","finalize":"","libs":[],"x":350,"y":420,"wires":[["4a8db72f8adb2859"]]},{"id":"98b977cfe3480521","type":"comment","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"Subscription all variables in server and flow.set","info":"","x":270,"y":180,"wires":[]},{"id":"f0a29574ae62147a","type":"link out","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"link out 1","mode":"link","links":["100264ab897a4b75"],"x":1565,"y":380,"wires":[]},{"id":"100264ab897a4b75","type":"link in","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"link in trigger","links":["f0a29574ae62147a","4a8db72f8adb2859"],"x":85,"y":540,"wires":[["79ebb05980a75f4f"]]},{"id":"4a8db72f8adb2859","type":"link out","z":"7c4416993db757dd","g":"964be834f8995b1f","name":"link out 2","mode":"link","links":["100264ab897a4b75"],"x":505,"y":420,"wires":[]},{"id":"1639a5f612680d01","type":"global-config","env":[],"modules":{"@vitormnm/node-red-simple-opcua":"1.0.0"}}]
+[
+    {
+        "id": "d2b3eae6a1ecc622",
+        "type": "tab",
+        "label": "opcua server",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "79a6f5fe6f4d465a",
+        "type": "tab",
+        "label": "opcua client",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "14fe15a9e9d468af",
+        "type": "tab",
+        "label": "opcua client browse all tags",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c84194e1716f46ab",
+        "type": "group",
+        "z": "d2b3eae6a1ecc622",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "e4edcc77427188f6",
+            "932e2635730c7a44",
+            "bfc08132027e72b7",
+            "6c87b85f99be3616",
+            "9c09946d8577b52d",
+            "2676f36ebaab5969",
+            "1dc6b8aa2257eca3",
+            "329a2a1a632fd233",
+            "27e7e959761bf77f",
+            "fa224a9d8ab1f2c7",
+            "d19b915e7393b9a7",
+            "984522736a0656a7",
+            "a944210da4387a6a"
+        ],
+        "x": 74,
+        "y": 1319,
+        "w": 872,
+        "h": 362
+    },
+    {
+        "id": "d8fd16c88ec103e5",
+        "type": "group",
+        "z": "d2b3eae6a1ecc622",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "668921cc357bd516",
+            "f47bc3635ec2a31d",
+            "9cfc3721152e8357",
+            "266e174a9f4e200c",
+            "6ec5659b15d00940",
+            "0368379e84561696",
+            "2da39bcbcc3d1109",
+            "36c054113a954792",
+            "c03eaa1b388c50f3",
+            "eed2029c30d5bb5b",
+            "a5083cedc1237564",
+            "e91a6b84ebe3556d",
+            "8e6e2008f8f79caf",
+            "7f610dc5a13b1356"
+        ],
+        "x": 74,
+        "y": 839,
+        "w": 902,
+        "h": 442
+    },
+    {
+        "id": "b1201c21c2d259b8",
+        "type": "group",
+        "z": "d2b3eae6a1ecc622",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "65603f52a369839a",
+            "1d023a68af5918c7",
+            "55df4c29fedf13c8",
+            "d28240a9d9ffdd43",
+            "673ba93006e6550a"
+        ],
+        "x": 74,
+        "y": 479,
+        "w": 912,
+        "h": 142
+    },
+    {
+        "id": "23832db12bfa7d80",
+        "type": "group",
+        "z": "d2b3eae6a1ecc622",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "3bd3915cb891e8f1",
+            "397bd99ac2297103",
+            "7e3dbdbd25da7510",
+            "b0b8022d4920fc55",
+            "7d0b6982f5786807",
+            "08991f3c9d3b47a0",
+            "d1187abb8f01729a"
+        ],
+        "x": 64,
+        "y": 219,
+        "w": 812,
+        "h": 222
+    },
+    {
+        "id": "b2ce35ceb2bdafd8",
+        "type": "group",
+        "z": "d2b3eae6a1ecc622",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "662e19d35ced7eaa",
+            "b174ca5ba476a397",
+            "2defd51ae95a1d97"
+        ],
+        "x": 74,
+        "y": 659,
+        "w": 482,
+        "h": 142
+    },
+    {
+        "id": "36d46609aecf1392",
+        "type": "group",
+        "z": "d2b3eae6a1ecc622",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "8b311452217de452",
+            "34f2a0d0ba7fd911",
+            "f56f61693a49cdcb",
+            "06a5925b29d016e7"
+        ],
+        "x": 74,
+        "y": 39,
+        "w": 752,
+        "h": 142
+    },
+    {
+        "id": "285c23c3bad0ef27",
+        "type": "group",
+        "z": "79a6f5fe6f4d465a",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "ef63988ca2403b46",
+            "6cad9ec490596a99",
+            "19bc7a26f39f3ecc",
+            "1f5deaf79db824cf",
+            "25d9d97555803451",
+            "0ff0aaf552ae087e",
+            "fc2cde946ce08e4e",
+            "2d6737a48c9bf131",
+            "e751595f75537eae",
+            "4ef2369fd3613329",
+            "a08020e9f79e7270",
+            "bb13fb80d451245a",
+            "ebf0bf0b98640c41",
+            "1deb5211a2ddd488",
+            "a21aeea307028ae4"
+        ],
+        "x": 54,
+        "y": 19,
+        "w": 1052,
+        "h": 482
+    },
+    {
+        "id": "8e096ccb69a8c8f5",
+        "type": "group",
+        "z": "79a6f5fe6f4d465a",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "7b40230aee3f3c0f",
+            "aa5537a918d6776b",
+            "a894da66d77e8418",
+            "3b03a088eee38b35",
+            "df6a3b9bbd0f6243",
+            "ec71d8a75c78c0ba",
+            "a9ce0dba53d46bb7",
+            "2484ca47fc4d911a",
+            "84232cde9f2231b5",
+            "48ba7d74504f220a"
+        ],
+        "x": 54,
+        "y": 559,
+        "w": 792,
+        "h": 382
+    },
+    {
+        "id": "6680a3f5b18b36a5",
+        "type": "group",
+        "z": "79a6f5fe6f4d465a",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "fdddad6dc624d803",
+            "c26f86f9b102ce3d",
+            "83a962e6f3eb3652",
+            "1b8a5cc3d4afab4b",
+            "609a5416d116f06b",
+            "b04161e07c2b5f94",
+            "c2d6012f3fa2bfe1",
+            "b4a4967137db05e3",
+            "86c4207a31f2ad3b",
+            "0fc6a57284b0fdcb",
+            "dbd0479a43af64a7",
+            "526eb25bb9a30b5d",
+            "341cccffb89cf4aa",
+            "190b600344448c5f",
+            "bb4bfc533f49d250",
+            "e056796f7cbc9628",
+            "c8a39a53b1074acc"
+        ],
+        "x": 54,
+        "y": 959,
+        "w": 1072,
+        "h": 442
+    },
+    {
+        "id": "1ec58c5dcc676cd8",
+        "type": "group",
+        "z": "79a6f5fe6f4d465a",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "a0e9eefc0d33a27b",
+            "ed284715a31f9fb0",
+            "493b430fb6628573",
+            "cf180f43c9fef5fc"
+        ],
+        "x": 54,
+        "y": 1439,
+        "w": 702,
+        "h": 142
+    },
+    {
+        "id": "b77a84882ecb667f",
+        "type": "group",
+        "z": "14fe15a9e9d468af",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "8c73fb548e807740",
+            "df008f3855a3f9a4",
+            "1444c096a73f4ca6",
+            "2b21c4370fd02197",
+            "efe6dcebe2d7f08d",
+            "f9c6be02a37d97c0",
+            "49aac6ef852864de",
+            "f573a31db4ae7c54",
+            "7f6825ac425c4762",
+            "d17d2adbbd01cbf6",
+            "11407ea89fd47c06",
+            "77168078146d3b2b",
+            "596e4966920d35cc",
+            "7f20c7d7a421295e",
+            "01d2238a6571f70e",
+            "46b04c28e0c85cc6",
+            "9d5dd36f42e74286"
+        ],
+        "x": 34,
+        "y": 99,
+        "w": 1572,
+        "h": 482
+    },
+    {
+        "id": "67244e1b04fa0130",
+        "type": "group",
+        "z": "79a6f5fe6f4d465a",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "793f8368f0a1c1a3",
+            "8c223050ecd416ef",
+            "825b3d7170cf5598",
+            "37278c8895890143",
+            "6944643a2ea15889",
+            "4a49bda87a91dd36",
+            "f458df76db488866",
+            "05f34bc116cd8ee2"
+        ],
+        "x": 54,
+        "y": 1639,
+        "w": 912,
+        "h": 242
+    },
+    {
+        "id": "b09a1570957d3c44",
+        "type": "opcua-client-config",
+        "name": "",
+        "endpoint": "opc.tcp://localhost:5840/",
+        "securityPolicy": "None",
+        "securityMode": "None",
+        "authType": "anonymous"
+    },
+    {
+        "id": "8b311452217de452",
+        "type": "opc-ua-server",
+        "z": "d2b3eae6a1ecc622",
+        "g": "36d46609aecf1392",
+        "name": "",
+        "resourcePath": "/",
+        "serverName": "myServer1",
+        "allowAnonymous": true,
+        "port": "5840",
+        "maxConnections": 10,
+        "securityPolicy": "None",
+        "securityMode": "None",
+        "namespaceUri": "urn:node-red:opc-ua-server",
+        "tree": "{\n  \"objects\": [],\n  \"folders\": [\n    {\n      \"name\": \"myServer1\",\n      \"displayName\": \"\",\n      \"description\": \"\",\n      \"nodeId\": \"\",\n      \"namespaceId\": 2,\n      \"objectsType\": \"\",\n      \"folders\": [\n        {\n          \"name\": \"folderMethod\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [],\n          \"alarms\": [],\n          \"methods\": [\n            {\n              \"name\": \"methodSum\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"inputs\": [\n                {\n                  \"name\": \"var1\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                },\n                {\n                  \"name\": \"var2\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ],\n              \"outputs\": [\n                {\n                  \"name\": \"result\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ]\n            },\n            {\n              \"name\": \"methodMultiplication\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"inputs\": [\n                {\n                  \"name\": \"var1\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                },\n                {\n                  \"name\": \"var2\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ],\n              \"outputs\": [\n                {\n                  \"name\": \"result\",\n                  \"type\": \"Float\",\n                  \"displayName\": \"\",\n                  \"description\": \"\"\n                }\n              ]\n            }\n          ],\n          \"objectsTypes\": []\n        },\n        {\n          \"name\": \"folderAlarms\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [],\n          \"alarms\": [\n            {\n              \"name\": \"levelAlarm1\",\n              \"variableNodeId\": \"myServer1.variableLevelAlarm\",\n              \"type\": \"levelAlarm\",\n              \"enabled\": true,\n              \"severity\": 500,\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"highHighLimit\": 90,\n              \"highHighMessage\": \"High High alarm\",\n              \"highLimit\": 80,\n              \"highMessage\": \"High alarm\",\n              \"lowLimit\": 20,\n              \"lowMessage\": \"Low alarm\",\n              \"lowLowLimit\": 10,\n              \"lowLowMessage\": \"Low Low alarm\",\n              \"normalStateValue\": 0,\n              \"digitalMessage\": \"Digital alarm\"\n            },\n            {\n              \"name\": \"digitalAlarm1\",\n              \"variableNodeId\": \"myServer1.variableDigitalAlarm\",\n              \"type\": \"digitalAlarm\",\n              \"enabled\": true,\n              \"severity\": 500,\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2,\n              \"highHighLimit\": 100,\n              \"highHighMessage\": \"High High alarm\",\n              \"highLimit\": 80,\n              \"highMessage\": \"High alarm\",\n              \"lowLimit\": 20,\n              \"lowMessage\": \"Low alarm\",\n              \"lowLowLimit\": 0,\n              \"lowLowMessage\": \"Low Low alarm\",\n              \"normalStateValue\": 0,\n              \"digitalMessage\": \"Digital alarm\"\n            }\n          ],\n          \"methods\": [],\n          \"objectsTypes\": []\n        },\n        {\n          \"name\": \"folderCustomObjectType\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [],\n          \"alarms\": [],\n          \"methods\": [],\n          \"objectsTypes\": [\n            {\n              \"name\": \"customObjectType1\",\n              \"displayName\": \"\",\n              \"description\": \"\",\n              \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType1\",\n              \"namespaceId\": 2,\n              \"objectsType\": \"customObjectType\",\n              \"folders\": [],\n              \"objects\": [],\n              \"variables\": [],\n              \"alarms\": [],\n              \"methods\": [],\n              \"objectsTypes\": []\n            },\n            {\n              \"name\": \"customObjectType2\",\n              \"displayName\": \"\",\n              \"description\": \"\",\n              \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType2\",\n              \"namespaceId\": 2,\n              \"objectsType\": \"customObjectType\",\n              \"folders\": [],\n              \"objects\": [],\n              \"variables\": [],\n              \"alarms\": [],\n              \"methods\": [],\n              \"objectsTypes\": []\n            }\n          ]\n        }\n      ],\n      \"objects\": [\n        {\n          \"name\": \"newObject\",\n          \"displayName\": \"\",\n          \"description\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2,\n          \"objectsType\": \"\",\n          \"folders\": [],\n          \"objects\": [],\n          \"variables\": [\n            {\n              \"name\": \"newVariable\",\n              \"type\": \"Int32\",\n              \"value\": \"\",\n              \"access\": \"readwrite\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2\n            },\n            {\n              \"name\": \"newVariable2\",\n              \"type\": \"Float\",\n              \"value\": \"123.3\",\n              \"access\": \"readwrite\",\n              \"description\": \"\",\n              \"displayName\": \"\",\n              \"nodeId\": \"\",\n              \"namespaceId\": 2\n            }\n          ],\n          \"alarms\": [],\n          \"methods\": [],\n          \"objectsTypes\": []\n        }\n      ],\n      \"variables\": [\n        {\n          \"name\": \"variableLevelAlarm\",\n          \"type\": \"Int32\",\n          \"value\": \"50\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2\n        },\n        {\n          \"name\": \"variableDigitalAlarm\",\n          \"type\": \"Boolean\",\n          \"value\": \"0\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2\n        },\n        {\n          \"name\": \"variableArray\",\n          \"type\": \"Int32\",\n          \"value\": \"[10,20,30,40]\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"\",\n          \"namespaceId\": 2\n        }\n      ],\n      \"alarms\": [],\n      \"methods\": [],\n      \"objectsTypes\": []\n    }\n  ],\n  \"objectsTypes\": [\n    {\n      \"name\": \"customObjectType\",\n      \"displayName\": \"\",\n      \"description\": \"\",\n      \"nodeId\": \"ns=2;s=customObjectType\",\n      \"namespaceId\": 2,\n      \"objectsType\": \"\",\n      \"folders\": [],\n      \"objects\": [],\n      \"variables\": [\n        {\n          \"name\": \"var1\",\n          \"type\": \"Int32\",\n          \"value\": \"\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"ns=2;s=customObjectType.var1\",\n          \"namespaceId\": 2\n        },\n        {\n          \"name\": \"var2\",\n          \"type\": \"Int32\",\n          \"value\": \"\",\n          \"access\": \"readwrite\",\n          \"description\": \"\",\n          \"displayName\": \"\",\n          \"nodeId\": \"ns=2;s=customObjectType.var2\",\n          \"namespaceId\": 2\n        }\n      ],\n      \"alarms\": [],\n      \"methods\": [],\n      \"objectsTypes\": []\n    }\n  ],\n  \"nameSpaces\": [\n    {\n      \"id\": 2,\n      \"name\": \"urn:node-red:opc-ua-server\"\n    },\n    {\n      \"id\": 3,\n      \"name\": \"urn:plant2:3\"\n    }\n  ]\n}",
+        "x": 730,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "3bd3915cb891e8f1",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "23832db12bfa7d80",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "method-input",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "methodSum",
+        "intervalMs": 500,
+        "inputs": 0,
+        "outputs": 1,
+        "x": 170,
+        "y": 300,
+        "wires": [
+            [
+                "7e3dbdbd25da7510"
+            ]
+        ]
+    },
+    {
+        "id": "397bd99ac2297103",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "23832db12bfa7d80",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "method-output",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "methodSum",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 0,
+        "x": 730,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "7e3dbdbd25da7510",
+        "type": "function",
+        "z": "d2b3eae6a1ecc622",
+        "g": "23832db12bfa7d80",
+        "name": "function 2",
+        "func": "var input1 = msg.payload[0].value\nvar input2 = msg.payload[1].value\n\nmsg.payload = [\n    {\n        dataType: \"Float\",\n        value: input1 + input2\n    }\n];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 300,
+        "wires": [
+            [
+                "397bd99ac2297103"
+            ]
+        ]
+    },
+    {
+        "id": "65603f52a369839a",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b1201c21c2d259b8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 220,
+        "y": 580,
+        "wires": [
+            [
+                "1d023a68af5918c7"
+            ]
+        ]
+    },
+    {
+        "id": "1d023a68af5918c7",
+        "type": "function",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b1201c21c2d259b8",
+        "name": "function 47",
+        "func": "const min = 30;\nconst max = 40;\nconst randomInt1 = Math.floor(Math.random() * (max - min + 1)) + min;\nconst randomInt2 = Math.floor(Math.random() * (max - min + 1)) + min;\nconst randomInt3 = Math.floor(Math.random() * (max - min + 1)) + min;\n\n\nmsg.payload = [\n    {\n        \"nodePath\": \"myServer1.newObject\",\n        \"severity\": 0,\n        \"message\": \"newObject message\"\n    },\n    {\n        \"nodePath\": \"myServer1.newObject\",\n        \"severity\": 500,\n        \"message\": \"newObject message 2\"\n    },\n    {\n        \"nodePath\": \"myServer1.newObject\",\n        \"severity\": 1000,\n        \"message\": \"newObject message 3\"\n    }\n]\n\n\n\n\n\n\n\n\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 580,
+        "wires": [
+            [
+                "d28240a9d9ffdd43"
+            ]
+        ]
+    },
+    {
+        "id": "55df4c29fedf13c8",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b1201c21c2d259b8",
+        "name": "debug 38",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "d28240a9d9ffdd43",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b1201c21c2d259b8",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "event",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 1,
+        "x": 660,
+        "y": 580,
+        "wires": [
+            [
+                "55df4c29fedf13c8"
+            ]
+        ]
+    },
+    {
+        "id": "673ba93006e6550a",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b1201c21c2d259b8",
+        "name": "event",
+        "info": "",
+        "x": 170,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "34f2a0d0ba7fd911",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "36d46609aecf1392",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 220,
+        "y": 140,
+        "wires": [
+            [
+                "f56f61693a49cdcb"
+            ]
+        ]
+    },
+    {
+        "id": "f56f61693a49cdcb",
+        "type": "template",
+        "z": "d2b3eae6a1ecc622",
+        "g": "36d46609aecf1392",
+        "name": "original modal",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "json",
+        "syntax": "mustache",
+        "template": "{\n    \"objects\": [],\n    \"folders\": [\n        {\n            \"name\": \"myServer1\",\n            \"displayName\": \"\",\n            \"description\": \"\",\n            \"nodeId\": \"\",\n            \"namespaceId\": 2,\n            \"objectsType\": \"\",\n            \"folders\": [\n                {\n                    \"name\": \"folderMethod\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [],\n                    \"alarms\": [],\n                    \"methods\": [\n                        {\n                            \"name\": \"methodSum\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"inputs\": [\n                                {\n                                    \"name\": \"var1\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                },\n                                {\n                                    \"name\": \"var2\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ],\n                            \"outputs\": [\n                                {\n                                    \"name\": \"result\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"methodMultiplication\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"inputs\": [\n                                {\n                                    \"name\": \"var1\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                },\n                                {\n                                    \"name\": \"var2\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ],\n                            \"outputs\": [\n                                {\n                                    \"name\": \"result\",\n                                    \"type\": \"Float\",\n                                    \"displayName\": \"\",\n                                    \"description\": \"\"\n                                }\n                            ]\n                        }\n                    ],\n                    \"objectsTypes\": []\n                },\n                {\n                    \"name\": \"folderAlarms\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [],\n                    \"alarms\": [\n                        {\n                            \"name\": \"levelAlarm1\",\n                            \"variableNodeId\": \"myServer1.variableLevelAlarm\",\n                            \"type\": \"levelAlarm\",\n                            \"enabled\": true,\n                            \"severity\": 500,\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"highHighLimit\": 90,\n                            \"highHighMessage\": \"High High alarm\",\n                            \"highLimit\": 80,\n                            \"highMessage\": \"High alarm\",\n                            \"lowLimit\": 20,\n                            \"lowMessage\": \"Low alarm\",\n                            \"lowLowLimit\": 10,\n                            \"lowLowMessage\": \"Low Low alarm\",\n                            \"normalStateValue\": 0,\n                            \"digitalMessage\": \"Digital alarm\"\n                        },\n                        {\n                            \"name\": \"digitalAlarm1\",\n                            \"variableNodeId\": \"myServer1.variableDigitalAlarm\",\n                            \"type\": \"digitalAlarm\",\n                            \"enabled\": true,\n                            \"severity\": 500,\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2,\n                            \"highHighLimit\": 100,\n                            \"highHighMessage\": \"High High alarm\",\n                            \"highLimit\": 80,\n                            \"highMessage\": \"High alarm\",\n                            \"lowLimit\": 20,\n                            \"lowMessage\": \"Low alarm\",\n                            \"lowLowLimit\": 0,\n                            \"lowLowMessage\": \"Low Low alarm\",\n                            \"normalStateValue\": 0,\n                            \"digitalMessage\": \"Digital alarm\"\n                        }\n                    ],\n                    \"methods\": [],\n                    \"objectsTypes\": []\n                },\n                {\n                    \"name\": \"folderCustomObjectType\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [],\n                    \"alarms\": [],\n                    \"methods\": [],\n                    \"objectsTypes\": [\n                        {\n                            \"name\": \"customObjectType1\",\n                            \"displayName\": \"\",\n                            \"description\": \"\",\n                            \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType1\",\n                            \"namespaceId\": 2,\n                            \"objectsType\": \"customObjectType\",\n                            \"folders\": [],\n                            \"objects\": [],\n                            \"variables\": [],\n                            \"alarms\": [],\n                            \"methods\": [],\n                            \"objectsTypes\": []\n                        },\n                        {\n                            \"name\": \"customObjectType2\",\n                            \"displayName\": \"\",\n                            \"description\": \"\",\n                            \"nodeId\": \"ns=2;s=myServer1.folderCustomObjectType.customObjectType2\",\n                            \"namespaceId\": 2,\n                            \"objectsType\": \"customObjectType\",\n                            \"folders\": [],\n                            \"objects\": [],\n                            \"variables\": [],\n                            \"alarms\": [],\n                            \"methods\": [],\n                            \"objectsTypes\": []\n                        }\n                    ]\n                }\n            ],\n            \"objects\": [\n                {\n                    \"name\": \"newObject\",\n                    \"displayName\": \"\",\n                    \"description\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2,\n                    \"objectsType\": \"\",\n                    \"folders\": [],\n                    \"objects\": [],\n                    \"variables\": [\n                        {\n                            \"name\": \"newVariable\",\n                            \"type\": \"Int32\",\n                            \"value\": \"\",\n                            \"access\": \"readwrite\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2\n                        },\n                        {\n                            \"name\": \"newVariable2\",\n                            \"type\": \"Float\",\n                            \"value\": \"123.3\",\n                            \"access\": \"readwrite\",\n                            \"description\": \"\",\n                            \"displayName\": \"\",\n                            \"nodeId\": \"\",\n                            \"namespaceId\": 2\n                        }\n                    ],\n                    \"alarms\": [],\n                    \"methods\": [],\n                    \"objectsTypes\": []\n                }\n            ],\n            \"variables\": [\n                {\n                    \"name\": \"variableLevelAlarm\",\n                    \"type\": \"Int32\",\n                    \"value\": \"50\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2\n                },\n                {\n                    \"name\": \"variableDigitalAlarm\",\n                    \"type\": \"Boolean\",\n                    \"value\": \"0\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2\n                },\n                {\n                    \"name\": \"variableArray\",\n                    \"type\": \"Int32\",\n                    \"value\": \"[10,20,30,40]\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"\",\n                    \"namespaceId\": 2\n                }\n            ],\n            \"alarms\": [],\n            \"methods\": [],\n            \"objectsTypes\": []\n        }\n    ],\n    \"objectsTypes\": [\n        {\n            \"name\": \"customObjectType\",\n            \"displayName\": \"\",\n            \"description\": \"\",\n            \"nodeId\": \"ns=2;s=customObjectType\",\n            \"namespaceId\": 2,\n            \"objectsType\": \"\",\n            \"folders\": [],\n            \"objects\": [],\n            \"variables\": [\n                {\n                    \"name\": \"var1\",\n                    \"type\": \"Int32\",\n                    \"value\": \"\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"ns=2;s=customObjectType.var1\",\n                    \"namespaceId\": 2\n                },\n                {\n                    \"name\": \"var2\",\n                    \"type\": \"Int32\",\n                    \"value\": \"\",\n                    \"access\": \"readwrite\",\n                    \"description\": \"\",\n                    \"displayName\": \"\",\n                    \"nodeId\": \"ns=2;s=customObjectType.var2\",\n                    \"namespaceId\": 2\n                }\n            ],\n            \"alarms\": [],\n            \"methods\": [],\n            \"objectsTypes\": []\n        }\n    ],\n    \"nameSpaces\": [\n        {\n            \"id\": 2,\n            \"name\": \"urn:node-red:opc-ua-server\"\n        },\n        {\n            \"id\": 3,\n            \"name\": \"urn:plant2:3\"\n        }\n    ]\n}",
+        "output": "json",
+        "x": 500,
+        "y": 140,
+        "wires": [
+            [
+                "8b311452217de452"
+            ]
+        ]
+    },
+    {
+        "id": "662e19d35ced7eaa",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b2ce35ceb2bdafd8",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "events",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": "1000",
+        "inputs": 0,
+        "outputs": 1,
+        "x": 180,
+        "y": 760,
+        "wires": [
+            [
+                "b174ca5ba476a397"
+            ]
+        ]
+    },
+    {
+        "id": "b174ca5ba476a397",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b2ce35ceb2bdafd8",
+        "name": "debug 1",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 450,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "2defd51ae95a1d97",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "b2ce35ceb2bdafd8",
+        "name": "events server read and write(clients)",
+        "info": "",
+        "x": 240,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "668921cc357bd516",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "alarm on",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload1",
+                "v": "92",
+                "vt": "num"
+            },
+            {
+                "p": "payload2",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 980,
+        "wires": [
+            [
+                "9cfc3721152e8357"
+            ]
+        ]
+    },
+    {
+        "id": "f47bc3635ec2a31d",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "write",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 1,
+        "x": 640,
+        "y": 940,
+        "wires": [
+            [
+                "266e174a9f4e200c"
+            ]
+        ]
+    },
+    {
+        "id": "9cfc3721152e8357",
+        "type": "function",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "function 1",
+        "func": "msg.payload = [\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"path\": \"myServer1.variableLevelAlarm\",\n    \"value\" : msg.payload1\n  },\n  {\n    \"name\": \"variablDigitalAlarm\",\n    \"path\": \"myServer1.variableDigitalAlarm\",\n    \"value\" : msg.payload2\n  }\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 940,
+        "wires": [
+            [
+                "f47bc3635ec2a31d"
+            ]
+        ]
+    },
+    {
+        "id": "266e174a9f4e200c",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "6ec5659b15d00940",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "write",
+        "info": "",
+        "x": 150,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "e4edcc77427188f6",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 240,
+        "y": 1500,
+        "wires": [
+            [
+                "932e2635730c7a44"
+            ]
+        ]
+    },
+    {
+        "id": "932e2635730c7a44",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "read direct",
+        "serverRef": "myServer1",
+        "mode": "read",
+        "identifierType": "path",
+        "tagPath": "myServer1.variableLevelAlarm",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 1,
+        "x": 540,
+        "y": 1500,
+        "wires": [
+            [
+                "bfc08132027e72b7"
+            ]
+        ]
+    },
+    {
+        "id": "bfc08132027e72b7",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 1500,
+        "wires": []
+    },
+    {
+        "id": "0368379e84561696",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "alarm off",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload1",
+                "v": "50",
+                "vt": "num"
+            },
+            {
+                "p": "payload2",
+                "v": "false",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 940,
+        "wires": [
+            [
+                "9cfc3721152e8357"
+            ]
+        ]
+    },
+    {
+        "id": "2da39bcbcc3d1109",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "write single",
+        "info": "",
+        "x": 200,
+        "y": 1040,
+        "wires": []
+    },
+    {
+        "id": "36c054113a954792",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "51",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "51",
+        "payloadType": "num",
+        "x": 170,
+        "y": 1100,
+        "wires": [
+            [
+                "c03eaa1b388c50f3"
+            ]
+        ]
+    },
+    {
+        "id": "c03eaa1b388c50f3",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "write direct",
+        "serverRef": "myServer1",
+        "mode": "write",
+        "identifierType": "path",
+        "tagPath": "myServer1.variableLevelAlarm",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 1,
+        "x": 400,
+        "y": 1100,
+        "wires": [
+            [
+                "eed2029c30d5bb5b"
+            ]
+        ]
+    },
+    {
+        "id": "eed2029c30d5bb5b",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "6c87b85f99be3616",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 220,
+        "y": 1420,
+        "wires": [
+            [
+                "9c09946d8577b52d"
+            ]
+        ]
+    },
+    {
+        "id": "9c09946d8577b52d",
+        "type": "function",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "function 3",
+        "func": "msg.payload = [\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"path\": \"myServer1.variableLevelAlarm\",\n    \"value\" : msg.payload1\n  },\n  {\n    \"name\": \"variablDigitalAlarm\",\n    \"path\": \"myServer1.variableDigitalAlarm\",\n    \"value\" : msg.payload2\n  }\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 1420,
+        "wires": [
+            [
+                "2676f36ebaab5969"
+            ]
+        ]
+    },
+    {
+        "id": "2676f36ebaab5969",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "read",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 1,
+        "x": 640,
+        "y": 1420,
+        "wires": [
+            [
+                "1dc6b8aa2257eca3"
+            ]
+        ]
+    },
+    {
+        "id": "1dc6b8aa2257eca3",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "debug 5",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 1420,
+        "wires": []
+    },
+    {
+        "id": "329a2a1a632fd233",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "read",
+        "info": "",
+        "x": 150,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "27e7e959761bf77f",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "read single",
+        "info": "",
+        "x": 200,
+        "y": 1460,
+        "wires": []
+    },
+    {
+        "id": "b0b8022d4920fc55",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "23832db12bfa7d80",
+        "name": "methods",
+        "info": "",
+        "x": 160,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "7d0b6982f5786807",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "23832db12bfa7d80",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "method-input",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "methodMultiplication",
+        "intervalMs": 500,
+        "inputs": 0,
+        "outputs": 1,
+        "x": 190,
+        "y": 400,
+        "wires": [
+            [
+                "d1187abb8f01729a"
+            ]
+        ]
+    },
+    {
+        "id": "08991f3c9d3b47a0",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "23832db12bfa7d80",
+        "name": "",
+        "serverRef": "myServer1",
+        "mode": "method-output",
+        "identifierType": "path",
+        "tagPath": "",
+        "tagNodeId": "",
+        "methodName": "methodMultiplication",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 0,
+        "x": 750,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "d1187abb8f01729a",
+        "type": "function",
+        "z": "d2b3eae6a1ecc622",
+        "g": "23832db12bfa7d80",
+        "name": "function 4",
+        "func": "var input1 = msg.payload[0].value\nvar input2 = msg.payload[1].value\n\nmsg.payload = [\n    {\n        dataType: \"Float\",\n        value: input1 * input2\n    }\n];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 400,
+        "wires": [
+            [
+                "08991f3c9d3b47a0"
+            ]
+        ]
+    },
+    {
+        "id": "06a5925b29d016e7",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "36d46609aecf1392",
+        "name": "server",
+        "info": "",
+        "x": 190,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "fa224a9d8ab1f2c7",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 240,
+        "y": 1640,
+        "wires": [
+            [
+                "d19b915e7393b9a7"
+            ]
+        ]
+    },
+    {
+        "id": "d19b915e7393b9a7",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "read direct",
+        "serverRef": "myServer1",
+        "mode": "read",
+        "identifierType": "path",
+        "tagPath": "myServer1.variableArray",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 1,
+        "x": 510,
+        "y": 1640,
+        "wires": [
+            [
+                "984522736a0656a7"
+            ]
+        ]
+    },
+    {
+        "id": "984522736a0656a7",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "debug 17",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 1640,
+        "wires": []
+    },
+    {
+        "id": "a944210da4387a6a",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "c84194e1716f46ab",
+        "name": "read array",
+        "info": "",
+        "x": 200,
+        "y": 1580,
+        "wires": []
+    },
+    {
+        "id": "a5083cedc1237564",
+        "type": "comment",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "write array",
+        "info": "",
+        "x": 160,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "e91a6b84ebe3556d",
+        "type": "inject",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "51",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[11,21,31,41]",
+        "payloadType": "str",
+        "x": 170,
+        "y": 1240,
+        "wires": [
+            [
+                "8e6e2008f8f79caf"
+            ]
+        ]
+    },
+    {
+        "id": "8e6e2008f8f79caf",
+        "type": "opcua-server-io",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "write direct",
+        "serverRef": "myServer1",
+        "mode": "write",
+        "identifierType": "path",
+        "tagPath": "myServer1.variableArray",
+        "tagNodeId": "",
+        "methodName": "",
+        "intervalMs": 500,
+        "inputs": 1,
+        "outputs": 1,
+        "x": 350,
+        "y": 1240,
+        "wires": [
+            [
+                "7f610dc5a13b1356"
+            ]
+        ]
+    },
+    {
+        "id": "7f610dc5a13b1356",
+        "type": "debug",
+        "z": "d2b3eae6a1ecc622",
+        "g": "d8fd16c88ec103e5",
+        "name": "debug 18",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 1240,
+        "wires": []
+    },
+    {
+        "id": "ef63988ca2403b46",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "client read direct",
+        "connection": "b09a1570957d3c44",
+        "mode": "read",
+        "selectedItems": "[\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n    \"type\": \"Int32\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"variableDigitalAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n    \"type\": \"Boolean\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 440,
+        "y": 120,
+        "wires": [
+            [
+                "19bc7a26f39f3ecc"
+            ]
+        ]
+    },
+    {
+        "id": "6cad9ec490596a99",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 120,
+        "wires": [
+            [
+                "ef63988ca2403b46"
+            ]
+        ]
+    },
+    {
+        "id": "19bc7a26f39f3ecc",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "1f5deaf79db824cf",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "client read ",
+        "connection": "b09a1570957d3c44",
+        "mode": "read",
+        "selectedItems": "[]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 630,
+        "y": 240,
+        "wires": [
+            [
+                "0ff0aaf552ae087e"
+            ]
+        ]
+    },
+    {
+        "id": "25d9d97555803451",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 240,
+        "wires": [
+            [
+                "fc2cde946ce08e4e"
+            ]
+        ]
+    },
+    {
+        "id": "0ff0aaf552ae087e",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "debug 7",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "fc2cde946ce08e4e",
+        "type": "function",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "function 5",
+        "func": "msg.payload = [\n    {\n        \"name\": \"variableLevelAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n        \"type\": \"Int32\"\n    },\n    {\n        \"name\": \"variableDigitalAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n        \"type\": \"Boolean\"\n    }\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 240,
+        "wires": [
+            [
+                "1f5deaf79db824cf"
+            ]
+        ]
+    },
+    {
+        "id": "2d6737a48c9bf131",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "client read Subscripition",
+        "connection": "b09a1570957d3c44",
+        "mode": "subscription",
+        "selectedItems": "[]",
+        "samplingInterval": "500",
+        "publishingInterval": "500",
+        "x": 670,
+        "y": 380,
+        "wires": [
+            [
+                "4ef2369fd3613329"
+            ]
+        ]
+    },
+    {
+        "id": "e751595f75537eae",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 380,
+        "wires": [
+            [
+                "a08020e9f79e7270"
+            ]
+        ]
+    },
+    {
+        "id": "4ef2369fd3613329",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "debug 8",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "a08020e9f79e7270",
+        "type": "function",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "function 6",
+        "func": "msg.payload = [\n    {\n        \"name\": \"variableLevelAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n        \"type\": \"Int32\"\n    },\n    {\n        \"name\": \"variableDigitalAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n        \"type\": \"Boolean\"\n    }\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 380,
+        "wires": [
+            [
+                "2d6737a48c9bf131"
+            ]
+        ]
+    },
+    {
+        "id": "bb13fb80d451245a",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "client read Subscripition direct",
+        "connection": "b09a1570957d3c44",
+        "mode": "subscription",
+        "selectedItems": "[\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n    \"type\": \"Int32\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"variableDigitalAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n    \"type\": \"Boolean\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": "500",
+        "publishingInterval": "500",
+        "x": 690,
+        "y": 460,
+        "wires": [
+            [
+                "1deb5211a2ddd488"
+            ]
+        ]
+    },
+    {
+        "id": "ebf0bf0b98640c41",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 460,
+        "wires": [
+            [
+                "bb13fb80d451245a"
+            ]
+        ]
+    },
+    {
+        "id": "1deb5211a2ddd488",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "debug 9",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "a21aeea307028ae4",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "285c23c3bad0ef27",
+        "name": "read",
+        "info": "",
+        "x": 130,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "7b40230aee3f3c0f",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "write",
+        "info": "",
+        "x": 130,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "aa5537a918d6776b",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "client write direct",
+        "connection": "b09a1570957d3c44",
+        "mode": "write",
+        "selectedItems": "[\n  {\n    \"name\": \"variableLevelAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n    \"type\": \"Int32\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload1\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"variableDigitalAlarm\",\n    \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n    \"type\": \"Boolean\",\n    \"nodeClass\": \"Variable\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=63\",\n      \"browseName\": \"BaseDataVariableType\",\n      \"displayName\": \"BaseDataVariableType\"\n    },\n    \"valueProperty\": \"payload2\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 430,
+        "y": 680,
+        "wires": [
+            [
+                "a894da66d77e8418"
+            ]
+        ]
+    },
+    {
+        "id": "a894da66d77e8418",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "debug 10",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "3b03a088eee38b35",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "alarm on",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload1",
+                "v": "92",
+                "vt": "num"
+            },
+            {
+                "p": "payload2",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 740,
+        "wires": [
+            [
+                "aa5537a918d6776b"
+            ]
+        ]
+    },
+    {
+        "id": "df6a3b9bbd0f6243",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "alarm off",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload1",
+                "v": "50",
+                "vt": "num"
+            },
+            {
+                "p": "payload2",
+                "v": "false",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 680,
+        "wires": [
+            [
+                "aa5537a918d6776b"
+            ]
+        ]
+    },
+    {
+        "id": "ec71d8a75c78c0ba",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "client write ",
+        "connection": "b09a1570957d3c44",
+        "mode": "write",
+        "selectedItems": "[]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 570,
+        "y": 820,
+        "wires": [
+            [
+                "a9ce0dba53d46bb7"
+            ]
+        ]
+    },
+    {
+        "id": "a9ce0dba53d46bb7",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "debug 11",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 740,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "2484ca47fc4d911a",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "alarm on",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload1",
+                "v": "92",
+                "vt": "num"
+            },
+            {
+                "p": "payload2",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 900,
+        "wires": [
+            [
+                "48ba7d74504f220a"
+            ]
+        ]
+    },
+    {
+        "id": "84232cde9f2231b5",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "alarm off",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            },
+            {
+                "p": "payload1",
+                "v": "50",
+                "vt": "num"
+            },
+            {
+                "p": "payload2",
+                "v": "false",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 840,
+        "wires": [
+            [
+                "48ba7d74504f220a"
+            ]
+        ]
+    },
+    {
+        "id": "48ba7d74504f220a",
+        "type": "function",
+        "z": "79a6f5fe6f4d465a",
+        "g": "8e096ccb69a8c8f5",
+        "name": "function 7",
+        "func": "msg.payload = [\n    {\n        \"name\": \"variableLevelAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableLevelAlarm\",\n        \"type\": \"Int32\",\n        \"nodeClass\": \"Variable\",\n        \"value\" : msg.payload1\n \n    },\n    {\n        \"name\": \"variableDigitalAlarm\",\n        \"nodeID\": \"ns=2;s=myServer1.variableDigitalAlarm\",\n        \"type\": \"Boolean\",\n        \"nodeClass\": \"Variable\",\n        \"value\" : msg.payload2\n\n    }\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 820,
+        "wires": [
+            [
+                "ec71d8a75c78c0ba"
+            ]
+        ]
+    },
+    {
+        "id": "fdddad6dc624d803",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "client method",
+        "connection": "b09a1570957d3c44",
+        "mode": "method",
+        "selectedItems": "[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 830,
+        "y": 1100,
+        "wires": [
+            [
+                "83a962e6f3eb3652"
+            ]
+        ]
+    },
+    {
+        "id": "c26f86f9b102ce3d",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 1100,
+        "wires": [
+            [
+                "609a5416d116f06b"
+            ]
+        ]
+    },
+    {
+        "id": "83a962e6f3eb3652",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "debug 52",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "1b8a5cc3d4afab4b",
+        "type": "function",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "method refresh",
+        "func": "msg.payload = [\n    {\n        \"name\": \"metodo1\",\n        \"nodeID\": \"ns=0;i=3875\",\n        \"inputs\": [\n            {\n                \"name\": \"i1\",\n                \"type\": \"UInt32\",\n                \"value\": msg.payload\n            },\n        ]\n    },\n\n \n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 1100,
+        "wires": [
+            [
+                "fdddad6dc624d803"
+            ]
+        ]
+    },
+    {
+        "id": "609a5416d116f06b",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "client get id",
+        "connection": "b09a1570957d3c44",
+        "mode": "getSubscriptionId",
+        "selectedItems": "[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 450,
+        "y": 1100,
+        "wires": [
+            [
+                "1b8a5cc3d4afab4b"
+            ]
+        ]
+    },
+    {
+        "id": "b04161e07c2b5f94",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "method refresh",
+        "info": "",
+        "x": 160,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "a0e9eefc0d33a27b",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "1ec58c5dcc676cd8",
+        "name": "client Events",
+        "connection": "b09a1570957d3c44",
+        "mode": "events",
+        "selectedItems": "[\n  {\n    \"name\": \"Server\",\n    \"nodeID\": \"ns=0;i=2253\",\n    \"nodeClass\": \"Object\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=2004\",\n      \"browseName\": \"ServerType\",\n      \"displayName\": \"ServerType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 450,
+        "y": 1540,
+        "wires": [
+            [
+                "493b430fb6628573"
+            ]
+        ]
+    },
+    {
+        "id": "ed284715a31f9fb0",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "1ec58c5dcc676cd8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 1540,
+        "wires": [
+            [
+                "a0e9eefc0d33a27b"
+            ]
+        ]
+    },
+    {
+        "id": "493b430fb6628573",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "1ec58c5dcc676cd8",
+        "name": "debug 12",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 1540,
+        "wires": []
+    },
+    {
+        "id": "cf180f43c9fef5fc",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "1ec58c5dcc676cd8",
+        "name": "events",
+        "info": "",
+        "x": 130,
+        "y": 1480,
+        "wires": []
+    },
+    {
+        "id": "c2d6012f3fa2bfe1",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 1220,
+        "wires": [
+            [
+                "86c4207a31f2ad3b"
+            ]
+        ]
+    },
+    {
+        "id": "b4a4967137db05e3",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "client method",
+        "connection": "b09a1570957d3c44",
+        "mode": "method",
+        "selectedItems": "[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 670,
+        "y": 1220,
+        "wires": [
+            [
+                "0fc6a57284b0fdcb"
+            ]
+        ]
+    },
+    {
+        "id": "86c4207a31f2ad3b",
+        "type": "function",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "method methodSum",
+        "func": "msg.payload = [\n    {\n        \"name\": \"methodSum\",\n        \"nodeID\": \"ns=2;s=myServer1.folderMethod.methodSum\",\n        \"inputs\": [\n            {\n                \"name\": \"var1\",\n                \"type\": \"Float\",\n                \"value\": 5\n            },\n            {\n                \"name\": \"var2\",\n                \"type\": \"Float\",\n                \"value\": 5\n            }\n        ]\n    }\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 1220,
+        "wires": [
+            [
+                "b4a4967137db05e3"
+            ]
+        ]
+    },
+    {
+        "id": "0fc6a57284b0fdcb",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "debug 13",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 850,
+        "y": 1220,
+        "wires": []
+    },
+    {
+        "id": "dbd0479a43af64a7",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "refresh event",
+        "info": "",
+        "x": 150,
+        "y": 1060,
+        "wires": []
+    },
+    {
+        "id": "526eb25bb9a30b5d",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "methodSum",
+        "info": "",
+        "x": 150,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "341cccffb89cf4aa",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "client method",
+        "connection": "b09a1570957d3c44",
+        "mode": "method",
+        "selectedItems": "[\n  {\n    \"name\": \"soma\",\n    \"nodeID\": \"ns=2;s=teste.soma\",\n    \"nodeClass\": \"Method\",\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 830,
+        "y": 1360,
+        "wires": [
+            [
+                "e056796f7cbc9628"
+            ]
+        ]
+    },
+    {
+        "id": "190b600344448c5f",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 1360,
+        "wires": [
+            [
+                "bb4bfc533f49d250"
+            ]
+        ]
+    },
+    {
+        "id": "bb4bfc533f49d250",
+        "type": "function",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "levelAlarm1-Acknowledge",
+        "func": "\n\nmsg.payload = [\n    {\n        \"name\": \"metodo1\",\n        \"nodeID\": \"ns=2;s=myServer1.folderAlarms.levelAlarm1-Acknowledge\",\n        \"inputs\": [\n            {\n                \"name\": \"i1\",\n                \"type\": \"ByteString\",\n                \"value\": \"\"\n            },\n            {\n                \"name\": \"i2\",\n                \"type\": \"LocalizedText\",\n                \"value\": \"\"\n            },\n        ]\n    },\n\n\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 1360,
+        "wires": [
+            [
+                "341cccffb89cf4aa"
+            ]
+        ]
+    },
+    {
+        "id": "e056796f7cbc9628",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "debug 14",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "c8a39a53b1074acc",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "6680a3f5b18b36a5",
+        "name": "method Acknowledge",
+        "info": "",
+        "x": 180,
+        "y": 1300,
+        "wires": []
+    },
+    {
+        "id": "793f8368f0a1c1a3",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "client browse direct",
+        "connection": "b09a1570957d3c44",
+        "mode": "browse",
+        "selectedItems": "[\n  {\n    \"name\": \"myServer1\",\n    \"nodeID\": \"ns=2;s=myServer1\",\n    \"nodeClass\": \"Object\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=61\",\n      \"browseName\": \"FolderType\",\n      \"displayName\": \"FolderType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  },\n  {\n    \"name\": \"folderAlarms\",\n    \"nodeID\": \"ns=2;s=myServer1.folderAlarms\",\n    \"nodeClass\": \"Object\",\n    \"hasTypeDefinition\": {\n      \"nodeID\": \"ns=0;i=61\",\n      \"browseName\": \"FolderType\",\n      \"displayName\": \"FolderType\"\n    },\n    \"valueProperty\": \"payload\",\n    \"valuePropertyType\": \"msg\"\n  }\n]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 450,
+        "y": 1740,
+        "wires": [
+            [
+                "37278c8895890143"
+            ]
+        ]
+    },
+    {
+        "id": "8c223050ecd416ef",
+        "type": "comment",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "browse ",
+        "info": "",
+        "x": 130,
+        "y": 1680,
+        "wires": []
+    },
+    {
+        "id": "825b3d7170cf5598",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 1740,
+        "wires": [
+            [
+                "793f8368f0a1c1a3"
+            ]
+        ]
+    },
+    {
+        "id": "37278c8895890143",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "debug 15",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 1740,
+        "wires": []
+    },
+    {
+        "id": "6944643a2ea15889",
+        "type": "opcua-client",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "client browse ",
+        "connection": "b09a1570957d3c44",
+        "mode": "browse",
+        "selectedItems": "[]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 630,
+        "y": 1840,
+        "wires": [
+            [
+                "f458df76db488866"
+            ]
+        ]
+    },
+    {
+        "id": "4a49bda87a91dd36",
+        "type": "inject",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 1840,
+        "wires": [
+            [
+                "05f34bc116cd8ee2"
+            ]
+        ]
+    },
+    {
+        "id": "f458df76db488866",
+        "type": "debug",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "debug 16",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 1840,
+        "wires": []
+    },
+    {
+        "id": "05f34bc116cd8ee2",
+        "type": "function",
+        "z": "79a6f5fe6f4d465a",
+        "g": "67244e1b04fa0130",
+        "name": "browse ",
+        "func": "msg.payload = [\n    {\n        \"name\": \"myServer1\",\n        \"nodeID\": \"ns=2;s=myServer1\",\n   \n    },\n    {\n        \"name\": \"folderAlarms\",\n        \"nodeID\": \"ns=2;s=myServer1.folderAlarms\",\n    \n    }\n]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 1840,
+        "wires": [
+            [
+                "6944643a2ea15889"
+            ]
+        ]
+    },
+    {
+        "id": "8c73fb548e807740",
+        "type": "opcua-client",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "",
+        "connection": "b09a1570957d3c44",
+        "mode": "browse",
+        "selectedItems": "[]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 590,
+        "y": 340,
+        "wires": [
+            [
+                "2b21c4370fd02197",
+                "596e4966920d35cc"
+            ]
+        ]
+    },
+    {
+        "id": "df008f3855a3f9a4",
+        "type": "inject",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 180,
+        "y": 340,
+        "wires": [
+            [
+                "1444c096a73f4ca6",
+                "596e4966920d35cc"
+            ]
+        ]
+    },
+    {
+        "id": "1444c096a73f4ca6",
+        "type": "function",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "ns=2;s=myServer1",
+        "func": "msg.payload = [{\n    \"nodeId\" : \"ns=2;s=myServer1\"\n}]\n\nflow.set(\"variables\", [])\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 340,
+        "wires": [
+            [
+                "8c73fb548e807740"
+            ]
+        ]
+    },
+    {
+        "id": "2b21c4370fd02197",
+        "type": "change",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload[0].browse",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 810,
+        "y": 340,
+        "wires": [
+            [
+                "efe6dcebe2d7f08d"
+            ]
+        ]
+    },
+    {
+        "id": "efe6dcebe2d7f08d",
+        "type": "split",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 1010,
+        "y": 340,
+        "wires": [
+            [
+                "f9c6be02a37d97c0"
+            ]
+        ]
+    },
+    {
+        "id": "f9c6be02a37d97c0",
+        "type": "switch",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "",
+        "property": "payload.nodeClass",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "Object",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "Variable",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1170,
+        "y": 340,
+        "wires": [
+            [
+                "49aac6ef852864de"
+            ],
+            [
+                "f573a31db4ae7c54"
+            ]
+        ]
+    },
+    {
+        "id": "49aac6ef852864de",
+        "type": "function",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "function 39",
+        "func": "msg.payload = [msg.payload]\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 140,
+        "wires": [
+            [
+                "8c73fb548e807740"
+            ]
+        ]
+    },
+    {
+        "id": "f573a31db4ae7c54",
+        "type": "function",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "flow.set(\"variables\")",
+        "func": "var variables = flow.get(\"variables\")\n\nvariables.push(  {\n    \"name\": msg.payload.browseName ,\n    \"nodeID\": msg.payload.nodeID\n  })\n\nflow.set(\"variables\" , variables)\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1390,
+        "y": 380,
+        "wires": [
+            [
+                "01d2238a6571f70e"
+            ]
+        ]
+    },
+    {
+        "id": "7f6825ac425c4762",
+        "type": "opcua-client",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "Subscription all variables in server",
+        "connection": "b09a1570957d3c44",
+        "mode": "subscription",
+        "selectedItems": "[]",
+        "samplingInterval": 250,
+        "publishingInterval": 250,
+        "x": 640,
+        "y": 540,
+        "wires": [
+            [
+                "11407ea89fd47c06"
+            ]
+        ]
+    },
+    {
+        "id": "d17d2adbbd01cbf6",
+        "type": "change",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "variables",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 370,
+        "y": 540,
+        "wires": [
+            [
+                "7f6825ac425c4762"
+            ]
+        ]
+    },
+    {
+        "id": "11407ea89fd47c06",
+        "type": "debug",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "debug 32",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "77168078146d3b2b",
+        "type": "trigger",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "",
+        "op1": "",
+        "op2": "",
+        "op1type": "nul",
+        "op2type": "payl",
+        "duration": "2",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "s",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 180,
+        "y": 540,
+        "wires": [
+            [
+                "d17d2adbbd01cbf6"
+            ]
+        ]
+    },
+    {
+        "id": "596e4966920d35cc",
+        "type": "function",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "reset",
+        "func": "msg.reset = 1\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 420,
+        "wires": [
+            [
+                "9d5dd36f42e74286"
+            ]
+        ]
+    },
+    {
+        "id": "7f20c7d7a421295e",
+        "type": "comment",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "Subscription all variables in server and flow.set",
+        "info": "",
+        "x": 270,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "01d2238a6571f70e",
+        "type": "link out",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "link out 1",
+        "mode": "link",
+        "links": [
+            "46b04c28e0c85cc6"
+        ],
+        "x": 1565,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "46b04c28e0c85cc6",
+        "type": "link in",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "link in trigger",
+        "links": [
+            "01d2238a6571f70e",
+            "9d5dd36f42e74286"
+        ],
+        "x": 85,
+        "y": 540,
+        "wires": [
+            [
+                "77168078146d3b2b"
+            ]
+        ]
+    },
+    {
+        "id": "9d5dd36f42e74286",
+        "type": "link out",
+        "z": "14fe15a9e9d468af",
+        "g": "b77a84882ecb667f",
+        "name": "link out 2",
+        "mode": "link",
+        "links": [
+            "46b04c28e0c85cc6"
+        ],
+        "x": 505,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "b0378bf4405590d4",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@vitormnm/node-red-simple-opcua": "1.3.1"
+        }
+    }
+]
