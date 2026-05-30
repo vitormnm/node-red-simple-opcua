@@ -730,6 +730,30 @@
         function getNamespaceOptions() {
             return Array.isArray(editorState.nameSpaces) ? editorState.nameSpaces.slice().sort(function (left, right) { return left.id - right.id; }) : [];
         }
+
+        function getDefinedObjectTypeNames() {
+            var names = [];
+            (editorState.objectsTypes || []).forEach(function (ot) {
+                if (ot && ot.name) names.push(String(ot.name));
+            });
+            return names;
+        }
+
+
+        function buildObjectTypeSelect(id, currentValue) {
+            var names = getDefinedObjectTypeNames();
+            var cv = String(currentValue || "");
+            var opts = "";
+            var noneSelected = (cv === "") ? " selected" : "";
+            opts += "<option value=\"\""  + noneSelected + ">\u2014 none \u2014</option>";
+            names.forEach(function (n) {
+                var esc = n.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                var sel = (n === cv) ? " selected" : "";
+                opts += "<option value=\"" + esc + "\"" + sel + ">" + esc + "</option>";
+            });
+            return "<select id=\"" + id + "\">" + opts + "</select>";
+        }
+
         function getNamespaceLabel(namespaceId) {
             var match = getNamespaceOptions().find(function (item) { return item.id === normalizeNamespaceId(namespaceId); });
             return match ? String(match.id) + " - " + match.name : String(normalizeNamespaceId(namespaceId));
@@ -900,43 +924,72 @@
             return "fa-tag";
         }
 
-        function createNodeElement(path, depth, ancestorMatched) {
+        // ── performance helpers ───────────────────────────────────────────
+        var _renderTreePending = false;
+
+        function debounce(fn, delay) {
+            var timer;
+            return function () { var ctx = this, args = arguments; clearTimeout(timer); timer = setTimeout(function () { fn.apply(ctx, args); }, delay); };
+        }
+
+        function escapeHtml(v) {
+            return String(v || "").replace(/[&<>"']/g, function (c) {
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+            });
+        }
+
+        function appendNodeToFrag(frag, path, depth, ancestorMatched) {
             var item = getAtPath(editorState, path);
-            if (!item) return $("<div></div>");
+            if (!item) return;
             var nodeClass = nodeClassFromPath(path);
             var hasChildren = nodeClass !== "Variable" && nodeClass !== "Alarm" && nodeClass !== "Namespace" && getChildrenByPath(path).length > 0;
-            var expanded = isExpanded(path, depth < 1 || treeSearchTerm);
+            var expanded = isExpanded(path, depth < 1 || !!treeSearchTerm);
             var subtreeVisible = !!ancestorMatched || nodeMatchesSearch(path);
-            var row = $('<div class="opcua-tree-row"></div>').attr("data-path", path);
-            if (path === selectedPath) row.addClass("is-selected");
-            for (var i = 0; i < depth; i += 1) row.append('<span class="opcua-tree-indent"></span>');
-            row.append('<span class="opcua-tree-twisty">' + (hasChildren ? '<i class="fa ' + (expanded ? 'fa-caret-down' : 'fa-caret-right') + '"></i>' : '') + '</span>');
-            row.append('<span class="opcua-tree-icon"><i class="fa ' + iconForNodeClass(nodeClass) + '"></i></span>');
-            row.append('<span class="opcua-tree-label"></span>');
-            row.find(".opcua-tree-label").text(item.name || "(unnamed)");
-            row.append('<span class="opcua-tree-type">' + nodeClass + '</span>');
-            var fragment = $('<div></div>').append(row);
+
+            var indents = "";
+            for (var i = 0; i < depth; i++) indents += '<span class="opcua-tree-indent"></span>';
+
+            var row = document.createElement("div");
+            row.className = "opcua-tree-row" + (path === selectedPath ? " is-selected" : "");
+            row.setAttribute("data-path", path);
+            row.innerHTML = indents
+                + '<span class="opcua-tree-twisty">' + (hasChildren ? '<i class="fa ' + (expanded ? "fa-caret-down" : "fa-caret-right") + '"></i>' : "") + "</span>"
+                + '<span class="opcua-tree-icon"><i class="fa ' + iconForNodeClass(nodeClass) + '"></i></span>'
+                + '<span class="opcua-tree-label">' + escapeHtml(item.name || "(unnamed)") + "</span>"
+                + '<span class="opcua-tree-type">' + escapeHtml(nodeClass) + "</span>";
+            frag.appendChild(row);
+
             if (hasChildren && expanded) {
                 getChildrenByPath(path).forEach(function (childPath) {
                     if (!treeSearchTerm || subtreeVisible || branchHasSearchMatch(childPath)) {
-                        fragment.append(createNodeElement(childPath, depth + 1, subtreeVisible));
+                        appendNodeToFrag(frag, childPath, depth + 1, subtreeVisible);
                     }
                 });
             }
-            return fragment;
         }
 
         function renderTree() {
-            var list = $("#node-input-object-list");
-            list.empty();
-            var roots = getTopLevelPaths();
-            if (!roots.length) {
-                list.append('<div class="opcua-tree-empty">No OPC UA items. Use Add folder, Add object, or Add namespace.</div>');
-                return;
-            }
-            roots.forEach(function (path) {
-                if (!treeSearchTerm || branchHasSearchMatch(path)) list.append(createNodeElement(path, 0, false));
-            });
+            if (_renderTreePending) return;
+            _renderTreePending = true;
+            setTimeout(function () {
+                _renderTreePending = false;
+                var list = document.getElementById("node-input-object-list");
+                if (!list) return;
+                var frag = document.createDocumentFragment();
+                var roots = getTopLevelPaths();
+                if (!roots.length) {
+                    var empty = document.createElement("div");
+                    empty.className = "opcua-tree-empty";
+                    empty.textContent = "No OPC UA items. Use Add folder, Add object, or Add namespace.";
+                    frag.appendChild(empty);
+                } else {
+                    roots.forEach(function (path) {
+                        if (!treeSearchTerm || branchHasSearchMatch(path)) appendNodeToFrag(frag, path, 0, false);
+                    });
+                }
+                list.innerHTML = "";
+                list.appendChild(frag);
+            }, 0);
         }
 
         function renderBreadcrumbs() {
@@ -972,8 +1025,10 @@
                 parentPath: path,
                 kind: kind,
                 name: kind === "variable" ? "newVariable" : kind === "folder" ? "newFolder" : kind === "objecttype" ? "newObjectType" : kind === "alarm" ? "newAlarm" : kind === "method" ? "newMethod" : "newObject",
+                displayName: "",
                 dataType: "Int32",
                 value: "",
+                access: "readwrite",
                 objectsType: "",
                 alarmType: "levelAlarm",
                 variableNodeId: "",
@@ -1012,16 +1067,19 @@
             if (kind === "variable") {
                 target.push(normalizeVariable({
                     name: pendingCreate.name,
+                    displayName: pendingCreate.displayName || "",
                     type: pendingCreate.dataType,
-                    value: pendingCreate.value
+                    value: pendingCreate.value,
+                    access: pendingCreate.access || "readwrite"
                 }));
             } else if (kind === "folder") {
-                target.push(normalizeBranch({ name: pendingCreate.name }));
+                target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "" }));
             } else if (kind === "objecttype") {
-                target.push(normalizeBranch({ name: pendingCreate.name, objectsType: pendingCreate.objectsType || "" }));
+                target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", objectsType: pendingCreate.objectsType || "" }));
                 target[target.length - 1].nodeId = buildGeneratedNodeIdForPath(branchTargetPath + "." + (target.length - 1));
             } else if (kind === "alarm") {
                 target.push(normalizeAlarm({
+                    displayName: pendingCreate.displayName || "",
                     name: pendingCreate.name,
                     type: pendingCreate.alarmType,
                     variableNodeId: pendingCreate.variableNodeId,
@@ -1038,9 +1096,9 @@
                     digitalMessage: pendingCreate.digitalMessage
                 }));
             } else if (kind === "method") {
-                target.push(normalizeMethod({ name: pendingCreate.name }));
+                target.push(normalizeMethod({ name: pendingCreate.name, displayName: pendingCreate.displayName || "" }));
             } else {
-                target.push(normalizeBranch({ name: pendingCreate.name }));
+                target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "" }));
             }
             expansionState[parentPath] = true;
             pendingCreate = null;
@@ -1060,12 +1118,14 @@
                 panel.append('<div class="form-row"><label>Parent</label><input type="text" id="opcua-create-parent" readonly></div>');
                 panel.append('<div class="form-row"><label>Type</label><input type="text" id="opcua-create-kind" readonly></div>');
                 panel.append('<div class="form-row"><label>Name</label><input type="text" id="opcua-create-name"></div>');
+                panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-create-displayname" placeholder="Leave blank to use browseName"></div>');
                 if (pendingCreate.kind === "variable") {
                     panel.append('<div class="form-row"><label>dataType</label><select id="opcua-create-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
                     panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-create-value"></div>');
+                    panel.append('<div class="form-row"><label>Access</label><select id="opcua-create-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
                 }
                 if (pendingCreate.kind === "objecttype") {
-                    panel.append('<div class="form-row"><label>objectsType</label><input type="text" id="opcua-create-objectstype"></div>');
+                    panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-create-objectstype", pendingCreate.objectsType || "") + '</div>');
                 }
                 if (pendingCreate.kind === "alarm") {
                     panel.append('<div class="form-row"><label>alarmType</label><select id="opcua-create-alarm-type"><option value="levelAlarm">levelAlarm</option><option value="digitalAlarm">digitalAlarm</option></select></div>');
@@ -1089,9 +1149,11 @@
                 $("#opcua-create-parent").val(pendingCreate.parentPath);
                 $("#opcua-create-kind").val(pendingCreate.kind);
                 $("#opcua-create-name").val(pendingCreate.name);
+                $("#opcua-create-displayname").val(pendingCreate.displayName || "");
                 $("#opcua-create-type").val(pendingCreate.dataType);
                 $("#opcua-create-value").val(pendingCreate.value);
                 $("#opcua-create-objectstype").val(pendingCreate.objectsType);
+                $("#opcua-create-access").val(pendingCreate.access || "readwrite");
                 $("#opcua-create-alarm-type").val(pendingCreate.alarmType);
                 $("#opcua-create-variable-nodeid").val(pendingCreate.variableNodeId);
                 $("#opcua-create-severity").val(pendingCreate.severity);
@@ -1130,15 +1192,16 @@
             panel.append('<div class="form-row"><label>namespace</label><select id="opcua-detail-namespace"></select></div>');
             panel.append('<div class="form-row"><label>nodeId</label><div class="opcua-nodeid-field"><span class="opcua-nodeid-prefix">' + getNodeIdPrefix(namespaceId) + '</span><input type="text" id="opcua-detail-nodeid"' + (nodeIdLocked ? ' readonly title="Generated automatically for object type models."' : '') + '><a href="#" id="opcua-detail-copy-nodeid" class="editor-button editor-button-small"><i class="fa fa-copy"></i> Copy</a></div></div>');
             panel.append('<div class="form-row"><label>Description</label><input type="text" id="opcua-detail-description"></div>');
+            panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-detail-displayname" placeholder="Leave blank to use browseName"></div>');
             if (nodeClass === "ObjectType") {
-                panel.append('<div class="form-row"><label>objectsType</label><input type="text" id="opcua-detail-objectstype"></div>');
+                panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-detail-objectstype", item.objectsType || "") + '</div>');
             }
             if (nodeClass === "Variable") {
                 panel.append('<div class="form-row"><label>dataType</label><select id="opcua-detail-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
                 panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-detail-value"></div>');
+                panel.append('<div class="form-row"><label>Access</label><select id="opcua-detail-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
             }
             if (nodeClass === "Method") {
-                panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-detail-displayname"></div>');
                 panel.append('<hr style="margin:8px 0; border-color:#e3e3e3;">');
                 panel.append('<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;margin-bottom:4px;">Inputs</div>');
                 var inputsDiv = $('<div id="opcua-detail-inputs"></div>').appendTo(panel);
@@ -1203,9 +1266,9 @@
                 $("#opcua-detail-namespace").append($("<option></option>").val(option.id).text(getNamespaceLabel(option.id)));
             });
             $("#opcua-detail-namespace").val(String(namespaceId));
-            if (nodeClass === "Method") $("#opcua-detail-displayname").val(item.displayName || "");
-            if (nodeClass === "ObjectType") $("#opcua-detail-objectstype").val(item.objectsType || "");
-            if (nodeClass === "Variable") { $("#opcua-detail-type").val(item.type || "Int32"); $("#opcua-detail-value").val(item.value !== undefined ? item.value : ""); }
+            $("#opcua-detail-displayname").val(item.displayName || "");
+            if (nodeClass === "ObjectType") { $("#opcua-detail-objectstype").val(item.objectsType || ""); }
+            if (nodeClass === "Variable") { $("#opcua-detail-type").val(item.type || "Int32"); $("#opcua-detail-value").val(item.value !== undefined ? item.value : ""); $("#opcua-detail-access").val(item.access || "readwrite"); }
             if (nodeClass === "Alarm") {
                 $("#opcua-detail-alarm-type").val(item.type || "levelAlarm");
                 $("#opcua-detail-variable-nodeid").val(item.variableNodeId || "");
@@ -1398,8 +1461,9 @@
             }
         });
         $(document).on("input", "#opcua-detail-description", function () { updateNode(selectedPath, { description: $(this).val() }); });
-        $(document).on("input", "#opcua-detail-objectstype", function () { updateNode(selectedPath, { objectsType: $(this).val() }); });
+        $(document).on("change", "#opcua-detail-objectstype", function () { updateNode(selectedPath, { objectsType: $(this).val() }); });
         $(document).on("change", "#opcua-detail-type", function () { updateNode(selectedPath, { type: $(this).val() }); });
+        $(document).on("change", "#opcua-detail-access", function () { updateNode(selectedPath, { access: $(this).val() }); });
         $(document).on("input", "#opcua-detail-value", function () { updateNode(selectedPath, { value: $(this).val() }); });
         $(document).on("change", "#opcua-detail-alarm-type", function () {
             updateNode(selectedPath, { type: $(this).val() });
@@ -1418,9 +1482,11 @@
         $(document).on("input", "#opcua-detail-normalstatevalue", function () { updateNode(selectedPath, { normalStateValue: Number($(this).val() || 0) }); });
         $(document).on("input", "#opcua-detail-digitalmessage", function () { updateNode(selectedPath, { digitalMessage: $(this).val() }); });
         $(document).on("input", "#opcua-create-name", function () { if (pendingCreate) pendingCreate.name = $(this).val(); });
+        $(document).on("input", "#opcua-create-displayname", function () { if (pendingCreate) pendingCreate.displayName = $(this).val(); });
         $(document).on("change", "#opcua-create-type", function () { if (pendingCreate) pendingCreate.dataType = $(this).val(); });
         $(document).on("input", "#opcua-create-value", function () { if (pendingCreate) pendingCreate.value = $(this).val(); });
-        $(document).on("input", "#opcua-create-objectstype", function () { if (pendingCreate) pendingCreate.objectsType = $(this).val(); });
+        $(document).on("change", "#opcua-create-objectstype", function () { if (pendingCreate) pendingCreate.objectsType = $(this).val(); });
+        $(document).on("change", "#opcua-create-access", function () { if (pendingCreate) pendingCreate.access = $(this).val(); });
         $(document).on("change", "#opcua-create-alarm-type", function () {
             if (pendingCreate) {
                 pendingCreate.alarmType = $(this).val();
@@ -1487,10 +1553,10 @@
                 $("#node-input-close-tree-modal").off("click").on("click", function (event) { event.preventDefault(); closeTreeModal(); });
                 $("#node-input-tree-modal").off("click").on("click", function (event) { if (event.target === this) closeTreeModal(); });
 
-                $("#node-input-tree-search").off("input").on("input", function () {
+                $("#node-input-tree-search").off("input").on("input", debounce(function () {
                     treeSearchValue = $(this).val(); treeSearchTerm = normalizeSearchTerm(treeSearchValue);
                     $("#node-input-tree-search-clear").toggle(!!treeSearchTerm); renderTree();
-                });
+                }, 200));
                 $("#node-input-tree-search-clear").off("click").on("click", function (event) {
                     event.preventDefault(); treeSearchValue = ""; treeSearchTerm = "";
                     $("#node-input-tree-search").val(""); $(this).hide(); renderTree();

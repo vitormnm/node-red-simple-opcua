@@ -245,12 +245,30 @@
 <script type="text/javascript">
     (function () {
         var selectedItemsState = [];
+        var selectedNodeIdSet = {};          // fast O(1) lookup: nodeId → index
         var browseState = null;
         var expansionState = {};
         var browseSearchValue = "";
         var browseSearchTerm = "";
         var contextMenuPath = "";
         var browseSelectedPath = "";
+        var renderPending = false;           // debounce flag for renderBrowseTree
+
+        function debounce(fn, delay) {
+            var timer;
+            return function () {
+                var ctx = this, args = arguments;
+                clearTimeout(timer);
+                timer = setTimeout(function () { fn.apply(ctx, args); }, delay);
+            };
+        }
+
+        function rebuildNodeIdIndex() {
+            selectedNodeIdSet = {};
+            selectedItemsState.forEach(function (item, i) {
+                if (item.nodeID) selectedNodeIdSet[item.nodeID] = i;
+            });
+        }
 
         function openBrowseModal() { $("#node-input-browse-modal").show(); $("body").addClass("opcua-tree-modal-open"); }
         function closeBrowseModal() {
@@ -456,6 +474,7 @@
         }
 
         function syncSelectedItems() {
+            rebuildNodeIdIndex();
             updateSelectedItemsField();
             renderSelectedTags();
             renderBrowseTree();
@@ -470,9 +489,8 @@
         }
 
         function selectedIndexByNodeId(nodeId) {
-            return selectedItemsState.findIndex(function (item) {
-                return item.nodeID === nodeId;
-            });
+            var idx = selectedNodeIdSet[nodeId];
+            return (idx !== undefined) ? idx : -1;
         }
 
         function canExpand(item) {
@@ -501,24 +519,47 @@
         }
 
         function renderBrowseTree() {
+            if (renderPending) return;
+            renderPending = true;
+            setTimeout(function () {
+                renderPending = false;
+                _doRenderBrowseTree();
+            }, 0);
+        }
+
+        function _doRenderBrowseTree() {
             var container = $("#node-input-browse-tree");
-            container.empty();
+            var frag = document.createDocumentFragment();
 
             if (!browseState) {
-                container.append('<div class="opcua-tree-empty">Click Browse to load the server tree.</div>');
+                var empty = document.createElement("div");
+                empty.className = "opcua-tree-empty";
+                empty.textContent = "Click Browse to load the server tree.";
+                frag.appendChild(empty);
+                container[0].innerHTML = "";
+                container[0].appendChild(frag);
                 return;
             }
 
             if (browseSearchTerm) {
                 if (!branchHasSearchMatch(browseState, browseSearchTerm)) {
-                    container.append('<div class="opcua-tree-empty">No items found in the already explored items.</div>');
+                    var noMatch = document.createElement("div");
+                    noMatch.className = "opcua-tree-empty";
+                    noMatch.textContent = "No items found in the already explored items.";
+                    frag.appendChild(noMatch);
+                    container[0].innerHTML = "";
+                    container[0].appendChild(frag);
                     return;
                 }
-                renderBrowseRootFiltered(browseState, "root", 0, container, browseSearchTerm);
+                renderBrowseRootFiltered(browseState, "root", 0, frag, browseSearchTerm);
+                container[0].innerHTML = "";
+                container[0].appendChild(frag);
                 return;
             }
 
-            renderBrowseRoot(browseState, "root", 0, container);
+            renderBrowseRoot(browseState, "root", 0, frag);
+            container[0].innerHTML = "";
+            container[0].appendChild(frag);
         }
 
         function isFolderNode(item) {
@@ -549,92 +590,111 @@
             return "fa-tag";
         }
 
-        function renderBrowseRoot(root, path, depth, container) {
+        function makeEl(tag, className, html) {
+            var el = document.createElement(tag);
+            if (className) el.className = className;
+            if (html !== undefined) el.innerHTML = html;
+            return el;
+        }
+
+        function makeTreeRow(path, extraClass) {
+            var row = document.createElement("div");
+            row.className = "opcua-tree-row" + (extraClass ? " " + extraClass : "");
+            row.setAttribute("data-path", path);
+            return row;
+        }
+
+        function renderBrowseRoot(root, path, depth, frag) {
             var expanded = isExpanded(path, true);
-            var row = $('<div class="opcua-tree-row"></div>').attr("data-path", path);
-            row.append('<span class="opcua-tree-indent"></span>');
-            row.append('<span class="opcua-tree-twisty opcua-client-toggle-tree" data-path="' + path + '">' + (expanded ? '<i class="fa fa-caret-down"></i>' : '<i class="fa fa-caret-right"></i>') + '</span>');
-            row.append('<span class="opcua-tree-icon"><i class="fa fa-sitemap"></i></span>');
-            row.append('<span class="opcua-tree-label">' + escapeHtml(root.name || root.nodeID || "RootFolder") + '</span>');
-            row.append('<span class="opcua-tree-type">' + escapeHtml(root.nodeID || "") + '</span>');
-            container.append(row);
+            var row = makeTreeRow(path);
+            row.innerHTML = '<span class="opcua-tree-indent"></span>'
+                + '<span class="opcua-tree-twisty opcua-client-toggle-tree" data-path="' + escapeHtml(path) + '">'
+                + (expanded ? '<i class="fa fa-caret-down"></i>' : '<i class="fa fa-caret-right"></i>') + '</span>'
+                + '<span class="opcua-tree-icon"><i class="fa fa-sitemap"></i></span>'
+                + '<span class="opcua-tree-label">' + escapeHtml(root.name || root.nodeID || "RootFolder") + '</span>'
+                + '<span class="opcua-tree-type">' + escapeHtml(root.nodeID || "") + '</span>';
+            frag.appendChild(row);
 
             if (!expanded) return;
 
             if (!Array.isArray(root.browse) || !root.browse.length) {
-                container.append('<div class="opcua-tree-empty">No items found..</div>');
+                frag.appendChild(makeEl("div", "opcua-tree-empty", "No items found.."));
             } else {
                 root.browse.forEach(function (item, index) {
-                    renderBrowseItem(item, path + ".browse." + index, depth + 1, container);
+                    renderBrowseItem(item, path + ".browse." + index, depth + 1, frag);
                 });
             }
         }
 
-        function renderBrowseItem(item, path, depth, container) {
+        function renderBrowseItem(item, path, depth, frag) {
             var expanded = isExpanded(path, false);
             var nodeId = nodeIdOf(item);
             var selectedIndex = selectedIndexByNodeId(nodeId);
             var hasChildren = canExpand(item);
-            var row = $('<div class="opcua-tree-row"></div>').attr("data-path", path);
-            if (selectedIndex >= 0) row.addClass("is-selected");
+            var row = makeTreeRow(path, selectedIndex >= 0 ? "is-selected" : "");
 
-            for (var i = 0; i < depth; i += 1) {
-                row.append('<span class="opcua-tree-indent"></span>');
-            }
-            row.append('<span class="opcua-tree-twisty' + (hasChildren ? ' opcua-client-toggle-tree' : '') + '" data-path="' + path + '">' + (hasChildren ? '<i class="fa ' + (expanded ? 'fa-caret-down' : 'fa-caret-right') + '"></i>' : '') + '</span>');
-            row.append('<span class="opcua-tree-icon"><i class="fa ' + browseIconFor(item) + '"></i></span>');
-            row.append('<span class="opcua-tree-label">' + escapeHtml(item.displayName || item.browseName || item.nodeID) + '</span>');
-            row.append('<span class="opcua-tree-type">' + escapeHtml(item.nodeClass || "") + (item.dataType ? " | " + escapeHtml(item.dataType) : "") + '</span>');
-            row.append('<span class="opcua-client-nodeid-label">' + escapeHtml(nodeId) + '</span>');
+            var indents = "";
+            for (var i = 0; i < depth; i += 1) indents += '<span class="opcua-tree-indent"></span>';
 
-            if (nodeId) {
-                var actionLabel = selectedIndex >= 0 ? "Remove" : "Add";
-                var actionIcon = selectedIndex >= 0 ? "fa-minus" : "fa-plus";
-                row.append('<div class="opcua-tree-actions"><a href="#" class="editor-button editor-button-small opcua-client-toggle-tag" data-nodeid="' + escapeHtml(nodeId) + '" data-path="' + path + '"><i class="fa ' + actionIcon + '"></i> ' + actionLabel + '</a></div>');
-            }
-            container.append(row);
+            var twisty = '<span class="opcua-tree-twisty' + (hasChildren ? ' opcua-client-toggle-tree' : '') + '" data-path="' + escapeHtml(path) + '">'
+                + (hasChildren ? '<i class="fa ' + (expanded ? 'fa-caret-down' : 'fa-caret-right') + '"></i>' : '') + '</span>';
+
+            var actions = nodeId
+                ? '<div class="opcua-tree-actions"><a href="#" class="editor-button editor-button-small opcua-client-toggle-tag" data-nodeid="' + escapeHtml(nodeId) + '" data-path="' + escapeHtml(path) + '"><i class="fa ' + (selectedIndex >= 0 ? 'fa-minus' : 'fa-plus') + '"></i> ' + (selectedIndex >= 0 ? 'Remove' : 'Add') + '</a></div>'
+                : '';
+
+            row.innerHTML = indents + twisty
+                + '<span class="opcua-tree-icon"><i class="fa ' + browseIconFor(item) + '"></i></span>'
+                + '<span class="opcua-tree-label">' + escapeHtml(item.displayName || item.browseName || item.nodeID) + '</span>'
+                + '<span class="opcua-tree-type">' + escapeHtml(item.nodeClass || "") + (item.dataType ? " | " + escapeHtml(item.dataType) : "") + '</span>'
+                + '<span class="opcua-client-nodeid-label">' + escapeHtml(nodeId) + '</span>'
+                + actions;
+            frag.appendChild(row);
 
             if (item.description) {
-                container.append('<div class="opcua-client-description" style="padding: 0 10px 8px ' + String((depth + 2) * 14) + 'px;">' + escapeHtml(item.description) + '</div>');
+                var desc = makeEl("div", "opcua-client-description");
+                desc.style.padding = "0 10px 8px " + String((depth + 2) * 14) + "px";
+                desc.textContent = item.description;
+                frag.appendChild(desc);
             }
 
             if (expanded && hasChildren) {
                 if (Array.isArray(item.browse)) {
                     if (!item.browse.length) {
-                        container.append('<div class="opcua-tree-empty">No children found..</div>');
+                        frag.appendChild(makeEl("div", "opcua-tree-empty", "No children found.."));
                     } else {
                         item.browse.forEach(function (child, index) {
-                            renderBrowseItem(child, path + ".browse." + index, depth + 1, container);
+                            renderBrowseItem(child, path + ".browse." + index, depth + 1, frag);
                         });
                     }
                 } else {
-                    container.append('<div class="opcua-tree-empty">Searching for items...</div>');
+                    frag.appendChild(makeEl("div", "opcua-tree-empty", "Searching for items..."));
                 }
             }
         }
 
-        function renderBrowseRootFiltered(root, path, depth, container, term) {
-            var row = $('<div class="opcua-tree-row"></div>').attr("data-path", path);
-            row.append('<span class="opcua-tree-indent"></span>');
-            row.append('<span class="opcua-tree-twisty"><i class="fa fa-caret-down"></i></span>');
-            row.append('<span class="opcua-tree-icon"><i class="fa fa-sitemap"></i></span>');
-            row.append('<span class="opcua-tree-label">' + escapeHtml(root.name || root.nodeID || "RootFolder") + '</span>');
-            row.append('<span class="opcua-tree-type">' + escapeHtml(root.nodeID || "") + '</span>');
-            container.append(row);
+        function renderBrowseRootFiltered(root, path, depth, frag, term) {
+            var row = makeTreeRow(path);
+            row.innerHTML = '<span class="opcua-tree-indent"></span>'
+                + '<span class="opcua-tree-twisty"><i class="fa fa-caret-down"></i></span>'
+                + '<span class="opcua-tree-icon"><i class="fa fa-sitemap"></i></span>'
+                + '<span class="opcua-tree-label">' + escapeHtml(root.name || root.nodeID || "RootFolder") + '</span>'
+                + '<span class="opcua-tree-type">' + escapeHtml(root.nodeID || "") + '</span>';
+            frag.appendChild(row);
 
             if (!Array.isArray(root.browse) || !root.browse.length) {
-                container.append('<div class="opcua-tree-empty">Nenhum item encontrado.</div>');
+                frag.appendChild(makeEl("div", "opcua-tree-empty", "Nenhum item encontrado."));
                 return;
             }
 
             root.browse.forEach(function (item, index) {
                 if (branchHasSearchMatch(item, term)) {
-                    renderBrowseItemFiltered(item, path + ".browse." + index, depth + 1, container, term, false);
+                    renderBrowseItemFiltered(item, path + ".browse." + index, depth + 1, frag, term, false);
                 }
             });
         }
 
-        function renderBrowseItemFiltered(item, path, depth, container, term, ancestorMatched) {
+        function renderBrowseItemFiltered(item, path, depth, frag, term, ancestorMatched) {
             if (!branchHasSearchMatch(item, term)) return;
 
             var nodeId = nodeIdOf(item);
@@ -648,40 +708,47 @@
             var expanded = hasChildren && (hasExplicitExpansion
                 ? !!expansionState[path]
                 : ((subtreeVisible && Array.isArray(item.browse)) || hasMatchingLoadedChild));
-            var row = $('<div class="opcua-tree-row"></div>').attr("data-path", path);
-            if (selectedIndex >= 0) row.addClass("is-selected");
 
-            for (var i = 0; i < depth; i += 1) row.append('<span class="opcua-tree-indent"></span>');
-            row.append('<span class="opcua-tree-twisty' + (hasChildren ? ' opcua-client-toggle-tree' : '') + '" data-path="' + path + '">' + (hasChildren ? '<i class="fa ' + (expanded ? 'fa-caret-down' : 'fa-caret-right') + '"></i>' : '') + '</span>');
-            row.append('<span class="opcua-tree-icon"><i class="fa ' + browseIconFor(item) + '"></i></span>');
-            row.append('<span class="opcua-tree-label">' + escapeHtml(item.displayName || item.browseName || item.nodeID) + '</span>');
-            row.append('<span class="opcua-tree-type">' + escapeHtml(item.nodeClass || "") + (item.dataType ? " | " + escapeHtml(item.dataType) : "") + '</span>');
-            row.append('<span class="opcua-client-nodeid-label">' + escapeHtml(nodeId) + '</span>');
+            var row = makeTreeRow(path, selectedIndex >= 0 ? "is-selected" : "");
 
-            if (nodeId) {
-                var actionLabel = selectedIndex >= 0 ? "Remove" : "Add";
-                var actionIcon = selectedIndex >= 0 ? "fa-minus" : "fa-plus";
-                row.append('<div class="opcua-tree-actions"><a href="#" class="editor-button editor-button-small opcua-client-toggle-tag" data-nodeid="' + escapeHtml(nodeId) + '" data-path="' + path + '"><i class="fa ' + actionIcon + '"></i> ' + actionLabel + '</a></div>');
-            }
-            container.append(row);
+            var indents = "";
+            for (var i = 0; i < depth; i += 1) indents += '<span class="opcua-tree-indent"></span>';
+
+            var twisty = '<span class="opcua-tree-twisty' + (hasChildren ? ' opcua-client-toggle-tree' : '') + '" data-path="' + escapeHtml(path) + '">'
+                + (hasChildren ? '<i class="fa ' + (expanded ? 'fa-caret-down' : 'fa-caret-right') + '"></i>' : '') + '</span>';
+
+            var actions = nodeId
+                ? '<div class="opcua-tree-actions"><a href="#" class="editor-button editor-button-small opcua-client-toggle-tag" data-nodeid="' + escapeHtml(nodeId) + '" data-path="' + escapeHtml(path) + '"><i class="fa ' + (selectedIndex >= 0 ? 'fa-minus' : 'fa-plus') + '"></i> ' + (selectedIndex >= 0 ? 'Remove' : 'Add') + '</a></div>'
+                : '';
+
+            row.innerHTML = indents + twisty
+                + '<span class="opcua-tree-icon"><i class="fa ' + browseIconFor(item) + '"></i></span>'
+                + '<span class="opcua-tree-label">' + escapeHtml(item.displayName || item.browseName || item.nodeID) + '</span>'
+                + '<span class="opcua-tree-type">' + escapeHtml(item.nodeClass || "") + (item.dataType ? " | " + escapeHtml(item.dataType) : "") + '</span>'
+                + '<span class="opcua-client-nodeid-label">' + escapeHtml(nodeId) + '</span>'
+                + actions;
+            frag.appendChild(row);
 
             if (item.description) {
-                container.append('<div class="opcua-client-description" style="padding: 0 10px 8px ' + String((depth + 2) * 14) + 'px;">' + escapeHtml(item.description) + '</div>');
+                var desc = makeEl("div", "opcua-client-description");
+                desc.style.padding = "0 10px 8px " + String((depth + 2) * 14) + "px";
+                desc.textContent = item.description;
+                frag.appendChild(desc);
             }
 
             if (expanded && hasChildren) {
                 if (Array.isArray(item.browse)) {
                     if (!item.browse.length) {
-                        container.append('<div class="opcua-tree-empty">Nenhum filho encontrado.</div>');
+                        frag.appendChild(makeEl("div", "opcua-tree-empty", "Nenhum filho encontrado."));
                     } else {
                         item.browse.forEach(function (child, index) {
                             if (subtreeVisible || branchHasSearchMatch(child, term)) {
-                                renderBrowseItemFiltered(child, path + ".browse." + index, depth + 1, container, term, subtreeVisible);
+                                renderBrowseItemFiltered(child, path + ".browse." + index, depth + 1, frag, term, subtreeVisible);
                             }
                         });
                     }
                 } else {
-                    container.append('<div class="opcua-tree-empty">Expandindo...</div>');
+                    frag.appendChild(makeEl("div", "opcua-tree-empty", "Expandindo..."));
                 }
             }
         }
@@ -938,6 +1005,7 @@
                 });
 
                 selectedItemsState = parseSelectedItems(this.selectedItems);
+                rebuildNodeIdIndex();
 
                 browseState = null;
                 expansionState = {};
@@ -967,12 +1035,12 @@
                     hideTreeContextMenu();
                     if (event.target === this) closeBrowseModal();
                 });
-                $("#node-input-browse-search").off("input").on("input", function () {
+                $("#node-input-browse-search").off("input").on("input", debounce(function () {
                     browseSearchValue = $(this).val();
                     browseSearchTerm = normalizeSearchTerm(browseSearchValue);
                     $("#node-input-browse-search-clear").toggle(!!browseSearchTerm);
                     renderBrowseTree();
-                });
+                }, 200));
                 $("#node-input-browse-search-clear").off("click").on("click", function (event) {
                     event.preventDefault();
                     browseSearchValue = "";

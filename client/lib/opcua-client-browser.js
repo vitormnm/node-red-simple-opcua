@@ -24,17 +24,56 @@ async function browseNode(session, root) {
         resultMask: 63
     });
 
-    const references = browseResult && Array.isArray(browseResult.references)
-        ? browseResult.references
-        : [];
+    const references = browseResult?.references ?? [];
+    if (!references.length) return result;
 
-    for (const reference of references) {
-        result.browse.push(await mapReference(session, reference));
-    }
+    // Monta lista de todos os atributos de todos os nós de uma vez
+    const nodeIds = references.map(ref => normalizeNodeId(ref.nodeId));
+    const attributesToRead = nodeIds.flatMap(nodeId => [
+        { nodeId, attributeId: AttributeIds.Description },
+        { nodeId, attributeId: AttributeIds.DataType },
+        { nodeId, attributeId: AttributeIds.Value },
+    ]);
+
+    // UMA única chamada para todos os nós e atributos
+    const dataValues = await session.read(attributesToRead);
+
+    // Distribui os resultados por nó (3 atributos por nó)
+    result.browse = await Promise.all(references.map(async (reference, i) => {
+        const childNodeId = nodeIds[i];
+        const nodeClass = resolveNodeClassName(reference.nodeClass);
+        const browseName = extractBrowseName(reference.browseName, childNodeId);
+        const displayName = extractDisplayName(reference.displayName, browseName);
+
+        const descValue = dataValues[i * 3]?.value?.value;
+        const description = typeof descValue === "string"
+            ? descValue
+            : (descValue?.text ?? "");
+
+        const item = { nodeID: childNodeId, nodeClass, browseName, displayName, description };
+
+        if (nodeClass === "Variable") {
+            const dataTypeValue = dataValues[i * 3 + 1]?.value?.value;
+            const rawValue = dataValues[i * 3 + 2]?.value?.value;
+
+            item.dataType = dataTypeValue?.namespace === 0 && typeof dataTypeValue?.value === "number"
+                ? (DataType[dataTypeValue.value] || dataTypeValue.toString())
+                : (dataTypeValue?.toString() ?? "");
+
+            item.value = rawValue ?? "";
+        }
+
+        if (nodeClass === "Method") {
+            const definition = await readMethodArguments(session, childNodeId);
+            item.inputArguments = definition.inputArguments;
+            item.outputArguments = definition.outputArguments;
+        }
+
+        return item;
+    }));
 
     return result;
 }
-
 function normalizeBrowseRoots(payload) {
     if (payload === undefined || payload === null) {
         return [{ name: "RootFolder", nodeID: ROOT_NODE_ID }];
