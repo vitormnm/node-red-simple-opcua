@@ -1,6 +1,6 @@
 # @vitormnm/node-red-simple-opcua
 OPC UA client and server with a simple graphical interface for Node-RED.
-fully parameterized via JSON.
+Fully parameterized in JSON.
 
 It supports the following OPC UA items on only 3 nodes.
 
@@ -9,6 +9,8 @@ It supports the following OPC UA items on only 3 nodes.
  - events read and write tags in server(See which tags are being written to or read from the client directly on the server in a simple workflow)
  - methods(write methods in node-red flow)
  - variables
+ - variables arrays
+ - description and displayname nodes
  - objects
  - simple objectsType
  - custom namespace
@@ -21,8 +23,9 @@ It supports the following OPC UA items on only 3 nodes.
 **Client editor**
 ![node-red-si](/resources/editorClient.PNG) 
 
-example json server config
 
+
+example json server config
 ```
 {
     "objects": [],
@@ -124,5 +127,6 @@ example json server config
     ]
 }
 ```
-
+Disclaimer
+This node was only used in simulation and testing environments.
 
