@@ -12,9 +12,18 @@ module.exports = function (RED) {
         }
     });
 
+
+    const path = require("path");
+
+
+
+
+
+
     function OpcUaServerIoNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
+
 
         node.name = (config.name || "").trim();
         node.serverRef = (config.serverRef || "").trim();
@@ -106,6 +115,20 @@ module.exports = function (RED) {
         });
     }
 
+    function restoreBuffers(value) {
+        // Formato exato que o Node.js IPC gera ao serializar um Buffer
+        if (
+            value !== null &&
+            typeof value === "object" &&
+            value.type === "Buffer" &&
+            Array.isArray(value.data)
+        ) {
+            return Buffer.from(value.data);
+        }
+
+        return value;
+    }
+
     function onMessage(msg, node) {
         if (msg.nodeId == node.id) {
 
@@ -115,7 +138,13 @@ module.exports = function (RED) {
             }
 
             if (msg.type === "send") {
-                node.send(msg.data);
+                const data = msg.data;
+
+                if (data && data.payload !== undefined) {
+                    data.payload = restoreBuffers(data.payload);
+                }
+
+                node.send(data);
             }
 
             if (msg.type === "error") {
@@ -132,7 +161,7 @@ module.exports = function (RED) {
                 });
 
                 node.send({
-                    topic : msg.data.nodeId,
+                    topic: msg.data.nodeId,
                     payload: msg.data.inputArguments,
                     opcua: {
                         server: msg.data.serverName,

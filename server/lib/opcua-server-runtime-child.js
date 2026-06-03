@@ -214,6 +214,8 @@ class OpcUaServerProcess {
             msg.payload = result.payload;
             this.assignReadMetadata(msg, identifierType, result.identifiers);
 
+            
+
             if (result.identifiers.length === 1) {
                 msg.topic = result.identifiers[0];
             }
@@ -306,49 +308,137 @@ class OpcUaServerProcess {
     }
 
 
-
     writeFromPayload(msg, nodeId) {
         try {
-            var writtenPaths = null
-            const payload = msg ? msg.payload : undefined;
+            let writtenPaths = null;
+            let payload = msg ? msg.payload : undefined;
+
             const target = msg && msg.opcuaServerIo ? msg.opcuaServerIo : {};
             const identifierType = this.resolveIdentifierType(target);
 
+            // Buffer serializado pelo IPC
+            if (
+                payload &&
+                typeof payload === "object" &&
+                payload.type === "Buffer" &&
+                Array.isArray(payload.data)
+            ) {
+                payload = Buffer.from(payload.data);
+            }
+
+            const dataType =
+                target.dataType ||
+                target.type ||
+                target.builtInType ||
+                "";
+
+            const isByteString =
+                typeof dataType === "string" &&
+                dataType.toLowerCase() === "bytestring";
 
 
-            if (Array.isArray(payload)) {
+
+            // Buffer ou Uint8Array
+            if (Buffer.isBuffer(payload) || payload instanceof Uint8Array) {
+
+                const identifier = this.resolveIdentifier(target);
+
+                this.node.writeValue(
+                    identifierType,
+                    identifier,
+                    Buffer.isBuffer(payload)
+                        ? payload
+                        : Buffer.from(payload)
+                );
+
+                writtenPaths = [identifier];
+            }
+
+            // Array de números
+            else if (
+                Array.isArray(payload) &&
+                payload.every(item => typeof item === "number")
+            ) {
+
+                const identifier = this.resolveIdentifier(target);
+
+                this.node.writeValue(
+                    identifierType,
+                    identifier,
+                    isByteString
+                        ? Buffer.from(payload)
+                        : payload
+                );
+
+                writtenPaths = [identifier];
+            }
+
+            // Array de objetos
+            else if (Array.isArray(payload)) {
+
                 if (!payload.length) {
                     throw new Error("msg.payload array does not contain any items");
                 }
 
-                payload.forEach((item) => {
+                payload.forEach(item => {
                     this.writePayloadItem(identifierType, item);
                 });
 
-                writtenPaths = payload.map((item) => this.resolvePayloadItemIdentifier(item));
-            } else if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+                writtenPaths = payload.map(item =>
+                    this.resolvePayloadItemIdentifier(item)
+                );
+            }
+
+            // Objeto { path: value }
+            else if (
+                payload &&
+                typeof payload === "object" &&
+                !Array.isArray(payload)
+            ) {
 
                 const identifiers = Object.keys(payload);
+
                 if (!identifiers.length) {
-                    throw new Error("msg.payload object does not contain any " + this.getIdentifierLabel(identifierType));
+                    throw new Error(
+                        "msg.payload object does not contain any " +
+                        this.getIdentifierLabel(identifierType)
+                    );
                 }
 
-                identifiers.forEach((identifier) => {
-                    this.node.writeValue(identifierType, identifier, payload[identifier]);
+                identifiers.forEach(identifier => {
+                    this.node.writeValue(
+                        identifierType,
+                        identifier,
+                        payload[identifier]
+                    );
                 });
 
                 writtenPaths = identifiers;
-            } else {
+            }
+
+            // Valor simples
+            else {
 
                 const identifier = this.resolveIdentifier(target);
-                this.node.writeValue(identifierType, identifier, payload);
 
+                this.node.writeValue(
+                    identifierType,
+                    identifier,
+                    payload
+                );
 
-                writtenPaths = [identifier]
+                writtenPaths = [identifier];
             }
 
             msg.opcua = msg.opcua || {};
-            this.assignWriteMetadata(msg, identifierType, writtenPaths);
+
+            this.assignWriteMetadata(
+                msg,
+                identifierType,
+                writtenPaths
+            );
+
+          
             if (writtenPaths.length === 1) {
                 msg.topic = writtenPaths[0];
             }
@@ -356,7 +446,7 @@ class OpcUaServerProcess {
             process.send({
                 type: "send",
                 data: msg,
-                nodeId: nodeId
+                nodeId
             });
 
             process.send({
@@ -364,27 +454,28 @@ class OpcUaServerProcess {
                 data: {
                     fill: "green",
                     shape: "dot",
-                    text: writtenPaths.length > 1 ? "write " + writtenPaths.length + " tags" : "write " + writtenPaths[0]
+                    text:
+                        writtenPaths.length > 1
+                            ? `write ${writtenPaths.length} tags`
+                            : `write ${writtenPaths[0]}`
                 },
-                nodeId: nodeId
+                nodeId
             });
-
 
         } catch (error) {
 
             process.send({
                 type: "error",
-                data: { fill: "red", shape: "ring", text: "failed write" },
+                data: {
+                    fill: "red",
+                    shape: "ring",
+                    text: "failed write"
+                },
                 error: error.message,
-                nodeId: nodeId
+                nodeId
             });
         }
-
-
-
-        //return [path];
     }
-
 
     resolveIdentifierType(target) {
         return target && target.identifierType === "nodeId" ? "nodeId" : "path";

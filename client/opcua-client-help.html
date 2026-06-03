@@ -1,0 +1,61 @@
+<script type="text/html" data-help-name="opcua-client">
+    <p>Unified OPC UA client node for read, write, browse and subscription using a shared client configuration node.</p>
+
+    <h3>Modes</h3>
+    <p><b>Read</b>: reads one or more variable values.</p>
+    <p><b>Write</b>: writes one or more variable values.</p>
+    <p><b>Browse</b>: browses one or more OPC UA nodes and returns their children.</p>
+    <p><b>Method</b>: calls one or more OPC UA methods.</p>
+    <p><b>Subscription</b>: subscribes to one or more variable values and emits one message per change.</p>
+
+    <h3>Read</h3>
+    <p><b>Input</b> <code>msg.payload</code>:</p>
+    <pre><code>[
+  {
+    "name": "status",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.status"
+  }
+]</code></pre>
+    <p>If <code>msg.payload</code> is not an array and <code>NodeId</code> is configured, the node reads that configured node.</p>
+
+    <h3>Write</h3>
+    <p><b>Input</b> <code>msg.payload</code>:</p>
+    <pre><code>[
+  {
+    "name": "speed",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed",
+    "value": 25.5,
+    "type": "Float"
+  }
+]</code></pre>
+
+    <h3>Browse</h3>
+    <p>If <code>msg.payload</code> is not an array and <code>NodeId</code> is configured, the node browses that configured node.</p>
+    <p>If <code>msg.payload = []</code>, the node browses the OPC UA <code>RootFolder</code>.</p>
+
+    <h3>Method</h3>
+    <p><code>nodeID</code> and <code>objectId</code> are accepted explicitly. For backward compatibility, <code>nodeID</code> is also accepted as the method id.</p>
+    <p><b>Input</b> <code>msg.payload</code>:</p>
+    <pre><code>[
+    {
+        "name": "method1",
+        "nodeID": "ns=2;s=motor.method1",
+        "inputs": [
+            {
+                "name": "input1",
+                "type": "Int32",
+                "value": 1
+            },
+            {
+                "name": "input2",
+                "type": "Int32",
+                "value": 1
+            }
+        ]
+    },
+
+ 
+]</code></pre>
+    <h3>Subscription</h3>
+    <p>In subscription mode the node emits one message per value change.</p>
+</script>

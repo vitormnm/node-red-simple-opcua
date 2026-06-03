@@ -20,7 +20,7 @@ const YIELD_EVERY = 50;
 class OpcUaClientWriteService {
     async execute(node, msg, session, itemsResolver) {
         const items = itemsResolver.ensureWriteItems(node, msg);
-
+    
         // 1. Resolve variantes (tipo + valor) — consulta servidor só para quem não tem tipo explícito
         const variants = await resolveVariants(session, items);
 

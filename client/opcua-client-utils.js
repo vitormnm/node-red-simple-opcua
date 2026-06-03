@@ -4,6 +4,7 @@ const {
     AttributeIds,
     BrowseDirection,
     coerceNodeId,
+    VariantArrayType,
     DataType,
     MessageSecurityMode,
     NodeClass,
@@ -12,6 +13,18 @@ const {
     TimestampsToReturn,
     Variant
 } = require("node-opcua");
+
+// Mapa DataType → TypedArray nativo para escrita eficiente no servidor OPC UA
+const TYPED_ARRAY_MAP = {
+    [DataType.SByte]: Int8Array,
+    [DataType.Byte]: Uint8Array,
+    [DataType.Int16]: Int16Array,
+    [DataType.UInt16]: Uint16Array,
+    [DataType.Int32]: Int32Array,
+    [DataType.UInt32]: Uint32Array,
+    [DataType.Float]: Float32Array,
+    [DataType.Double]: Float64Array,
+};
 
 function resolveSecurityPolicy(name) {
     return SecurityPolicy[name] || SecurityPolicy.None;
@@ -61,19 +74,26 @@ function inferTypeName(value) {
     if (value instanceof Date) {
         return "DateTime";
     }
-    if (Buffer.isBuffer(value)) {
+    if (Buffer.isBuffer(value) || (value && typeof value === 'object' && value.type === 'Buffer' && Array.isArray(value.data))) {
         return "ByteString";
     }
     return "String";
 }
 
 function coerceValue(value, typeName) {
+
+    if (Array.isArray(value)) {
+        return value.map(element => coerceValue(element, typeName));
+    }
+
+
     switch (typeName) {
         case "Boolean":
             if (typeof value === "string") {
                 return value.trim().toLowerCase() === "true";
             }
             return Boolean(value);
+
         case "Byte":
         case "SByte":
         case "Int16":
@@ -81,16 +101,44 @@ function coerceValue(value, typeName) {
         case "UInt16":
         case "UInt32":
             return Number.parseInt(value, 10);
+
         case "Int64":
         case "UInt64":
             return BigInt(value);
+
         case "Float":
         case "Double":
             return Number.parseFloat(value);
+
+        case "ByteString":
+            if (value && typeof value === "object" && value.type === "Buffer" && Array.isArray(value.data)) {
+                return Buffer.from(value.data);
+            }
+
+            if (Buffer.isBuffer(value)) {
+                return value;
+            }
+
+            if (value instanceof Uint8Array) {
+                return Buffer.from(value);
+            }
+
+            if (Array.isArray(value)) {
+                return Buffer.from(value);
+            }
+
+            if (typeof value === "string") {
+                return Buffer.from(value, "base64");
+            }
+
+            return Buffer.alloc(0);
+
         case "DateTime":
             return value instanceof Date ? value : new Date(value);
+
         case "String":
             return value === undefined || value === null ? "" : String(value);
+
         default:
             return value;
     }
@@ -104,8 +152,26 @@ function buildVariantFromItem(item, fallbackTypeName) {
         throw new Error("Unsupported OPC UA data type: " + typeName);
     }
 
+    const isArray = Array.isArray(item.value);
+
+    if (isArray) {
+        // Coerce cada elemento e converte para TypedArray se disponível
+        const coercedArray = coerceValue(item.value, typeName); // retorna JS Array
+        const TypedArrayCtor = TYPED_ARRAY_MAP[dataType];
+
+        return new Variant({
+            dataType,
+            arrayType: VariantArrayType.Array,
+            value: TypedArrayCtor
+                ? TypedArrayCtor.from(coercedArray)  // Int32Array, Float32Array, etc.
+                : coercedArray                        // String[], Boolean[], DateTime[]
+        });
+    }
+
+    // Escalar — comportamento original preservado
     return new Variant({
         dataType,
+        arrayType: VariantArrayType.Scalar,
         value: coerceValue(item.value, typeName)
     });
 }

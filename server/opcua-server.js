@@ -9,6 +9,8 @@ module.exports = function (RED) {
     const path = require("path");
 
 
+    
+
 
 
 
@@ -16,8 +18,10 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
         const node = this;
         const parser = new OpcUaServerConfigParser(node);
-        
+
         const settings = parser.parseNodeConfig(config, this.credentials || {});
+
+
 
         node.name = settings.name;
         node.serverName = settings.serverName;
@@ -58,7 +62,7 @@ module.exports = function (RED) {
         });
 
 
-        
+
         child.send({
             type: "createServer",
             config: config,
@@ -70,7 +74,7 @@ module.exports = function (RED) {
         child.on("message", (msg) => {
             if (msg.nodeId == node.id) {
                 if (msg.type === "status") {
-                    
+
                     node.status(msg.data); // aqui sim usa o node
                 }
 

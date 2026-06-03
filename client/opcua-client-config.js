@@ -13,10 +13,14 @@ const {
     ROOT_NODE_ID
 } = require("./lib/opcua-client-browser");
 
+
+
 module.exports = function (RED) {
     function OpcUaClientConfigNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
+
+        
 
         node.name = (config.name || "").trim();
         node.endpoint = (config.endpoint || "").trim();
@@ -74,6 +78,7 @@ module.exports = function (RED) {
 
                 this.client = client;
                 this.session = session;
+                 
                 return session;
             } catch (error) {
                 try {

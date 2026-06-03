@@ -20,18 +20,31 @@ const {
 
 const { OpcUaClientReadService } = require("./lib/opcua-client-read-service");
 const { OpcUaClientWriteService } = require("./lib/opcua-client-write-service");
+const { OpcUaClientMethodService } = require("./lib/opcua-client-method-service");
 const { OpcUaClientSubscriptionService } = require("./lib/opcua-client-subscription-service");
 const { OpcUaClientSubscriptionIdService } = require("./lib/opcua-client-subscription-id-service");
+const path = require("path");
+
+
+const fs = require("fs");
+const arquivo = path.join(__dirname, "testClient.json");
 
 module.exports = function (RED) {
     function OpcUaClientNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
 
+        fs.writeFileSync(
+            arquivo,
+            JSON.stringify(config, null, 2),
+            "utf8"
+        );
+
         node.name = (config.name || "").trim();
         node.connection = RED.nodes.getNode(config.connection);
         node.mode = config.mode || "read";
         node.selectedItems = parseConfiguredItems(config.selectedItems);
+        node.methodItems = parseConfiguredMethodsItems(config.selectedItems);
         node.valueProperty = (config.valueProperty || "payload").trim();
         node.valuePropertyType = config.valuePropertyType || "msg";
         node.samplingInterval = Math.max(Number(config.samplingInterval) || 250, 50);
@@ -42,6 +55,7 @@ module.exports = function (RED) {
         const itemsResolver = createItemsResolver(RED);
         const readService = new OpcUaClientReadService();
         const writeService = new OpcUaClientWriteService();
+        const methodService = new OpcUaClientMethodService();
         const subscriptionService = new OpcUaClientSubscriptionService();
         const subscriptionIdService = new OpcUaClientSubscriptionIdService();
 
@@ -70,19 +84,24 @@ module.exports = function (RED) {
                 }
 
                 const session = await node.connection.getSession();
+
                 let payload;
 
                 if (node.mode === "read") {
+                   
                     payload = await readService.execute(node, msg, session, itemsResolver);
                     node.status({ fill: "green", shape: "dot", text: "read " + payload.length + " nodes" });
                 } else if (node.mode === "write") {
+                    
                     payload = await writeService.execute(node, msg, session, itemsResolver);
                     node.status({ fill: "green", shape: "dot", text: "write " + payload.length + " nodes" });
                 } else if (node.mode === "browse") {
                     payload = await executeBrowse(node, msg, session);
                     node.status({ fill: "green", shape: "dot", text: "browsed " + payload.length + " nodes" });
                 } else if (node.mode === "method") {
-                    payload = await executeMethod(node, msg, session);
+                    //payload = await executeMethod(node, msg, session);
+
+                    payload = await methodService.execute(node, msg, session, itemsResolver);
                     node.status({ fill: "green", shape: "dot", text: "called " + payload.length + " methods" });
                 } else if (node.mode === "getSubscriptionId") {
                     payload = await subscriptionIdService.execute(node);
@@ -121,63 +140,14 @@ module.exports = function (RED) {
         return payload;
     }
 
-    async function executeMethod(node, msg, session) {
-        const items = ensureArrayPayload(msg, "OPC UA method call");
-        const payload = [];
 
-        for (const item of items) {
-            const methodNodeId = resolveMethodId(item);
 
-            try {
-                const objectId = resolveMethodObjectIdFromItem(item) || await resolveMethodObjectId(
-                    session,
-                    methodNodeId,
-                    node.connection.methodObjectIdCache
-                );
-                const argumentDefinition = await safeGetMethodArgumentDefinition(
-                    session,
-                    methodNodeId,
-                    node.connection.methodDefinitionCache
-                );
-                const callRequest = {
-                    objectId,
-                    methodId: methodNodeId
-                };
-
-                if (Array.isArray(item.inputs) && item.inputs.length > 0) {
-                    callRequest.inputArguments = item.inputs.map((input) => buildVariantFromItem(input, input.type));
-                }
-
-                const callResult = await session.call(callRequest);
-                payload.push(callResultToItemResult(item, callResult, argumentDefinition));
-            } catch (itemError) {
-                payload.push({
-                    name: item.name || methodNodeId,
-                    nodeID: methodNodeId,
-                    status: itemError.message,
-                    outputs: []
-                });
-            }
-        }
-
-        return payload;
-    }
-
-    async function safeGetMethodArgumentDefinition(session, methodNodeId, cache) {
-        try {
-            return await getMethodArgumentDefinition(session, methodNodeId, cache);
-        } catch (error) {
-            return {
-                inputArguments: [],
-                outputArguments: []
-            };
-        }
-    }
 
     function createItemsResolver(REDRuntime) {
         return {
             ensureClientItems,
-            ensureWriteItems
+            ensureWriteItems,
+            ensureMethodItems
         };
 
         function ensureClientItems(node, msg, contextName) {
@@ -206,12 +176,48 @@ module.exports = function (RED) {
                 return node.selectedItems.map((item, index) => ({
                     name: item.name,
                     nodeID: item.nodeID,
-                    type: item.type,
+                    type: item.dataType,
                     value: resolveWriteValueForItem(node, msg, item, index, configuredValue, REDRuntime)
                 }));
             }
 
             return ensureArrayPayload(msg, "OPC UA write");
+        }
+
+        function ensureMethodItems(node, msg) {
+            const payload = msg ? msg.payload : undefined;
+
+            if (Array.isArray(payload) && payload.length > 0) {
+                return payload;
+            }
+
+            if (node.methodItems?.length > 0) {
+                return node.methodItems.map(item => ({
+                    name: item.name,
+                    nodeID: item.nodeID,
+                    objectID: item.objectId,
+                    inputs: item.inputs.map(input => {
+                        const value = resolveConfiguredWriteValue(
+                            {
+                                ...node,
+                                valueProperty: input.valueProperty,
+                                valuePropertyType: input.valuePropertyType
+                            },
+                            msg,
+                            REDRuntime
+                        );
+
+                        return {
+                            name: input.name,
+                            type: input.dataType,
+                            value
+                        };
+                    }),
+                    outputs: item.outputs || []
+                }));
+            }
+
+            return ensureArrayPayload(msg, "OPC UA method");
         }
     }
 
@@ -266,6 +272,25 @@ module.exports = function (RED) {
         }
 
         return String(methodId).trim();
+    }
+
+    function parseConfiguredMethodsItems(rawValue) {
+        try {
+            if (!rawValue || typeof rawValue !== "string") {
+                return [];
+            }
+
+
+            const parsed = JSON.parse(rawValue);
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+
+            return parsed
+
+        } catch (error) {
+            return [];
+        }
     }
 
     function parseConfiguredItems(rawValue) {
@@ -344,6 +369,25 @@ module.exports = function (RED) {
         return REDRuntime.util.getMessageProperty(msg, property);
     }
 
+    function resolveConfiguredMethodValue(node, msg, REDRuntime) {
+        const property = node.valueProperty || "payload";
+        const type = node.valuePropertyType || "msg";
+
+        if (type === "msg") {
+            return REDRuntime.util.getMessageProperty(msg, property);
+        }
+
+        if (type === "flow") {
+            return node.context().flow.get(property);
+        }
+
+        if (type === "global") {
+            return node.context().global.get(property);
+        }
+
+        return REDRuntime.util.getMessageProperty(msg, property);
+    }
+
     function selectWriteValueForItem(configuredValue, item, index) {
         if (Array.isArray(configuredValue)) {
             const byName = item && item.name ? configuredValue.find((entry) => entry && entry.name === item.name) : undefined;
@@ -375,6 +419,17 @@ module.exports = function (RED) {
 
         return configuredValue;
     }
+
+    RED.httpAdmin.get("/opcua-client-resource/style.css", function (req, res) {
+        const cssPath = path.join(__dirname, "view", "opcua-client.css");
+        res.sendFile(cssPath);
+    });
+
+    RED.httpAdmin.get("/opcua-client-resource/script.js", function (req, res) {
+        const jsPath = path.join(__dirname, "view", "opcua-client.js");
+        res.sendFile(jsPath);
+    });
+
 
     RED.nodes.registerType("opcua-client", OpcUaClientNode);
 };

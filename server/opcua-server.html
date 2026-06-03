@@ -238,11 +238,37 @@
         color: var(--red-ui-list-item-color-selected, inherit);
     }
 
-    .opcua-tree-indent { flex: 0 0 auto; width: 14px; }
-    .opcua-tree-twisty { width: 16px; text-align: center; color: #777; flex: 0 0 16px; }
-    .opcua-tree-icon { width: 14px; text-align: center; color: #777; flex: 0 0 14px; }
-    .opcua-tree-label { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .opcua-tree-type { color: #777; font-size: 11px; flex: 0 0 auto; }
+    .opcua-tree-indent {
+        flex: 0 0 auto;
+        width: 14px;
+    }
+
+    .opcua-tree-twisty {
+        width: 16px;
+        text-align: center;
+        color: #777;
+        flex: 0 0 16px;
+    }
+
+    .opcua-tree-icon {
+        width: 14px;
+        text-align: center;
+        color: #777;
+        flex: 0 0 14px;
+    }
+
+    .opcua-tree-label {
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .opcua-tree-type {
+        color: #777;
+        font-size: 11px;
+        flex: 0 0 auto;
+    }
 
     .opcua-tree-context-menu {
         position: fixed;
@@ -251,7 +277,7 @@
         border: 1px solid var(--red-ui-form-input-border-color, #d9d9d9);
         border-radius: 4px;
         background: var(--red-ui-form-input-background, #fff);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
         overflow: hidden;
     }
 
@@ -503,7 +529,9 @@
             margin-left: 0;
         }
 
-        .opcua-tree-layout { grid-template-columns: 1fr; }
+        .opcua-tree-layout {
+            grid-template-columns: 1fr;
+        }
 
         .opcua-tree-header {
             align-items: flex-start;
@@ -644,7 +672,7 @@
             };
         }
 
-                function normalizeBranch(branch) {
+        function normalizeBranch(branch) {
             branch = branch || {};
             return {
                 name: branch.name ? String(branch.name) : "",
@@ -745,7 +773,7 @@
             var cv = String(currentValue || "");
             var opts = "";
             var noneSelected = (cv === "") ? " selected" : "";
-            opts += "<option value=\"\""  + noneSelected + ">\u2014 none \u2014</option>";
+            opts += "<option value=\"\"" + noneSelected + ">\u2014 none \u2014</option>";
             names.forEach(function (n) {
                 var esc = n.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 var sel = (n === cv) ? " selected" : "";
@@ -770,8 +798,8 @@
             var tokens = pathToTokens(path);
             var current = editorState;
             var parts = [];
-          //  var preservedCollections = { alarms: true, methods: true, objectsTypes: true };
-              var preservedCollections = { alarms: true, methods: true};
+            //  var preservedCollections = { alarms: true, methods: true, objectsTypes: true };
+            var preservedCollections = { alarms: true, methods: true };
 
             tokens.forEach(function (token) {
                 if (/^\d+$/.test(token)) {
@@ -787,7 +815,7 @@
             return parts.join(".");
         }
 
-        
+
         function nodeIdSuffixFromValue(nodeId, defaultSuffix) {
             var raw = String(nodeId || "").trim();
             if (!raw) return defaultSuffix;
@@ -1059,9 +1087,9 @@
                         ? (parentPath + ".objectsTypes")
                         : kind === "alarm"
                             ? (parentPath + ".alarms")
-                        : kind === "method"
-                            ? (parentPath + ".methods")
-                        : (parentPath + ".objects");
+                            : kind === "method"
+                                ? (parentPath + ".methods")
+                                : (parentPath + ".objects");
             var target = getAtPath(editorState, branchTargetPath);
             if (!Array.isArray(target)) return;
             if (kind === "variable") {
@@ -1197,7 +1225,7 @@
                 panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-detail-objectstype", item.objectsType || "") + '</div>');
             }
             if (nodeClass === "Variable") {
-                panel.append('<div class="form-row"><label>dataType</label><select id="opcua-detail-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
+                panel.append('<div class="form-row"><label>dataType</label><select id="opcua-detail-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option><option value="ByteString">ByteString</option></select></div>');
                 panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-detail-value"></div>');
                 panel.append('<div class="form-row"><label>Access</label><select id="opcua-detail-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
             }
@@ -1239,7 +1267,7 @@
                 });
                 panel.append('<div class="form-row"><label></label><a href="#" class="editor-button editor-button-small" id="opcua-method-add-output"><i class="fa fa-plus"></i> Add output</a></div>');
             }
-                        if (nodeClass === "Alarm") {
+            if (nodeClass === "Alarm") {
                 panel.append('<div class="form-row"><label>alarmType</label><select id="opcua-detail-alarm-type"><option value="levelAlarm">levelAlarm</option><option value="digitalAlarm">digitalAlarm</option></select></div>');
                 panel.append('<div class="form-row"><label>variablePath</label><input type="text" id="opcua-detail-variable-nodeid"></div>');
                 panel.append('<div class="form-row"><label>severity</label><input type="number" id="opcua-detail-severity"></div>');
@@ -1423,7 +1451,7 @@
 
         $(document).on("input", "#opcua-detail-displayname", function () { updateNode(selectedPath, { displayName: $(this).val() }); });
 
-                $(document).on("input", "#opcua-detail-name", function () { updateNode(selectedPath, { name: $(this).val() }); });
+        $(document).on("input", "#opcua-detail-name", function () { updateNode(selectedPath, { name: $(this).val() }); });
         $(document).on("change", "#opcua-detail-namespace", function () {
             var nextNamespaceId = normalizeNamespaceId($(this).val());
             var item = getAtPath(editorState, selectedPath);
@@ -1527,7 +1555,9 @@
                     }
                 }
             },
-            inputs: 1, outputs: 0, icon: "bridge.svg",
+            inputs: 1,
+            outputs: 0,
+            icon: "opcua.svg",
             label: function () { return this.name || this.serverName || "opc-ua-server"; },
             oneditprepare: function () {
                 var node = this;

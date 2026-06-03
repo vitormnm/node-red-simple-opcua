@@ -958,7 +958,8 @@ class OpcUaAddressSpaceBuilder {
                         value: state.currentValue
                     };
 
-                    if (this.isArrayValue(state.currentValue)) {
+                    // ByteString nunca e array - Buffer nao deve ser VariantArrayType.Array
+                    if (state.type !== "ByteString" && this.isArrayValue(state.currentValue)) {
                         variantOptions.arrayType = VariantArrayType.Array;
                     }
 
@@ -1291,6 +1292,11 @@ class OpcUaAddressSpaceBuilder {
     }
 
     coerceValue(value, type, expectArray) {
+        // ByteString nunca e array - Buffer/Uint8Array tratados diretamente
+        if (type === "ByteString") {
+            return this.coerceScalarValue(value, type);
+        }
+
         if (expectArray) {
             const items = this.extractArrayItems(value);
             if (!items) {
@@ -1364,6 +1370,22 @@ class OpcUaAddressSpaceBuilder {
             }
 
             return Boolean(value);
+        }
+
+        if (type === "ByteString") {
+            if (Buffer.isBuffer(value)) {
+                return value;
+            }
+            if (value instanceof Uint8Array) {
+                return Buffer.from(value);
+            }
+            if (typeof value === "string") {
+                return Buffer.from(value, "base64");
+            }
+            if (Array.isArray(value)) {
+                return Buffer.from(value);
+            }
+            return Buffer.alloc(0);
         }
 
         return value === undefined || value === null ? "" : String(value);
