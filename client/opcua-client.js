@@ -26,19 +26,13 @@ const { OpcUaClientSubscriptionIdService } = require("./lib/opcua-client-subscri
 const path = require("path");
 
 
-const fs = require("fs");
-const arquivo = path.join(__dirname, "testClient.json");
 
 module.exports = function (RED) {
     function OpcUaClientNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
 
-        fs.writeFileSync(
-            arquivo,
-            JSON.stringify(config, null, 2),
-            "utf8"
-        );
+      
 
         node.name = (config.name || "").trim();
         node.connection = RED.nodes.getNode(config.connection);
