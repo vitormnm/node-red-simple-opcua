@@ -22,7 +22,12 @@ It supports the following OPC UA items on only 3 nodes.
 **Client editor**
 ![node-red-si](/resources/editorClient.PNG) 
 
+### Support the development of this project and others if you found it useful.
+<a href="https://buymeacoffee.com/vitormnm">
+    <img src="./resources/bmc-button.svg" alt="Logo" width="200">
+</a>
 
+---
 
 example json server config
 ```
