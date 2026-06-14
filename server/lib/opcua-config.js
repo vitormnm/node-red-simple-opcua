@@ -19,6 +19,7 @@ class OpcUaServerConfigParser {
 
     parseNodeConfig(config, credentials) {
         const security = this.applySecuritySettings(config.securityPolicy, config.securityMode);
+        const auth = this.parseAuthConfig(config, credentials);
         return {
             id: this.node.id,
             name: config.name,
@@ -29,7 +30,8 @@ class OpcUaServerConfigParser {
             resourcePath: config.resourcePath || DEFAULT_RESOURCE_PATH,
             treeConfig: this.parseTreeConfig(config.tree),
             allowAnonymous: this.normalizeAllowAnonymous(config.allowAnonymous),
-            users: this.parseUsersConfig(config.users, credentials),
+            groups: auth.groups,
+            users: auth.users,
             securityPolicy: security.securityPolicy,
             securityMode: security.securityMode
         };
@@ -44,19 +46,55 @@ class OpcUaServerConfigParser {
         }
     }
 
-    parseUsersConfig(rawUsers, credentials) {
+    parseAuthConfig(config, credentials) {
+        const safeConfig = config || {};
+        let groups = [];
+        let users = [];
+
         try {
-            const users = this.normalizeUsersConfig(rawUsers);
-            const credentialUser = this.normalizeCredentialUser(credentials);
-            if (credentialUser) {
-                users.unshift(credentialUser);
-            }
-            return users;
+            groups = this.normalizeGroupsConfig(
+                credentials && credentials.groups !== undefined ? credentials.groups : safeConfig.groups
+            );
         } catch (error) {
-            this.node.warn("Invalid users configuration in editor, using only credential user: " + error.message);
-            const credentialUser = this.normalizeCredentialUser(credentials);
-            return credentialUser ? [credentialUser] : [];
+            this.node.warn("Invalid groups configuration in editor, using derived groups only: " + error.message);
         }
+
+        try {
+            users = this.normalizeUsersConfig(
+                credentials && credentials.users !== undefined ? credentials.users : safeConfig.users
+            );
+        } catch (error) {
+            this.node.warn("Invalid users configuration in editor, using only legacy credential user: " + error.message);
+        }
+
+        const credentialUser = this.normalizeCredentialUser(credentials);
+        if (credentialUser) {
+            users.unshift(credentialUser);
+        }
+
+        return {
+            groups: this.buildResolvedGroups(groups, users),
+            users
+        };
+    }
+
+    buildResolvedGroups(groups, users) {
+        const resolved = [];
+        const seen = new Set();
+
+        const addGroup = (groupName) => {
+            const normalized = typeof groupName === "string" ? groupName.trim() : "";
+            if (!normalized || seen.has(normalized)) {
+                return;
+            }
+            seen.add(normalized);
+            resolved.push(normalized);
+        };
+
+        (Array.isArray(groups) ? groups : []).forEach(addGroup);
+        (Array.isArray(users) ? users : []).forEach((user) => addGroup(user && user.group));
+
+        return resolved;
     }
 
     normalizeTreeConfig(rawTree) {
@@ -125,12 +163,90 @@ class OpcUaServerConfigParser {
         };
     }
 
+    normalizeAccessPermissions(rawPermissions) {
+        let values = rawPermissions;
+
+        if (values === undefined || values === null || values === "") {
+            values = ["public"];
+        }
+
+        if (typeof values === "string") {
+            values = values.indexOf(",") >= 0
+                ? values.split(",")
+                : [values];
+        }
+
+        if (!Array.isArray(values)) {
+            throw new Error("'accessPermission' must be an array or string");
+        }
+
+        const seen = new Set();
+        const normalized = values.reduce((result, value) => {
+            const permission = String(value || "").trim().toLowerCase();
+            if (!permission || seen.has(permission)) {
+                return result;
+            }
+            seen.add(permission);
+            result.push(permission);
+            return result;
+        }, []);
+
+        return normalized.length ? normalized : ["public"];
+    }
+
     normalizeObjectTypes(objectTypes) {
         if (!Array.isArray(objectTypes)) {
             throw new Error("'objectsTypes' must be an array");
         }
 
         return objectTypes.map((objectTypeConfig) => this.normalizeBranch(objectTypeConfig, "object type"));
+    }
+
+    normalizeGroupsConfig(rawGroups) {
+        let parsed = rawGroups;
+
+        if (parsed === undefined || parsed === null || parsed === "") {
+            parsed = [];
+        }
+
+        if (typeof parsed === "string") {
+            parsed = JSON.parse(parsed);
+        }
+
+        if (!Array.isArray(parsed)) {
+            throw new Error("Groups configuration must be an array");
+        }
+
+        const seen = new Set();
+        return parsed.reduce((groups, groupConfig) => {
+            const groupName = this.normalizeGroup(groupConfig);
+            if (!seen.has(groupName)) {
+                seen.add(groupName);
+                groups.push(groupName);
+            }
+            return groups;
+        }, []);
+    }
+
+    normalizeGroup(groupConfig) {
+        if (typeof groupConfig === "string") {
+            const groupName = groupConfig.trim();
+            if (!groupName) {
+                throw new Error("Each group requires a non-empty name");
+            }
+            return groupName;
+        }
+
+        if (!groupConfig || typeof groupConfig !== "object" || Array.isArray(groupConfig)) {
+            throw new Error("Each group must be a string or an object");
+        }
+
+        const groupName = typeof groupConfig.name === "string" ? groupConfig.name.trim() : "";
+        if (!groupName) {
+            throw new Error("Each group requires a non-empty name");
+        }
+
+        return groupName;
     }
 
     normalizeUsersConfig(rawUsers) {
@@ -163,7 +279,8 @@ class OpcUaServerConfigParser {
         return {
             username,
             password,
-            passwordHash: ""
+            passwordHash: "",
+            group: "default"
         };
     }
 
@@ -196,6 +313,7 @@ class OpcUaServerConfigParser {
             description: branchConfig.description || "",
             nodeId: this.normalizeOptionalNodeId(branchConfig.nodeId),
             namespaceId: this.normalizeNamespaceId(branchConfig.namespaceId),
+            accessPermission: this.normalizeAccessPermissions(branchConfig.accessPermission || branchConfig.accessPermissions),
             folders: Array.isArray(branchConfig.folders)
                 ? branchConfig.folders.map((folderConfig) => this.normalizeBranch(folderConfig, "folder"))
                 : [],
@@ -271,7 +389,8 @@ class OpcUaServerConfigParser {
             description: variableConfig.description || "",
             displayName: variableConfig.displayName || name,
             nodeId: this.normalizeOptionalNodeId(variableConfig.nodeId),
-            namespaceId: this.normalizeNamespaceId(variableConfig.namespaceId)
+            namespaceId: this.normalizeNamespaceId(variableConfig.namespaceId),
+            accessPermission: this.normalizeAccessPermissions(variableConfig.accessPermission || variableConfig.accessPermissions)
         };
     }
 
@@ -288,6 +407,7 @@ class OpcUaServerConfigParser {
             description: methodConfig.description || "",
             nodeId: this.normalizeOptionalNodeId(methodConfig.nodeId),
             namespaceId: this.normalizeNamespaceId(methodConfig.namespaceId),
+            accessPermission: this.normalizeAccessPermissions(methodConfig.accessPermission || methodConfig.accessPermissions),
             inputs: Array.isArray(methodConfig.inputs)
                 ? methodConfig.inputs.map((arg) => this.normalizeMethodArg(arg))
                 : Array.isArray(methodConfig.inputArguments)
@@ -336,6 +456,7 @@ class OpcUaServerConfigParser {
             description: typeof alarmConfig.description === "string" ? alarmConfig.description : "",
             nodeId: this.normalizeOptionalNodeId(alarmConfig.nodeId),
             namespaceId: this.normalizeNamespaceId(alarmConfig.namespaceId),
+            accessPermission: this.normalizeAccessPermissions(alarmConfig.accessPermission || alarmConfig.accessPermissions),
             enabled: typeof alarmConfig.enabled === "boolean" ? alarmConfig.enabled : true
         };
 
@@ -364,6 +485,11 @@ class OpcUaServerConfigParser {
         const username = typeof userConfig.username === "string" ? userConfig.username.trim() : "";
         const passwordHash = typeof userConfig.passwordHash === "string" ? userConfig.passwordHash : "";
         const password = typeof userConfig.password === "string" ? userConfig.password : "";
+        const group = typeof userConfig.group === "string"
+            ? userConfig.group.trim()
+            : typeof userConfig.role === "string"
+                ? userConfig.role.trim()
+                : "";
 
         if (!username) {
             throw new Error("Each user requires a non-empty username");
@@ -373,10 +499,15 @@ class OpcUaServerConfigParser {
             throw new Error("Each user requires a password or password hash");
         }
 
+        if (!group) {
+            throw new Error("Each user requires a non-empty group");
+        }
+
         return {
             username,
             password,
-            passwordHash
+            passwordHash,
+            group
         };
     }
 

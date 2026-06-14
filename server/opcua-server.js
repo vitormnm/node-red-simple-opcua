@@ -8,12 +8,6 @@ module.exports = function (RED) {
     const { fork } = require("child_process");
     const path = require("path");
 
-
-    
-
-
-
-
     function OpcUaServerNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
@@ -39,14 +33,11 @@ module.exports = function (RED) {
             "settings": settings
         }
 
-        // const child = fork(workerPath, [JSON.stringify(fork_parameter)], {
-        //     cwd: __dirname, // opcional, mas recomendado
-        // });
 
         const child = fork(workerPath, {
             cwd: __dirname, // opcional, mas recomendado
         });
-
+        child.setMaxListeners(0);
 
 
         registry.registerChild(node.serverName, child);
@@ -73,9 +64,13 @@ module.exports = function (RED) {
 
         child.on("message", (msg) => {
             if (msg.nodeId == node.id) {
-                if (msg.type === "status") {
 
-                    node.status(msg.data); // aqui sim usa o node
+                if (msg.type === "send") {
+                    node.send(msg.data);
+                }
+
+                if (msg.type === "status") {
+                    node.status(msg.data);
                 }
 
                 if (msg.type === "log") {
@@ -138,10 +133,26 @@ module.exports = function (RED) {
         node.status({ fill: "red", shape: "ring", text: message });
     }
 
+
+
+    RED.httpAdmin.get("/opcua-server-resource/opcua-server.css", function (req, res) {
+        const cssPath = path.join(__dirname, "view", "opcua-server.css");
+        res.sendFile(cssPath);
+    });
+
+    RED.httpAdmin.get("/opcua-server-resource/opcua-server.js", function (req, res) {
+        const jsPath = path.join(__dirname, "view", "opcua-server.js");
+        res.sendFile(jsPath);
+    });
+
+
+
     RED.nodes.registerType("opc-ua-server", OpcUaServerNode, {
         credentials: {
             username: { type: "text" },
-            password: { type: "password" }
+            password: { type: "password" },
+            users: { type: "text" },
+            groups: { type: "text" }
         }
     });
 };

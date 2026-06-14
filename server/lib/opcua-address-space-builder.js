@@ -7,7 +7,9 @@ const {
     VariantArrayType,
     sanitizeNodeIdPath,
     DataType,
-    coerceNodeId
+    coerceNodeId,
+    PermissionType,
+    resolveNodeId
 } = require("./opcua-constants");
 
 const { OpcUaAddressSpaceAlarm } = require("./opcua-address-space-alarm")
@@ -20,6 +22,7 @@ class OpcUaAddressSpaceBuilder {
         this.registry = options.registry;
         this.node = options.node;
         this.serverName = options.serverName;
+        this.authorizationDisabled = !!options.allowAnonymous;
         this.nodeEntries = new Map();
         this.variableStore = new Map();
         this.variableNodeIdStore = new Map();
@@ -411,6 +414,107 @@ class OpcUaAddressSpaceBuilder {
         };
     }
 
+    normalizeAccessPermissions(config) {
+        const rawPermissions = config && (config.accessPermission || config.accessPermissions);
+        if (!Array.isArray(rawPermissions) || !rawPermissions.length) {
+            return ["public"];
+        }
+
+        const seen = new Set();
+        const normalized = rawPermissions.reduce((result, value) => {
+            const permission = String(value || "").trim().toLowerCase();
+            if (!permission || seen.has(permission)) {
+                return result;
+            }
+            seen.add(permission);
+            result.push(permission);
+            return result;
+        }, []);
+
+        return normalized.length ? normalized : ["public"];
+    }
+
+    resolvePermissionRoleId(permission) {
+        const normalized = String(permission || "").trim().toLowerCase();
+        if (!normalized) {
+            return null;
+        }
+
+        const wellKnownRoles = {
+            public: ["WellKnownRole_Anonymous", "WellKnownRole_AuthenticatedUser"],
+            anonymous: ["WellKnownRole_Anonymous"],
+            authenticated: ["WellKnownRole_AuthenticatedUser"],
+            authenticateduser: ["WellKnownRole_AuthenticatedUser"],
+            operator: ["WellKnownRole_Operator"],
+            supervisor: ["WellKnownRole_Supervisor"],
+            engineer: ["WellKnownRole_Engineer"],
+            engineering: ["WellKnownRole_Engineer"],
+            observer: ["WellKnownRole_Observer"],
+            admin: ["WellKnownRole_ConfigureAdmin"],
+            configureadmin: ["WellKnownRole_ConfigureAdmin"],
+            securityadmin: ["WellKnownRole_SecurityAdmin"]
+        };
+
+        if (wellKnownRoles[normalized]) {
+            return wellKnownRoles[normalized].map((roleId) => resolveNodeId(roleId));
+        }
+
+        return [resolveNodeId("ns=1;s=NodeRedRole/" + this.sanitizeRoleSegment(normalized))];
+    }
+
+    sanitizeRoleSegment(value) {
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_")
+            .replace(/[^a-z0-9._-]/g, "_");
+    }
+
+    buildPermissionMask(kind, config) {
+        if (kind === "method") {
+            return PermissionType.Browse | PermissionType.Call;
+        }
+
+        const basePermissions = PermissionType.Browse | PermissionType.Read;
+        if (kind === "alarm") {
+            return basePermissions | PermissionType.ReceiveEvents;
+        }
+
+        if (kind === "variable" && config && config.access === "readwrite") {
+            return basePermissions | PermissionType.Write;
+        }
+
+        return basePermissions;
+    }
+
+    buildRolePermissions(kind, config) {
+        if (this.authorizationDisabled) {
+            return undefined;
+        }
+
+        const permissions = this.normalizeAccessPermissions(config);
+        const permissionMask = this.buildPermissionMask(kind, config);
+        const rolePermissions = [];
+        const seen = new Set();
+
+        permissions.forEach((permission) => {
+            const roleIds = this.resolvePermissionRoleId(permission);
+            (roleIds || []).forEach((roleId) => {
+                const key = coerceNodeId(roleId).toString();
+                if (seen.has(key)) {
+                    return;
+                }
+                seen.add(key);
+                rolePermissions.push({
+                    roleId,
+                    permissions: permissionMask
+                });
+            });
+        });
+
+        return rolePermissions.length ? rolePermissions : undefined;
+    }
+
     buildSignature(kind, config, parentPath, relationship) {
         if (kind === "variable") {
             return JSON.stringify({
@@ -423,7 +527,8 @@ class OpcUaAddressSpaceBuilder {
                 description: config.description || "",
                 type: config.type,
                 access: config.access,
-                isArray: this.isArrayValue(config.value)
+                isArray: this.isArrayValue(config.value),
+                accessPermission: this.normalizeAccessPermissions(config)
             });
         }
 
@@ -436,6 +541,7 @@ class OpcUaAddressSpaceBuilder {
                 namespaceId: this.resolveNamespaceId(config),
                 displayName: config.displayName || config.name,
                 description: config.description || "",
+                accessPermission: this.normalizeAccessPermissions(config),
                 inputs: Array.isArray(config.inputs) ? config.inputs : [],
                 outputs: Array.isArray(config.outputs) ? config.outputs : []
             });
@@ -450,6 +556,7 @@ class OpcUaAddressSpaceBuilder {
                 namespaceId: this.resolveNamespaceId(config),
                 displayName: config.displayName || config.name,
                 description: config.description || "",
+                accessPermission: this.normalizeAccessPermissions(config),
                 objectsType: config.objectsType
             });
         }
@@ -461,7 +568,8 @@ class OpcUaAddressSpaceBuilder {
             nodeId: config.nodeId || "",
             namespaceId: this.resolveNamespaceId(config),
             displayName: config.displayName || config.name,
-            description: config.description || ""
+            description: config.description || "",
+            accessPermission: this.normalizeAccessPermissions(config)
         });
     }
 
@@ -622,6 +730,7 @@ class OpcUaAddressSpaceBuilder {
             displayName: objectConfig.displayName || objectName,
             description: objectConfig.description || "",
             nodeId: this.resolveNodeId(objectConfig, nextPath, namespace),
+            rolePermissions: this.buildRolePermissions("object", objectConfig),
             eventNotifier: 1, //enabled_events,
             eventSourceOf: serverNode
         };
@@ -647,6 +756,7 @@ class OpcUaAddressSpaceBuilder {
             displayName: objectTypeConfig.displayName || objectTypeConfig.name,
             description: objectTypeConfig.description || "",
             nodeId: this.resolveNodeId(objectTypeConfig, this.buildObjectTypePath(objectTypeConfig.name), namespace),
+            rolePermissions: this.buildRolePermissions("objectTypeDefinition", objectTypeConfig),
             subtypeOf: "BaseObjectType"
         });
 
@@ -679,6 +789,7 @@ class OpcUaAddressSpaceBuilder {
             displayName: instanceConfig.displayName || objectName,
             description: instanceConfig.description || "",
             nodeId: this.resolveNodeId(instanceConfig, nextPath, namespace),
+            rolePermissions: this.buildRolePermissions("objectTypeInstance", instanceConfig),
             typeDefinition: objectTypeEntry.node.nodeId,
             eventNotifier: 1
         };
@@ -814,6 +925,10 @@ class OpcUaAddressSpaceBuilder {
             const nodeId = this.resolveNodeId(alarmConfig, nextPath, namespace)
 
             const alarmNode = this.addressSpaceAlarm.createAlarm(namespace, browseName, parentNode, inputNode, conditionName, nodeId, sourceName, alarmConfig)
+            const alarmRolePermissions = this.buildRolePermissions("alarm", alarmConfig);
+            if (alarmNode && alarmRolePermissions) {
+                alarmNode.setRolePermissions(alarmRolePermissions);
+            }
 
 
 
@@ -897,6 +1012,7 @@ class OpcUaAddressSpaceBuilder {
             displayName: folderConfig.displayName || folderName,
             description: folderConfig.description || "",
             nodeId: this.resolveNodeId(folderConfig, nextPath, namespace),
+            rolePermissions: this.buildRolePermissions("folder", folderConfig),
             typeDefinition: "FolderType",
             eventSourceOf: serverNode,
             eventNotifier: 1 //enabled_events
@@ -937,6 +1053,7 @@ class OpcUaAddressSpaceBuilder {
             displayName: browseName,
             description: variableConfig.description || "",
             nodeId,
+            rolePermissions: this.buildRolePermissions("variable", variableConfig),
             dataType: type,
             modellingRule: this.isObjectTypePath(parentPath) ? "Mandatory" : undefined,
             valueRank: state.isArray ? 1 : -1,
@@ -1038,6 +1155,7 @@ class OpcUaAddressSpaceBuilder {
             displayName: methodConfig.displayName || methodName,
             description: { text: methodConfig.description || "" },
             nodeId: nodeId,
+            rolePermissions: this.buildRolePermissions("method", methodConfig),
             modellingRule: this.isObjectTypePath(parentPath) ? "Mandatory" : undefined,
             inputArguments: methodConfig.inputs.map((arg) => ({
                 name: arg.name,

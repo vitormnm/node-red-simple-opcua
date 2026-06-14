@@ -17,18 +17,52 @@ async function browseNode(session, root) {
         browse: []
     };
 
-    const browseResult = await session.browse({
+
+
+    // const browseResult = await session.browse({
+    //     nodeId: nodeID,
+    //     browseDirection: BrowseDirection.Forward,
+    //     includeSubtypes: true,
+    //     resultMask: 63
+    // });
+
+    // const references = browseResult?.references ?? [];
+
+    let browseResult = await session.browse({
         nodeId: nodeID,
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
         resultMask: 63
     });
 
-    const references = browseResult?.references ?? [];
+    let references = [
+        ...(browseResult.references || [])
+    ];
+
+    while (browseResult.continuationPoint) {
+
+        browseResult = await session.browseNext(
+            browseResult.continuationPoint,
+            false
+        );
+
+        references.push(
+            ...(browseResult.references || [])
+        );
+    }
+
+    if (!references.length) {
+        return result;
+    }
+    //end new browse tia portal
+
+
     if (!references.length) return result;
 
     // Monta lista de todos os atributos de todos os nós de uma vez
     const nodeIds = references.map(ref => normalizeNodeId(ref.nodeId));
+
+
     const attributesToRead = nodeIds.flatMap(nodeId => [
         { nodeId, attributeId: AttributeIds.Description },
         { nodeId, attributeId: AttributeIds.DataType },
@@ -255,8 +289,12 @@ async function readMethodArguments(session, nodeId) {
 }
 
 function normalizeNodeId(nodeId) {
+
+
     return coerceNodeId(nodeId).toString();
 }
+
+
 
 function resolveNodeClassName(nodeClass) {
     if (!nodeClass && nodeClass !== 0) {

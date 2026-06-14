@@ -1,13 +1,13 @@
 (function () {
     var selectedItemsState = [];
-    var selectedNodeIdSet = {};          
+    var selectedNodeIdSet = {};
     var browseState = null;
     var expansionState = {};
     var browseSearchValue = "";
     var browseSearchTerm = "";
     var contextMenuPath = "";
     var browseSelectedPath = "";
-    var renderPending = false;           
+    var renderPending = false;
 
     function debounce(fn, delay) {
         var timer;
@@ -87,7 +87,7 @@
                         valueProperty: typeof item.valueProperty === "string" && item.valueProperty.trim() ? item.valueProperty.trim() : "payload",
                         valuePropertyType: (item.valuePropertyType === "msg" || item.valuePropertyType === "flow" || item.valuePropertyType === "global") ? item.valuePropertyType : "msg"
                     };
-                    
+
                     if (item.objectId) res.objectId = item.objectId;
                     if (Array.isArray(item.inputs)) res.inputs = item.inputs;
                     if (Array.isArray(item.outputs)) res.outputs = item.outputs;
@@ -113,7 +113,7 @@
             if (item.nodeClass) result.nodeClass = item.nodeClass;
             if (item.typeDefinition) result.typeDefinition = item.typeDefinition;
             if (item.hasTypeDefinition) result.hasTypeDefinition = item.hasTypeDefinition;
-            
+
             if (item.valueProperty && item.nodeClass !== "Method") result.valueProperty = item.valueProperty;
             if (item.valuePropertyType && item.nodeClass !== "Method") result.valuePropertyType = item.valuePropertyType;
 
@@ -191,7 +191,7 @@
                 var header = $('<div class="opcua-client-method-header" style="display:flex; align-items:center; margin-bottom:8px;"></div>');
                 header.append('<span class="opcua-tree-icon" style="margin-right:6px;"><i class="fa fa-cog"></i></span>');
                 header.append('<span class="opcua-client-method-title" style="font-weight:bold; flex-grow:1;">' + escapeHtml(item.name || item.nodeID) + '</span>');
-                
+
                 var nodeLabel = escapeHtml(item.nodeID);
                 if (item.objectId) nodeLabel += ' · <span style="color:#aaa;font-weight:400;">obj: ' + escapeHtml(item.objectId) + '</span>';
                 header.append('<span class="opcua-client-nodeid-label" style="font-size:11px; color:#666; margin-right:10px;">' + nodeLabel + '</span>');
@@ -336,6 +336,7 @@
     }
 
     function loadBrowse(nodeId) {
+
         var connectionId = $("#node-input-connection").val();
         if (!connectionId) {
             RED.notify("Select an OPC UA connection before browsing.", "warning");
@@ -758,6 +759,9 @@
         renderBrowseTree();
         var browseNodeId = item.nodeID || item.nodeId;
         loadBrowse(browseNodeId).done(function (payload) {
+
+            
+
             item.browse = Array.isArray(payload.browse) ? payload.browse : [];
             saveBrowseSession();
             renderBrowseTree();
@@ -885,7 +889,7 @@
 
         $(".opcua-client-subscription-row").toggle(isSubscription);
         $(".opcua-client-selection-row").toggle(supportsSelection);
-        
+
         // Esconde permanentemente a linha de métodos antiga caso ainda exista no DOM
         $(".opcua-client-method-row").hide();
 

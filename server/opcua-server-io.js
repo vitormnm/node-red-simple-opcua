@@ -179,6 +179,7 @@ module.exports = function (RED) {
     function childControl(node) {
 
         const child = registry.resolveChild(node.serverRef)
+        child.setMaxListeners(0);
 
         child.on("message", (msg) => {
 

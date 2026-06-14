@@ -5,10 +5,20 @@
 const {
     OPCUAServer,
     UserTokenType,
-    buildApplicationUri
+    buildApplicationUri,
+    makeRoles,
+    WellKnownRoles,
+    resolveNodeId
 } = require("./opcua-constants");
 const { OpcUaAddressSpaceBuilder } = require("./opcua-address-space-builder");
 const { OpcUaServerMethods } = require("./opcua-server-methods");
+let bcrypt = null;
+
+try {
+    bcrypt = require("bcryptjs");
+} catch (error) {
+    bcrypt = null;
+}
 
 class OpcUaServerRuntime {
     constructor(options) {
@@ -22,6 +32,7 @@ class OpcUaServerRuntime {
         this.namespaceUri = options.settings.namespaceUri;
         this.resourcePath = options.settings.resourcePath;
         this.allowAnonymous = options.settings.allowAnonymous;
+        this.groups = options.settings.groups;
         this.users = options.settings.users;
         this.securityPolicy = options.settings.securityPolicy;
         this.securityMode = options.settings.securityMode;
@@ -55,7 +66,8 @@ class OpcUaServerRuntime {
             registry: this.registry,
             node: this.node,
             serverName: this.serverName,
-            addressSpace: this.addressSpace
+            addressSpace: this.addressSpace,
+            allowAnonymous: this.allowAnonymous
         });
 
 
@@ -195,9 +207,6 @@ class OpcUaServerRuntime {
                 buildNumber: "1",
                 buildDate: new Date()
             },
-            // serverCertificateManager: {
-            //     automaticallyAcceptUnknownCertificate: true
-            // },
             serverCapabilities: {
                 maxSessions: this.maxConnections
             },
@@ -210,10 +219,62 @@ class OpcUaServerRuntime {
             securityModes: [this.securityMode],
             allowAnonymous: this.allowAnonymous,
             userManager: {
-                isValidUser: (username, password) => this.isValidUser(username, password)
+                isValidUser: (username, password) => this.isValidUser(username, password),
+                getUserRoles: (username) => this.getUserRoles(username)
             },
             userTokenPolicies
         };
+    }
+
+    getUserRoles(username) {
+        const normalizedUserName = typeof username === "string" ? username.trim() : "";
+        if (!normalizedUserName || normalizedUserName.toLowerCase() === "anonymous") {
+            return makeRoles([WellKnownRoles.Anonymous]);
+        }
+
+        const user = this.users.find((entry) => entry && entry.username === normalizedUserName);
+        if (!user) {
+            return makeRoles([WellKnownRoles.AuthenticatedUser]);
+        }
+
+        const roles = [resolveNodeId("WellKnownRole_AuthenticatedUser")];
+        const customRole = this.resolveGroupRoleNodeId(user.group);
+        if (customRole) {
+            roles.push(customRole);
+        }
+        return roles;
+    }
+
+    resolveGroupRoleNodeId(groupName) {
+        const normalized = String(groupName || "").trim().toLowerCase();
+        if (!normalized || normalized === "public") {
+            return null;
+        }
+
+        const wellKnownRoles = {
+            operator: "WellKnownRole_Operator",
+            supervisor: "WellKnownRole_Supervisor",
+            engineer: "WellKnownRole_Engineer",
+            engineering: "WellKnownRole_Engineer",
+            observer: "WellKnownRole_Observer",
+            admin: "WellKnownRole_ConfigureAdmin",
+            configureadmin: "WellKnownRole_ConfigureAdmin",
+            securityadmin: "WellKnownRole_SecurityAdmin"
+        };
+
+        if (wellKnownRoles[normalized]) {
+            return resolveNodeId(wellKnownRoles[normalized]);
+        }
+
+        return resolveNodeId("ns=1;s=NodeRedRole/" + this.sanitizeRoleSegment(normalized));
+    }
+
+    sanitizeRoleSegment(value) {
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_")
+            .replace(/[^a-z0-9._-]/g, "_");
     }
 
     isValidUser(username, password) {
@@ -227,6 +288,10 @@ class OpcUaServerRuntime {
             }
 
             if (user.passwordHash) {
+                if (!bcrypt) {
+                    this.node.warn("bcryptjs is not installed, so hashed passwords cannot be validated.");
+                    return false;
+                }
                 try {
                     return bcrypt.compareSync(password, user.passwordHash);
                 } catch (error) {

@@ -242,18 +242,19 @@ async function dataValueToItemResultEvent(item, eventFields, session) {
 
     const eventTypeName = dv.value.value.name;
 
+    
+
     return {
-        eventId: eventFields[0].value,
-        eventType: eventFields[1].value,
-        eventTypeName: eventTypeName,
-        sourceNode: eventFields[2].value.toString(),
-        sourceName: eventFields[3].value,
-        message: eventFields[4].value?.text,
-        severity: eventFields[5].value,
-        active: eventFields[6].value?.text, // Active / Inactive
-        AckedState: eventFields[7].value?.text, // Active / Inactive
-        ConfirmedState: eventFields[8].value?.text, // Active / Inactive
-        time: eventFields[9].value
+        eventId: eventFields[0]?.value ?? null,
+        eventType: eventFields[1]?.value ?? null,
+        sourceNode: eventFields[2]?.value?.toString() ?? null,
+        sourceName: eventFields[3]?.value ?? null,
+        message: eventFields[4]?.value?.text ?? null,
+        severity: eventFields[5]?.value ?? null,
+        active: eventFields[6]?.value?.text ?? null, // Active / Inactive
+        AckedState: eventFields[7]?.value?.text ?? null, // Active / Inactive
+        ConfirmedState: eventFields[8]?.value?.text ?? null,  // Active / Inactive
+        time: eventFields[9]?.value ?? null
     };
 }
 

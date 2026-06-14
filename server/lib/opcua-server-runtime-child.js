@@ -100,6 +100,17 @@ class OpcUaServerProcess {
                 nodeId: nodeId
             });
 
+            process.send({
+                type: "send",
+                data: {
+                    payload: {
+                        status: "running"
+                    },
+                    topic : settings.serverName
+                },
+                nodeId: nodeId
+            });
+
 
         } catch (error) {
             this.isRunning = false;
@@ -108,6 +119,17 @@ class OpcUaServerProcess {
             process.send({
                 type: "error",
                 data: "Failed to start OPC UA server: " + error.message
+            });
+
+            process.send({
+                type: "send",
+                data: {
+                    payload: {
+                        status: "error"
+                    },
+                    topic : settings.serverName
+                },
+                nodeId: nodeId
             });
 
             process.send({
@@ -214,7 +236,7 @@ class OpcUaServerProcess {
             msg.payload = result.payload;
             this.assignReadMetadata(msg, identifierType, result.identifiers);
 
-            
+
 
             if (result.identifiers.length === 1) {
                 msg.topic = result.identifiers[0];
@@ -438,7 +460,7 @@ class OpcUaServerProcess {
                 writtenPaths
             );
 
-          
+
             if (writtenPaths.length === 1) {
                 msg.topic = writtenPaths[0];
             }
@@ -592,6 +614,17 @@ class OpcUaServerProcess {
                 nodeId: nodeId
             });
 
+            process.send({
+                type: "send",
+                data: {
+                    payload: {
+                        status: "updating"
+                    },
+                    topic : this.node.serverName
+                },
+                nodeId: nodeId
+            });
+
             await this.ensureReady();
 
             const nextTree = this.parser.normalizeTreeConfig(payload);
@@ -599,6 +632,17 @@ class OpcUaServerProcess {
             await this.runtime.updateTree(nextTree);
 
             const endpointUrl = await this.runtime.getEndpointUrl();
+
+            process.send({
+                type: "send",
+                data: {
+                    payload: {
+                        status: "running"
+                    },
+                    topic : this.node.serverName
+                },
+                nodeId: nodeId
+            });
 
 
             process.send({
@@ -620,6 +664,16 @@ class OpcUaServerProcess {
             process.send({
                 type: "errorUpdateServer",
                 data: error.message,
+                nodeId: nodeId
+            });
+
+            process.send({
+                type: "send",
+                data: {
+                    payload: {
+                        status: "error"
+                    }
+                },
                 nodeId: nodeId
             });
 
