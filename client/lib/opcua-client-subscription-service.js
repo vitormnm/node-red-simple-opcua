@@ -11,6 +11,7 @@ const {
 const {
     dataValueToItemResult,
     dataValueToItemResultEvent,
+    enrichItemResultWithEnumeration,
     resolveName,
     resolveNodeId,
     statusCodeToString
@@ -49,8 +50,11 @@ class OpcUaClientSubscriptionService {
                 TimestampsToReturn.Both
             );
 
-            monitoredItem.on("changed", (dataValue) => {
-                const payload = dataValueToItemResult(item, dataValue);
+            const cache = new Map();
+            monitoredItem.on("changed", async (dataValue) => {
+                let payload = dataValueToItemResult(item, dataValue);
+                payload = await enrichItemResultWithEnumeration(payload, session, cache, resolveNodeId(item));
+                
                 node.status({
                     fill: "blue",
                     shape: "dot",
@@ -108,7 +112,8 @@ class OpcUaClientSubscriptionService {
             "ActiveState",
             "AckedState",
             "ConfirmedState",
-            "Time"
+            "Time",
+            "ConditionId"
         ]);
 
         node.monitoredItems = items.map((item) => {

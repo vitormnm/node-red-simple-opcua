@@ -351,7 +351,8 @@ async function dataValueToItemResultEvent(item, eventFields, session) {
         active: eventFields[6]?.value?.text ?? null, // Active / Inactive
         AckedState: eventFields[7]?.value?.text ?? null, // Active / Inactive
         ConfirmedState: eventFields[8]?.value?.text ?? null,  // Active / Inactive
-        time: eventFields[9]?.value ?? null
+        time: eventFields[9]?.value ?? null,
+        conditionId: eventFields[10]?.value?.toString() ?? null
     };
 }
 
@@ -467,6 +468,101 @@ async function getMethodArgumentDefinition(session, methodNodeId, cache) {
     return definition;
 }
 
+async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
+    if (result.type !== "Int32" && result.type !== "Enumeration") {
+        return result;
+    }
+    
+    if (typeof result.value !== "number" || !Number.isInteger(result.value)) {
+        return result;
+    }
+
+    try {
+        const cacheKeyType = "dt:" + nodeId;
+        let dtNodeId = cache ? cache.get(cacheKeyType) : undefined;
+        if (dtNodeId === undefined) {
+            const dv = await session.read({
+                nodeId: nodeId,
+                attributeId: AttributeIds.DataType
+            });
+            console.log("Read DataType dv:", dv.statusCode.toString(), dv.value ? dv.value.value.toString() : "null");
+            if (dv.statusCode.isGood()) {
+                dtNodeId = dv.value.value;
+                if (cache) cache.set(cacheKeyType, dtNodeId);
+            } else {
+                if (cache) cache.set(cacheKeyType, null);
+            }
+        }
+        
+        console.log("dtNodeId:", dtNodeId ? dtNodeId.toString() : "null");
+        if (!dtNodeId) return result;
+        
+        const cacheKeyStrings = "enumStrings:" + dtNodeId.toString();
+        let enumStrings = cache ? cache.get(cacheKeyStrings) : undefined;
+        
+        if (enumStrings === undefined) {
+            const browseResult = await session.browse({
+                nodeId: dtNodeId,
+                referenceTypeId: "HasProperty",
+                browseDirection: BrowseDirection.Forward,
+                includeSubtypes: true,
+                resultMask: 63
+            });
+            console.log("Browse references:", browseResult.references ? browseResult.references.map(r => r.browseName.name) : "none");
+            
+            const enumStringsRef = browseResult.references ? browseResult.references.find(r => r.browseName.name === "EnumStrings") : null;
+            const enumValuesRef = browseResult.references ? browseResult.references.find(r => r.browseName.name === "EnumValues") : null;
+
+            if (enumStringsRef) {
+                const dataValue = await session.read({
+                    nodeId: enumStringsRef.nodeId,
+                    attributeId: AttributeIds.Value
+                });
+                console.log("Read EnumStrings dataValue:", dataValue.statusCode.toString());
+                if (dataValue.statusCode.isGood() && dataValue.value.value) {
+                    enumStrings = dataValue.value.value.map(lt => lt.text);
+                    if (cache) cache.set(cacheKeyStrings, enumStrings);
+                } else {
+                    if (cache) cache.set(cacheKeyStrings, null);
+                }
+            } else if (enumValuesRef) {
+                const dataValue = await session.read({
+                    nodeId: enumValuesRef.nodeId,
+                    attributeId: AttributeIds.Value
+                });
+                console.log("Read EnumValues dataValue:", dataValue.statusCode.toString());
+                if (dataValue.statusCode.isGood() && dataValue.value.value) {
+                    const map = {};
+                    dataValue.value.value.forEach(ev => {
+                        let val;
+                        if (Array.isArray(ev.value) && ev.value.length === 2) {
+                            val = ev.value[1]; // low part of Int64
+                        } else {
+                            val = Number(ev.value);
+                        }
+                        map[val] = ev.displayName.text;
+                    });
+                    enumStrings = map;
+                    if (cache) cache.set(cacheKeyStrings, enumStrings);
+                } else {
+                    if (cache) cache.set(cacheKeyStrings, null);
+                }
+            } else {
+                if (cache) cache.set(cacheKeyStrings, null);
+            }
+        }
+        
+        console.log("Resolved enumStrings:", enumStrings);
+        if (enumStrings && enumStrings[result.value] !== undefined) {
+            result.valueEnumeration = enumStrings[result.value];
+        }
+    } catch (e) {
+        console.error("Error in enrichItemResultWithEnumeration:", e);
+    }
+    
+    return result;
+}
+
 module.exports = {
     AttributeIds,
     coerceNodeId,
@@ -477,6 +573,7 @@ module.exports = {
     callResultToItemResult,
     dataValueToItemResult,
     dataValueToItemResultEvent,
+    enrichItemResultWithEnumeration,
     ensureArrayPayload,
     getMethodArgumentDefinition,
     inferTypeName,
