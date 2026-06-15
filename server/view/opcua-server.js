@@ -74,9 +74,13 @@
 
     function reconcileAuthGroupsFromUsers() {
         authUsers.forEach(function (user) {
-            var groupName = String((user && user.group) || "").trim();
-            if (groupName && authGroups.indexOf(groupName) === -1) {
-                authGroups.push(groupName);
+            if (user && user.group) {
+                var groups = String(user.group).split(",").map(function (g) { return g.trim(); }).filter(Boolean);
+                groups.forEach(function (groupName) {
+                    if (authGroups.indexOf(groupName) === -1) {
+                        authGroups.push(groupName);
+                    }
+                });
             }
         });
     }
@@ -726,7 +730,7 @@
             panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-create-displayname" placeholder="Leave blank to use browseName"></div>');
             panel.append('<div class="form-row"><label>accessPermission</label>' + buildAccessPermissionSelect("opcua-create-accesspermission", pendingCreate.accessPermission || ["public"]) + '</div>');
             if (pendingCreate.kind === "variable") {
-                panel.append('<div class="form-row"><label>dataType</label><select id="opcua-create-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
+                panel.append('<div class="form-row"><label>dataType</label><select id="opcua-create-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
                 panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-create-value"></div>');
                 panel.append('<div class="form-row"><label>Access</label><select id="opcua-create-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
             }
@@ -805,7 +809,7 @@
             panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-detail-objectstype", item.objectsType || "") + '</div>');
         }
         if (nodeClass === "Variable") {
-            panel.append('<div class="form-row"><label>dataType</label><select id="opcua-detail-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option><option value="ByteString">ByteString</option></select></div>');
+            panel.append('<div class="form-row"><label>dataType</label><select id="opcua-detail-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option><option value="ByteString">ByteString</option></select></div>');
             panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-detail-value"></div>');
             panel.append('<div class="form-row"><label>Access</label><select id="opcua-detail-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
         }
@@ -817,7 +821,7 @@
                 var argPath = selectedPath + ".inputs." + idx;
                 var argBlock = $('<div style="border:1px solid #e3e3e3;border-radius:4px;padding:6px;margin-bottom:4px;"></div>');
                 argBlock.append('<div class="form-row"><label>name</label><input type="text" class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="name"></div>');
-                argBlock.append('<div class="form-row"><label>type</label><select class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
+                argBlock.append('<div class="form-row"><label>type</label><select class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
                 argBlock.append('<div class="form-row"><label>displayName</label><input type="text" class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="displayName"></div>');
                 argBlock.append('<div class="form-row"><label>description</label><input type="text" class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="description"></div>');
                 argBlock.append('<div class="form-row"><label></label><a href="#" class="editor-button editor-button-small opcua-method-arg-remove" data-arg-path="' + argPath + '"><i class="fa fa-trash"></i> Remove</a></div>');
@@ -835,7 +839,7 @@
                 var argPath = selectedPath + ".outputs." + idx;
                 var argBlock = $('<div style="border:1px solid #e3e3e3;border-radius:4px;padding:6px;margin-bottom:4px;"></div>');
                 argBlock.append('<div class="form-row"><label>name</label><input type="text" class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="name"></div>');
-                argBlock.append('<div class="form-row"><label>type</label><select class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
+                argBlock.append('<div class="form-row"><label>type</label><select class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
                 argBlock.append('<div class="form-row"><label>displayName</label><input type="text" class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="displayName"></div>');
                 argBlock.append('<div class="form-row"><label>description</label><input type="text" class="opcua-method-arg-bind" data-arg-path="' + argPath + '" data-field="description"></div>');
                 argBlock.append('<div class="form-row"><label></label><a href="#" class="editor-button editor-button-small opcua-method-arg-remove" data-arg-path="' + argPath + '"><i class="fa fa-trash"></i> Remove</a></div>');
@@ -968,7 +972,11 @@
 
     function removeAuthGroup(index) {
         var groupName = authGroups[index];
-        var inUse = authUsers.some(function (user) { return user.group === groupName; });
+        var inUse = authUsers.some(function (user) {
+            if (!user.group) return false;
+            var groups = String(user.group).split(",").map(function (g) { return g.trim(); });
+            return groups.indexOf(groupName) !== -1;
+        });
         if (inUse) {
             RED.notify("Reassign users before removing this group.", "warning");
             return;
@@ -1009,16 +1017,35 @@
             return;
         }
 
+        var groupOptions = authGroups.map(function (groupName) {
+            return { value: groupName, label: groupName };
+        });
+
         authUsers.forEach(function (user, index) {
             var card = $('<div class="opcua-auth-card"></div>');
             card.append('<div class="form-row"><label>Username</label><input type="text" class="opcua-auth-user-username" data-index="' + index + '"></div>');
             card.append('<div class="form-row"><label>Password</label><input type="password" class="opcua-auth-user-password" data-index="' + index + '" autocomplete="new-password"></div>');
-            card.append('<div class="form-row"><label>Group</label><select class="opcua-auth-user-group" data-index="' + index + '">' + buildGroupOptions(user.group) + '</select></div>');
+            card.append('<div class="form-row"><label>Group</label><input type="text" class="opcua-auth-user-group" id="opcua-auth-user-group-' + index + '" data-index="' + index + '"></div>');
             card.append('<div class="form-row"><label></label><a href="#" class="editor-button editor-button-small opcua-auth-user-remove" data-index="' + index + '"><i class="fa fa-trash"></i> Remove</a></div>');
             card.find(".opcua-auth-user-username").val(user.username || "");
             card.find(".opcua-auth-user-password").val(user.password || "");
-            card.find(".opcua-auth-user-group").val(user.group || "");
             container.append(card);
+
+            $("#opcua-auth-user-group-" + index).typedInput({
+                types: [
+                    {
+                        value: "groups",
+                        multiple: "true",
+                        options: groupOptions
+                    }
+                ]
+            });
+            $("#opcua-auth-user-group-" + index).typedInput("value", user.group || "");
+            $("#opcua-auth-user-group-" + index).on("change", function () {
+                var idx = Number($(this).attr("data-index"));
+                authUsers[idx].group = $(this).typedInput("value");
+                syncAuthCredentialFields();
+            });
         });
     }
 
@@ -1285,8 +1312,12 @@
         var nextGroup = String(input.val() || "").trim();
         authGroups[index] = nextGroup;
         authUsers.forEach(function (user) {
-            if (user.group === previousGroup) {
-                user.group = nextGroup;
+            if (user.group) {
+                var groups = String(user.group).split(",").map(function (g) { return g.trim(); });
+                var updated = groups.map(function (g) {
+                    return g === previousGroup ? nextGroup : g;
+                });
+                user.group = updated.join(",");
             }
         });
         input.attr("data-previous", nextGroup);
@@ -1310,12 +1341,7 @@
         authUsers[index].passwordHash = "";
         syncAuthCredentialFields();
     });
-    $(document).on("change", ".opcua-auth-user-group", function () {
-        var index = Number($(this).attr("data-index"));
-        authUsers[index].group = $(this).val();
-        syncAuthCredentialFields();
-
-    });
+    // The change handler is now dynamically bound inside renderAuthUsers, so we do not need a global listener for it here.
     $(document).on("click", ".opcua-auth-user-remove", function (event) {
         event.preventDefault();
         removeAuthUser(Number($(this).attr("data-index")));

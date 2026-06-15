@@ -67,7 +67,8 @@ class OpcUaServerRuntime {
             node: this.node,
             serverName: this.serverName,
             addressSpace: this.addressSpace,
-            allowAnonymous: this.allowAnonymous
+            allowAnonymous: this.allowAnonymous,
+            users: this.users
         });
 
 
@@ -238,10 +239,18 @@ class OpcUaServerRuntime {
         }
 
         const roles = [resolveNodeId("WellKnownRole_AuthenticatedUser")];
-        const customRole = this.resolveGroupRoleNodeId(user.group);
-        if (customRole) {
-            roles.push(customRole);
-        }
+        const groups = typeof user.group === "string"
+            ? user.group.split(",").map(g => g.trim()).filter(Boolean)
+            : Array.isArray(user.group)
+                ? user.group
+                : [];
+
+        groups.forEach((groupName) => {
+            const customRole = this.resolveGroupRoleNodeId(groupName);
+            if (customRole) {
+                roles.push(customRole);
+            }
+        });
         return roles;
     }
 

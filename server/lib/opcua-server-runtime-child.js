@@ -36,6 +36,7 @@ class OpcUaServerProcess {
             throw new Error("Server already running");
         }
 
+        this.node.id = nodeId;
         this.node.name = settings.name;
         this.node.serverName = settings.serverName;
         this.node.server = null;
@@ -859,7 +860,7 @@ process.on("uncaughtException", (err) => {
     process.send({
         type: "error",
         data: "Uncaught Exception: " + err.message,
-        nodeId: nodeId
+        nodeId: serverProcess.node.id
     });
 });
 
@@ -869,6 +870,6 @@ process.on("unhandledRejection", (reason) => {
     process.send({
         type: "error",
         data: "Unhandled Rejection: " + (reason?.message || reason),
-        nodeId: nodeId
+        nodeId: serverProcess.node.id
     });
 });

@@ -457,6 +457,10 @@ body.opcua-tree-modal-open {
     width: calc(100% - 100px);
 }
 
+.opcua-auth-card .red-ui-typedInput-container {
+    width: calc(100% - 100px) !important;
+}
+
 @media (max-width: 900px) {
     .opcua-tree-modal {
         padding: 10px;

@@ -45,6 +45,7 @@ const DATA_TYPE_MAP = {
     UInt16: DataType.UInt16,
     Int32: DataType.Int32,
     UInt32: DataType.UInt32,
+    Int64: DataType.Int64,
     Float: DataType.Float,
     Boolean: DataType.Boolean,
     String: DataType.String,

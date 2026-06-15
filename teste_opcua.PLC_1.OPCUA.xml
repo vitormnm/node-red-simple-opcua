@@ -1,0 +1,862 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet LastModified="2026-06-15T00:25:14Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns:si="http://www.siemens.com/OPCUA/2017/SimaticNodeSetExtensions">
+    <NamespaceUris>
+        <Uri>urn:SIMATIC.S7-1500.OPC-UA.Application:PLC_1</Uri>
+        <Uri>http://opcfoundation.org/UA/DI/</Uri>
+        <Uri>http://www.siemens.com/simatic-s7-opcua</Uri>
+    </NamespaceUris>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="BOOL">i=1</Alias>
+        <Alias Alias="Int16">i=4</Alias>
+        <Alias Alias="INT">i=4</Alias>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="DINT">i=6</Alias>
+        <Alias Alias="Int64">i=8</Alias>
+        <Alias Alias="LINT">i=8</Alias>
+        <Alias Alias="Float">i=10</Alias>
+        <Alias Alias="REAL">i=10</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="Enumeration">i=29</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="STRING">ns=3;i=3014</Alias>
+        <Alias Alias="HasInOutVar">ns=3;i=4002</Alias>
+        <Alias Alias="HasInputVar">ns=3;i=4003</Alias>
+        <Alias Alias="HasOutputVar">ns=3;i=4004</Alias>
+        <Alias Alias="HasLocalVar">ns=3;i=4005</Alias>
+        <Alias Alias="HasBaseObject">ns=3;i=4006</Alias>
+        <Alias Alias="EnumValueType">i=7594</Alias>
+    </Aliases>
+    <Extensions>
+        <Extension>
+            <si:Generator Product="TIA Portal" Edition="STEP 7 Professional" Version="19.0" />
+        </Extension>
+    </Extensions>
+<UAObject NodeId="ns=3;i=5063" BrowseName="3:DataBlocksGlobal" ParentNodeId="ns=3;i=1002">
+    <DisplayName>DataBlocksGlobal</DisplayName>
+    <Description>Holding all global available datablocks.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;i=5064" BrowseName="3:DataBlocksInstance" ParentNodeId="ns=3;i=1002">
+    <DisplayName>DataBlocksInstance</DisplayName>
+    <Description>Holding all instance datablocks.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;i=5062" BrowseName="3:Counters" ParentNodeId="ns=3;i=1002">
+    <DisplayName>Counters</DisplayName>
+    <Description>Holding all counters.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;i=5061" BrowseName="3:Timers" ParentNodeId="ns=3;i=1002">
+    <DisplayName>Timers</DisplayName>
+    <Description>Holding all global timers.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;i=5059" BrowseName="3:Inputs" ParentNodeId="ns=3;i=1002">
+    <DisplayName>Inputs</DisplayName>
+    <Description>Holding all global inputs.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;i=5060" BrowseName="3:Outputs" ParentNodeId="ns=3;i=1002">
+    <DisplayName>Outputs</DisplayName>
+    <Description>Holding all global outputs.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;i=5065" BrowseName="3:Memory" ParentNodeId="ns=3;i=1002">
+    <DisplayName>Memory</DisplayName>
+    <Description>Holding all global memory (bit, byte, words, ...).</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;i=6070" BrowseName="3:EngineeringRevision" ParentNodeId="ns=3;i=1002" DataType="String">
+    <DisplayName>EngineeringRevision</DisplayName>
+    <Description>Revision Level of the engineering environment.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;i=6083" BrowseName="EnumValues" ParentNodeId="ns=3;i=3063" DataType="EnumValueType" ValueRank="1" ArrayDimensions="17">
+    <DisplayName>EnumValues</DisplayName>
+    <Description>The human readable strings associated with the values of an enumerated value (when values have no sequence).</Description>
+    <References>
+        <Reference ReferenceType="HasProperty" IsForward="false">ns=3;i=3063</Reference>
+        <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+    <Value>
+        <uax:ListOfExtensionObject xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>0</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>NotSupported</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>1</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>StopFwUpdate</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>3</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>StopSelfInitialization</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>4</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>Stop</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>6</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>Startup</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>8</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>Run</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>9</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>RunRedundant</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>10</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>Halt</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>11</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>LinkUpClassic</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>12</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>UpdateClassic</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>13</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>Defective</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>14</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>ErrorSearch</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>15</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>NoPower</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>16</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>CiR</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>17</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>STOPwithoutODIS</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>18</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>RunODIS</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>i=7616</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <uax:EnumValueType>
+                        <uax:Value>19</uax:Value>
+                        <uax:DisplayName>
+                            <uax:Text>PgmTest</uax:Text>
+                        </uax:DisplayName>
+                        <uax:Description />
+                    </uax:EnumValueType>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </uax:ListOfExtensionObject>
+    </Value>
+</UAVariable>
+<UADataType NodeId="ns=3;i=3063" BrowseName="3:SimaticOperatingState">
+    <DisplayName>SimaticOperatingState</DisplayName>
+    <References>
+        <Reference ReferenceType="HasProperty">ns=3;i=6083</Reference>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+    </References>
+    <Definition Name="3:SimaticOperatingState">
+        <Field Name="NotSupported" Value="0" />
+        <Field Name="StopFwUpdate" Value="1" />
+        <Field Name="StopSelfInitialization" Value="3" />
+        <Field Name="Stop" Value="4" />
+        <Field Name="Startup" Value="6" />
+        <Field Name="Run" Value="8" />
+        <Field Name="RunRedundant" Value="9" />
+        <Field Name="Halt" Value="10" />
+        <Field Name="LinkUpClassic" Value="11" />
+        <Field Name="UpdateClassic" Value="12" />
+        <Field Name="Defective" Value="13" />
+        <Field Name="ErrorSearch" Value="14" />
+        <Field Name="NoPower" Value="15" />
+        <Field Name="CiR" Value="16" />
+        <Field Name="STOPwithoutODIS" Value="17" />
+        <Field Name="RunODIS" Value="18" />
+        <Field Name="PgmTest" Value="19" />
+    </Definition>
+</UADataType>
+<UAVariable NodeId="ns=3;i=6071" BrowseName="3:OperatingMode" ParentNodeId="ns=3;i=1002" DataType="ns=3;i=3063">
+    <DisplayName>OperatingMode</DisplayName>
+    <Description>Shows the current operating state of your PLC.</Description>
+    <References>
+        <Reference ReferenceType="HasProperty" IsForward="false">ns=3;i=1002</Reference>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;i=6072" BrowseName="3:OrderNumber" ParentNodeId="ns=3;i=1002" DataType="String">
+    <DisplayName>OrderNumber</DisplayName>
+    <Description>Article number of your device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+</UAVariable>
+<UAObjectType NodeId="ns=3;i=1002" BrowseName="3:SimaticDeviceType">
+    <DisplayName>SimaticDeviceType</DisplayName>
+    <Description>This type represents one simatic opcua device.</Description>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1002</Reference>
+        <Reference ReferenceType="HasComponent">ns=3;i=5063</Reference>
+        <Reference ReferenceType="HasComponent">ns=3;i=5064</Reference>
+        <Reference ReferenceType="HasComponent">ns=3;i=5062</Reference>
+        <Reference ReferenceType="HasComponent">ns=3;i=5061</Reference>
+        <Reference ReferenceType="HasComponent">ns=3;i=5059</Reference>
+        <Reference ReferenceType="HasComponent">ns=3;i=5060</Reference>
+        <Reference ReferenceType="HasComponent">ns=3;i=5065</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;i=6070</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;i=6071</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;i=6072</Reference>
+    </References>
+</UAObjectType>
+<UAVariable NodeId="ns=3;s=DeviceManual" BrowseName="2:DeviceManual" ParentNodeId="ns=3;s=PLC" DataType="String">
+    <DisplayName>DeviceManual</DisplayName>
+    <Description>Address (pathname in the file system or a URL | Web address) of user manual for the device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=DeviceRevision" BrowseName="2:DeviceRevision" ParentNodeId="ns=3;s=PLC" DataType="String">
+    <DisplayName>DeviceRevision</DisplayName>
+    <Description>Overall revision level of the device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=EngineeringRevision" BrowseName="3:EngineeringRevision" ParentNodeId="ns=3;s=PLC" DataType="String">
+    <DisplayName>EngineeringRevision</DisplayName>
+    <Description>Revision Level of the engineering environment.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=HardwareRevision" BrowseName="2:HardwareRevision" ParentNodeId="ns=3;s=PLC" DataType="String">
+    <DisplayName>HardwareRevision</DisplayName>
+    <Description>Revision level of the hardware of the device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=Manufacturer" BrowseName="2:Manufacturer" ParentNodeId="ns=3;s=PLC" DataType="LocalizedText">
+    <DisplayName>Manufacturer</DisplayName>
+    <Description>Name of the company that manufactured the device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=Model" BrowseName="2:Model" ParentNodeId="ns=3;s=PLC" DataType="LocalizedText">
+    <DisplayName>Model</DisplayName>
+    <Description>Model name of the device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=OperatingMode" BrowseName="3:OperatingMode" ParentNodeId="ns=3;s=PLC" DataType="ns=3;i=3063">
+    <DisplayName>OperatingMode</DisplayName>
+    <Description>Shows the current operating state of your PLC.</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=OrderNumber" BrowseName="3:OrderNumber" ParentNodeId="ns=3;s=PLC" DataType="String">
+    <DisplayName>OrderNumber</DisplayName>
+    <Description>Article number of your device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=RevisionCounter" BrowseName="2:RevisionCounter" ParentNodeId="ns=3;s=PLC" DataType="Int32">
+    <DisplayName>RevisionCounter</DisplayName>
+    <Description>An incremental counter indicating the number of times the static data within the Device has been modified</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=SerialNumber" BrowseName="2:SerialNumber" ParentNodeId="ns=3;s=PLC" DataType="String">
+    <DisplayName>SerialNumber</DisplayName>
+    <Description>Identifier that uniquely identifies, within a manufacturer, a device instance</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=SoftwareRevision" BrowseName="2:SoftwareRevision" ParentNodeId="ns=3;s=PLC" DataType="String">
+    <DisplayName>SoftwareRevision</DisplayName>
+    <Description>Revision level of the software/firmware of the device</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=PLC" BrowseName="3:PLC_1" ParentNodeId="ns=2;i=5001">
+    <DisplayName>PLC_1</DisplayName>
+    <Description>The PLC instance which supports you with OPC UA functionality</Description>
+    <References>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=2;i=5001</Reference>
+        <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        <Reference ReferenceType="HasTypeDefinition">ns=3;i=1002</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=DeviceManual</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=DeviceRevision</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=EngineeringRevision</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=HardwareRevision</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=Manufacturer</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=Model</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=OperatingMode</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=OrderNumber</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=RevisionCounter</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=SerialNumber</Reference>
+        <Reference ReferenceType="HasProperty">ns=3;s=SoftwareRevision</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;s=DataBlocksGlobal" BrowseName="3:DataBlocksGlobal" ParentNodeId="ns=3;s=PLC">
+    <DisplayName>DataBlocksGlobal</DisplayName>
+    <Description>Holding all global available datablocks.</Description>
+    <References>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s=PLC</Reference>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;s=&quot;db1_main&quot;" BrowseName="3:db1_main" ParentNodeId="ns=3;s=DataBlocksGlobal">
+    <DisplayName>db1_main</DisplayName>
+    <References>
+        <Reference ReferenceType="Organizes" IsForward="false">ns=3;s=DataBlocksGlobal</Reference>
+        <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;db1_main&quot;.&quot;var1&quot;" BrowseName="3:var1" ParentNodeId="ns=3;s=&quot;db1_main&quot;" DataType="BOOL" AccessLevel="3">
+    <DisplayName>var1</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db1_main"</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=&quot;db1_main&quot;.&quot;var2&quot;" BrowseName="3:var2" ParentNodeId="ns=3;s=&quot;db1_main&quot;" DataType="BOOL" AccessLevel="3">
+    <DisplayName>var2</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db1_main"</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=&quot;db2&quot;" BrowseName="3:db2" ParentNodeId="ns=3;s=DataBlocksGlobal">
+    <DisplayName>db2</DisplayName>
+    <References>
+        <Reference ReferenceType="Organizes" IsForward="false">ns=3;s=DataBlocksGlobal</Reference>
+        <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;db2&quot;.&quot;teste1&quot;" BrowseName="3:teste1" ParentNodeId="ns=3;s=&quot;db2&quot;" DataType="INT" AccessLevel="3">
+    <DisplayName>teste1</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db2"</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=&quot;db2&quot;.&quot;teste2&quot;" BrowseName="3:teste2" ParentNodeId="ns=3;s=&quot;db2&quot;" DataType="REAL" AccessLevel="3">
+    <DisplayName>teste2</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db2"</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=&quot;db3&quot;" BrowseName="3:db3" ParentNodeId="ns=3;s=DataBlocksGlobal">
+    <DisplayName>db3</DisplayName>
+    <References>
+        <Reference ReferenceType="Organizes" IsForward="false">ns=3;s=DataBlocksGlobal</Reference>
+        <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+    </References>
+</UAObject>
+<UADataType NodeId="ns=3;i=3014" BrowseName="3:STRING">
+    <DisplayName>STRING</DisplayName>
+    <Description>STRING data type saves several characters in a character string that can consist of up to 254 characters. In a character string all characters of the ASCII code are permitted.</Description>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
+    </References>
+</UADataType>
+<UAVariable NodeId="ns=3;s=&quot;db3&quot;.&quot;teste_String&quot;" BrowseName="3:teste_String" ParentNodeId="ns=3;s=&quot;db3&quot;" DataType="STRING" AccessLevel="3">
+    <DisplayName>teste_String</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db3"</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=&quot;db3&quot;.&quot;teste3&quot;" BrowseName="3:teste3" ParentNodeId="ns=3;s=&quot;db3&quot;" DataType="LINT" AccessLevel="3">
+    <DisplayName>teste3</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db3"</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=&quot;db3&quot;.&quot;teste4&quot;" BrowseName="3:teste4" ParentNodeId="ns=3;s=&quot;db3&quot;" DataType="DINT" AccessLevel="3">
+    <DisplayName>teste4</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db3"</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=&quot;db3&quot;.&quot;alarme1&quot;" BrowseName="3:alarme1" ParentNodeId="ns=3;s=&quot;db3&quot;" DataType="BOOL" AccessLevel="3">
+    <DisplayName>alarme1</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s="db3"</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=DataBlocksInstance" BrowseName="3:DataBlocksInstance" ParentNodeId="ns=3;s=PLC">
+    <DisplayName>DataBlocksInstance</DisplayName>
+    <Description>Holding all instance datablocks.</Description>
+    <References>
+        <Reference ReferenceType="HasComponent" IsForward="false">ns=3;s=PLC</Reference>
+        <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+    </References>
+</UAObject>
+<UAReferenceType NodeId="ns=3;i=4002" BrowseName="3:HasInOutVar">
+    <DisplayName>HasInOutVar</DisplayName>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
+    </References>
+    <InverseName>InOutVarOf</InverseName>
+</UAReferenceType>
+<UAObject NodeId="ns=3;i=5067" BrowseName="3:InOuts" ParentNodeId="ns=3;i=1003">
+    <DisplayName>InOuts</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAReferenceType NodeId="ns=3;i=4003" BrowseName="3:HasInputVar">
+    <DisplayName>HasInputVar</DisplayName>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
+    </References>
+    <InverseName>InputVarOf</InverseName>
+</UAReferenceType>
+<UAObject NodeId="ns=3;i=5079" BrowseName="3:Inputs" ParentNodeId="ns=3;i=1003">
+    <DisplayName>Inputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAReferenceType NodeId="ns=3;i=4004" BrowseName="3:HasOutputVar">
+    <DisplayName>HasOutputVar</DisplayName>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
+    </References>
+    <InverseName>OutputVarOf</InverseName>
+</UAReferenceType>
+<UAObject NodeId="ns=3;i=5026" BrowseName="3:Outputs" ParentNodeId="ns=3;i=1003">
+    <DisplayName>Outputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAReferenceType NodeId="ns=3;i=4005" BrowseName="3:HasLocalVar">
+    <DisplayName>HasLocalVar</DisplayName>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
+    </References>
+    <InverseName>LocalVarOf</InverseName>
+</UAReferenceType>
+<UAObject NodeId="ns=3;i=5066" BrowseName="3:Static" ParentNodeId="ns=3;i=1003">
+    <DisplayName>Static</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAReferenceType NodeId="ns=3;i=4006" BrowseName="3:HasBaseObject">
+    <DisplayName>HasBaseObject</DisplayName>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
+    </References>
+    <InverseName>BaseObjectOf</InverseName>
+</UAReferenceType>
+<UAObject NodeId="ns=3;i=5002" BrowseName="3:Base" ParentNodeId="ns=3;i=1003">
+    <DisplayName>Base</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">ns=3;i=1003</Reference>
+        <Reference ReferenceType="HasModellingRule">i=80</Reference>
+    </References>
+</UAObject>
+<UAObjectType NodeId="ns=3;i=1003" BrowseName="3:SimaticBlockType" IsAbstract="true">
+    <DisplayName>SimaticBlockType</DisplayName>
+    <Description>This type represents the in the DataBlocksInstance folder the accessible function instances.</Description>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1003</Reference>
+        <Reference ReferenceType="HasInOutVar">ns=3;i=5067</Reference>
+        <Reference ReferenceType="HasInputVar">ns=3;i=5079</Reference>
+        <Reference ReferenceType="HasOutputVar">ns=3;i=5026</Reference>
+        <Reference ReferenceType="HasLocalVar">ns=3;i=5066</Reference>
+        <Reference ReferenceType="HasBaseObject">ns=3;i=5002</Reference>
+    </References>
+</UAObjectType>
+<UAObjectType NodeId="ns=3;s=OT_&quot;fb_motor&quot;" BrowseName="3:fb_motor">
+    <DisplayName>fb_motor</DisplayName>
+    <References>
+        <Reference ReferenceType="HasSubtype" IsForward="false">ns=3;i=1003</Reference>
+    </References>
+</UAObjectType>
+<UAObject NodeId="ns=3;s=&quot;motor1&quot;" BrowseName="3:motor1" ParentNodeId="ns=3;s=DataBlocksInstance">
+    <DisplayName>motor1</DisplayName>
+    <References>
+        <Reference ReferenceType="Organizes" IsForward="false">ns=3;s=DataBlocksInstance</Reference>
+        <Reference ReferenceType="HasTypeDefinition">ns=3;s=OT_"fb_motor"</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;s=&quot;motor1&quot;.Inputs" BrowseName="3:Inputs" ParentNodeId="ns=3;s=&quot;motor1&quot;">
+    <DisplayName>Inputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s="motor1"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;motor1&quot;.&quot;liga&quot;" BrowseName="3:liga" ParentNodeId="ns=3;s=&quot;motor1&quot;.Inputs" DataType="BOOL" AccessLevel="3">
+    <DisplayName>liga</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s="motor1".Inputs</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=&quot;motor1&quot;.&quot;speed&quot;" BrowseName="3:speed" ParentNodeId="ns=3;s=&quot;motor1&quot;.Inputs" DataType="DINT" AccessLevel="3">
+    <DisplayName>speed</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s="motor1".Inputs</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=&quot;motor1&quot;.Outputs" BrowseName="3:Outputs" ParentNodeId="ns=3;s=&quot;motor1&quot;">
+    <DisplayName>Outputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasOutputVar" IsForward="false">ns=3;s="motor1"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;motor1&quot;.&quot;estado&quot;" BrowseName="3:estado" ParentNodeId="ns=3;s=&quot;motor1&quot;.Outputs" DataType="BOOL" AccessLevel="3">
+    <DisplayName>estado</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasOutputVar" IsForward="false">ns=3;s="motor1".Outputs</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=&quot;motor1&quot;.Static" BrowseName="3:Static" ParentNodeId="ns=3;s=&quot;motor1&quot;">
+    <DisplayName>Static</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasLocalVar" IsForward="false">ns=3;s="motor1"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;motor1&quot;.&quot;name&quot;" BrowseName="3:name" ParentNodeId="ns=3;s=&quot;motor1&quot;.Static" DataType="STRING" AccessLevel="3">
+    <DisplayName>name</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasLocalVar" IsForward="false">ns=3;s="motor1".Static</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=&quot;motor2&quot;" BrowseName="3:motor2" ParentNodeId="ns=3;s=DataBlocksInstance">
+    <DisplayName>motor2</DisplayName>
+    <References>
+        <Reference ReferenceType="Organizes" IsForward="false">ns=3;s=DataBlocksInstance</Reference>
+        <Reference ReferenceType="HasTypeDefinition">ns=3;s=OT_"fb_motor"</Reference>
+    </References>
+</UAObject>
+<UAObject NodeId="ns=3;s=&quot;motor2&quot;.Inputs" BrowseName="3:Inputs" ParentNodeId="ns=3;s=&quot;motor2&quot;">
+    <DisplayName>Inputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s="motor2"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;motor2&quot;.&quot;liga&quot;" BrowseName="3:liga" ParentNodeId="ns=3;s=&quot;motor2&quot;.Inputs" DataType="BOOL" AccessLevel="3">
+    <DisplayName>liga</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s="motor2".Inputs</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=&quot;motor2&quot;.&quot;speed&quot;" BrowseName="3:speed" ParentNodeId="ns=3;s=&quot;motor2&quot;.Inputs" DataType="DINT" AccessLevel="3">
+    <DisplayName>speed</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s="motor2".Inputs</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=&quot;motor2&quot;.Outputs" BrowseName="3:Outputs" ParentNodeId="ns=3;s=&quot;motor2&quot;">
+    <DisplayName>Outputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasOutputVar" IsForward="false">ns=3;s="motor2"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;motor2&quot;.&quot;estado&quot;" BrowseName="3:estado" ParentNodeId="ns=3;s=&quot;motor2&quot;.Outputs" DataType="BOOL" AccessLevel="3">
+    <DisplayName>estado</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasOutputVar" IsForward="false">ns=3;s="motor2".Outputs</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=&quot;motor2&quot;.Static" BrowseName="3:Static" ParentNodeId="ns=3;s=&quot;motor2&quot;">
+    <DisplayName>Static</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasLocalVar" IsForward="false">ns=3;s="motor2"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=&quot;motor2&quot;.&quot;name&quot;" BrowseName="3:name" ParentNodeId="ns=3;s=&quot;motor2&quot;.Static" DataType="STRING" AccessLevel="3">
+    <DisplayName>name</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasLocalVar" IsForward="false">ns=3;s="motor2".Static</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=O_&quot;fb_motor&quot;.Inputs" BrowseName="3:Inputs" ParentNodeId="ns=3;s=OT_&quot;fb_motor&quot;">
+    <DisplayName>Inputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s=OT_"fb_motor"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=V_&quot;fb_motor&quot;.&quot;liga&quot;" BrowseName="3:liga" ParentNodeId="ns=3;s=O_&quot;fb_motor&quot;.Inputs" DataType="BOOL">
+    <DisplayName>liga</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s=O_"fb_motor".Inputs</Reference>
+    </References>
+</UAVariable>
+<UAVariable NodeId="ns=3;s=V_&quot;fb_motor&quot;.&quot;speed&quot;" BrowseName="3:speed" ParentNodeId="ns=3;s=O_&quot;fb_motor&quot;.Inputs" DataType="DINT">
+    <DisplayName>speed</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasInputVar" IsForward="false">ns=3;s=O_"fb_motor".Inputs</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=O_&quot;fb_motor&quot;.Outputs" BrowseName="3:Outputs" ParentNodeId="ns=3;s=OT_&quot;fb_motor&quot;">
+    <DisplayName>Outputs</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasOutputVar" IsForward="false">ns=3;s=OT_"fb_motor"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=V_&quot;fb_motor&quot;.&quot;estado&quot;" BrowseName="3:estado" ParentNodeId="ns=3;s=O_&quot;fb_motor&quot;.Outputs" DataType="BOOL">
+    <DisplayName>estado</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasOutputVar" IsForward="false">ns=3;s=O_"fb_motor".Outputs</Reference>
+    </References>
+</UAVariable>
+<UAObject NodeId="ns=3;s=O_&quot;fb_motor&quot;.Static" BrowseName="3:Static" ParentNodeId="ns=3;s=OT_&quot;fb_motor&quot;">
+    <DisplayName>Static</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        <Reference ReferenceType="HasLocalVar" IsForward="false">ns=3;s=OT_"fb_motor"</Reference>
+    </References>
+</UAObject>
+<UAVariable NodeId="ns=3;s=V_&quot;fb_motor&quot;.&quot;name&quot;" BrowseName="3:name" ParentNodeId="ns=3;s=O_&quot;fb_motor&quot;.Static" DataType="STRING">
+    <DisplayName>name</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="HasLocalVar" IsForward="false">ns=3;s=O_"fb_motor".Static</Reference>
+    </References>
+</UAVariable>
+</UANodeSet>

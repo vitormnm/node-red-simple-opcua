@@ -92,7 +92,17 @@ class OpcUaServerConfigParser {
         };
 
         (Array.isArray(groups) ? groups : []).forEach(addGroup);
-        (Array.isArray(users) ? users : []).forEach((user) => addGroup(user && user.group));
+        (Array.isArray(users) ? users : []).forEach((user) => {
+            if (user && user.group) {
+                if (typeof user.group === "string") {
+                    user.group.split(",").forEach(addGroup);
+                } else if (Array.isArray(user.group)) {
+                    user.group.forEach(addGroup);
+                } else {
+                    addGroup(user.group);
+                }
+            }
+        });
 
         return resolved;
     }
@@ -485,11 +495,21 @@ class OpcUaServerConfigParser {
         const username = typeof userConfig.username === "string" ? userConfig.username.trim() : "";
         const passwordHash = typeof userConfig.passwordHash === "string" ? userConfig.passwordHash : "";
         const password = typeof userConfig.password === "string" ? userConfig.password : "";
-        const group = typeof userConfig.group === "string"
-            ? userConfig.group.trim()
-            : typeof userConfig.role === "string"
-                ? userConfig.role.trim()
-                : "";
+        
+        let group = "";
+        if (userConfig.group !== undefined) {
+            if (Array.isArray(userConfig.group)) {
+                group = userConfig.group.map(g => typeof g === "string" ? g.trim() : "").filter(Boolean).join(",");
+            } else if (typeof userConfig.group === "string") {
+                group = userConfig.group.trim();
+            }
+        } else if (userConfig.role !== undefined) {
+            if (Array.isArray(userConfig.role)) {
+                group = userConfig.role.map(r => typeof r === "string" ? r.trim() : "").filter(Boolean).join(",");
+            } else if (typeof userConfig.role === "string") {
+                group = userConfig.role.trim();
+            }
+        }
 
         if (!username) {
             throw new Error("Each user requires a non-empty username");
@@ -543,6 +563,7 @@ class OpcUaServerConfigParser {
             uint16: "UInt16",
             int32: "Int32",
             uint32: "UInt32",
+            int64: "Int64",
             float: "Float",
             boolean: "Boolean",
             string: "String",
@@ -644,6 +665,66 @@ class OpcUaServerConfigParser {
                 return 0;
             }
             return Math.trunc(parsed);
+        }
+
+        if (type === "Int64") {
+            const minVal = -9223372036854775808n;
+            const maxVal = 9223372036854775807n;
+            try {
+                let bigintVal = BigInt(value);
+                if (bigintVal < minVal) bigintVal = minVal;
+                else if (bigintVal > maxVal) bigintVal = maxVal;
+                return String(bigintVal);
+            } catch (error) {
+                const parsed = Number(value);
+                if (Number.isFinite(parsed)) {
+                    if (parsed >= 9223372036854775807) {
+                        return String(maxVal);
+                    }
+                    if (parsed <= -9223372036854775808) {
+                        return String(minVal);
+                    }
+                    try {
+                        let bigintVal = BigInt(Math.trunc(parsed));
+                        if (bigintVal < minVal) bigintVal = minVal;
+                        else if (bigintVal > maxVal) bigintVal = maxVal;
+                        return String(bigintVal);
+                    } catch (e2) {
+                        return "0";
+                    }
+                }
+                return "0";
+            }
+        }
+
+        if (type === "UInt64") {
+            const minVal = 0n;
+            const maxVal = 18446744073709551615n;
+            try {
+                let bigintVal = BigInt(value);
+                if (bigintVal < minVal) bigintVal = minVal;
+                else if (bigintVal > maxVal) bigintVal = maxVal;
+                return String(bigintVal);
+            } catch (error) {
+                const parsed = Number(value);
+                if (Number.isFinite(parsed)) {
+                    if (parsed >= 18446744073709551615) {
+                        return String(maxVal);
+                    }
+                    if (parsed <= 0) {
+                        return String(minVal);
+                    }
+                    try {
+                        let bigintVal = BigInt(Math.trunc(parsed));
+                        if (bigintVal < minVal) bigintVal = minVal;
+                        else if (bigintVal > maxVal) bigintVal = maxVal;
+                        return String(bigintVal);
+                    } catch (e2) {
+                        return "0";
+                    }
+                }
+                return "0";
+            }
         }
 
         if (type === "Float") {

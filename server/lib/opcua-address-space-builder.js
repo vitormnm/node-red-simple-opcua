@@ -22,7 +22,8 @@ class OpcUaAddressSpaceBuilder {
         this.registry = options.registry;
         this.node = options.node;
         this.serverName = options.serverName;
-        this.authorizationDisabled = !!options.allowAnonymous;
+        const hasUsers = Array.isArray(options.users) && options.users.length > 0;
+        this.authorizationDisabled = !hasUsers;
         this.nodeEntries = new Map();
         this.variableStore = new Map();
         this.variableNodeIdStore = new Map();
@@ -134,7 +135,20 @@ class OpcUaAddressSpaceBuilder {
     }
 
     readValue(identifierType, identifier) {
-        return this.getVariableRecord(identifierType, identifier).getValue();
+        const record = this.getVariableRecord(identifierType, identifier);
+        let val = record.getValue();
+        if (record.type === "Int64" || record.type === "UInt64") {
+            const convertToNumber = (v) => {
+                const num = Number(v);
+                return Number.isFinite(num) ? num : v;
+            };
+            if (record.isArray) {
+                val = Array.isArray(val) ? val.map(convertToNumber) : convertToNumber(val);
+            } else {
+                val = convertToNumber(val);
+            }
+        }
+        return val;
     }
 
     writeValue(identifierType, identifier, value) {
@@ -1044,7 +1058,7 @@ class OpcUaAddressSpaceBuilder {
             type,
             access,
             isArray: this.isArrayValue(variableConfig.value),
-            currentValue: variableConfig.value
+            currentValue: this.coerceValue(variableConfig.value, type, this.isArrayValue(variableConfig.value))
         };
 
         const variableNode = namespace.addVariable({
@@ -1070,14 +1084,40 @@ class OpcUaAddressSpaceBuilder {
                         value: state.currentValue
                     });
 
+                    let val = state.currentValue;
+                    if (state.type === "Int64" || state.type === "UInt64") {
+                        const bigIntToInt64Array = (v) => {
+                            let bigintVal;
+                            try {
+                                bigintVal = BigInt(v);
+                            } catch (e) {
+                                bigintVal = 0n;
+                            }
+                            const mask = 0xFFFFFFFFFFFFFFFFn;
+                            bigintVal = bigintVal & mask;
+
+                            const high = Number(bigintVal >> 32n);
+                            const low = Number(bigintVal & 0xFFFFFFFFn);
+                            return [high, low];
+                        };
+
+                        if (state.isArray) {
+                            val = Array.isArray(val) ? val.map(bigIntToInt64Array) : [bigIntToInt64Array(val)];
+                        } else {
+                            val = bigIntToInt64Array(val);
+                        }
+                    }
+
                     const variantOptions = {
                         dataType: DATA_TYPE_MAP[state.type],
-                        value: state.currentValue
+                        value: val
                     };
 
                     // ByteString nunca e array - Buffer nao deve ser VariantArrayType.Array
                     if (state.type !== "ByteString" && this.isArrayValue(state.currentValue)) {
                         variantOptions.arrayType = VariantArrayType.Array;
+                    } else if (state.type === "Int64" || state.type === "UInt64") {
+                        variantOptions.arrayType = VariantArrayType.Scalar;
                     }
 
                     return new Variant(variantOptions);
@@ -1119,6 +1159,8 @@ class OpcUaAddressSpaceBuilder {
             path: path,
             nodeId: nodeId,
             nodeIdKey: this.normalizeNodeIdKey(nodeId),
+            type: state.type,
+            isArray: state.isArray,
             getValue: () => state.currentValue,
             setRuntimeValue: (nextValue) => {
                 state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
@@ -1264,6 +1306,21 @@ class OpcUaAddressSpaceBuilder {
     }
 
     emitTagAccess(operation, details) {
+        let val = details.value;
+        if (details.dataType === "Int64" || details.dataType === "UInt64") {
+            const convertToNumber = (v) => {
+                const num = Number(v);
+                return Number.isFinite(num) ? num : v;
+            };
+            const isArray = this.isArrayValue(val);
+            if (isArray) {
+                const items = this.extractArrayItems(val);
+                val = Array.isArray(items) ? items.map(convertToNumber) : convertToNumber(val);
+            } else {
+                val = convertToNumber(val);
+            }
+        }
+
         this.registry.emitTagAccess({
             operation,
             serverId: this.node.id,
@@ -1274,7 +1331,7 @@ class OpcUaAddressSpaceBuilder {
             nodeID: details.nodeID,
             browseName: details.browseName,
             dataType: details.dataType,
-            value: details.value
+            value: val
         });
     }
 
@@ -1443,7 +1500,11 @@ class OpcUaAddressSpaceBuilder {
         }
 
         if (this.extractArrayItems(value)) {
-            throw new Error("Expected scalar value for type " + type + " but received array");
+            if ((type === "Int64" || type === "UInt64") && Array.isArray(value) && value.length === 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+                // Do not throw, this is a standard scalar Int64/UInt64 represented as [high, low]
+            } else {
+                throw new Error("Expected scalar value for type " + type + " but received array");
+            }
         }
 
         return this.coerceScalarValue(value, type);
@@ -1466,6 +1527,86 @@ class OpcUaAddressSpaceBuilder {
                 return 0;
             }
             return Math.trunc(parsed);
+        }
+
+        if (type === "Int64") {
+            const minVal = -9223372036854775808n;
+            const maxVal = 9223372036854775807n;
+            if (Array.isArray(value) && value.length === 2) {
+                try {
+                    const h = BigInt(value[0]);
+                    const l = BigInt(value[1]);
+                    const signMask = 1n << 31n;
+                    const shiftHigh = 1n << 32n;
+                    let bigintVal;
+                    if ((h & signMask) === signMask) {
+                        bigintVal = (h & ~signMask) * shiftHigh + l - 0x8000000000000000n;
+                    } else {
+                        bigintVal = h * shiftHigh + l;
+                    }
+                    if (bigintVal < minVal) bigintVal = minVal;
+                    else if (bigintVal > maxVal) bigintVal = maxVal;
+                    return String(bigintVal);
+                } catch (error) {
+                    return "0";
+                }
+            }
+            try {
+                let bigintVal = BigInt(value);
+                if (bigintVal < minVal) bigintVal = minVal;
+                else if (bigintVal > maxVal) bigintVal = maxVal;
+                return String(bigintVal);
+            } catch (error) {
+                const parsed = Number(value);
+                if (Number.isFinite(parsed)) {
+                    try {
+                        let bigintVal = BigInt(Math.trunc(parsed));
+                        if (bigintVal < minVal) bigintVal = minVal;
+                        else if (bigintVal > maxVal) bigintVal = maxVal;
+                        return String(bigintVal);
+                    } catch (e2) {
+                        return "0";
+                    }
+                }
+                return "0";
+            }
+        }
+
+        if (type === "UInt64") {
+            const minVal = 0n;
+            const maxVal = 18446744073709551615n;
+            if (Array.isArray(value) && value.length === 2) {
+                try {
+                    const h = BigInt(value[0]);
+                    const l = BigInt(value[1]);
+                    const shiftHigh = 1n << 32n;
+                    let bigintVal = h * shiftHigh + l;
+                    if (bigintVal < minVal) bigintVal = minVal;
+                    else if (bigintVal > maxVal) bigintVal = maxVal;
+                    return String(bigintVal);
+                } catch (error) {
+                    return "0";
+                }
+            }
+            try {
+                let bigintVal = BigInt(value);
+                if (bigintVal < minVal) bigintVal = minVal;
+                else if (bigintVal > maxVal) bigintVal = maxVal;
+                return String(bigintVal);
+            } catch (error) {
+                const parsed = Number(value);
+                if (Number.isFinite(parsed)) {
+                    try {
+                        let bigintVal = BigInt(Math.trunc(parsed));
+                        if (bigintVal < minVal) bigintVal = minVal;
+                        else if (bigintVal > maxVal) bigintVal = maxVal;
+                        return String(bigintVal);
+                    } catch (e2) {
+                        return "0";
+                    }
+                }
+                return "0";
+            }
         }
 
         if (type === "Float") {

@@ -102,9 +102,69 @@ function coerceValue(value, typeName) {
         case "UInt32":
             return Number.parseInt(value, 10);
 
-        case "Int64":
-        case "UInt64":
-            return BigInt(value);
+        case "Int64": {
+            const minVal = -9223372036854775808n;
+            const maxVal = 9223372036854775807n;
+            let bigintVal;
+            if (Array.isArray(value) && value.length === 2) {
+                const h = BigInt(value[0]);
+                const l = BigInt(value[1]);
+                const signMask = 1n << 31n;
+                const shiftHigh = 1n << 32n;
+                if ((h & signMask) === signMask) {
+                    bigintVal = (h & ~signMask) * shiftHigh + l - 0x8000000000000000n;
+                } else {
+                    bigintVal = h * shiftHigh + l;
+                }
+            } else {
+                try {
+                    bigintVal = BigInt(value);
+                } catch (e) {
+                    const parsed = Number(value);
+                    if (Number.isFinite(parsed)) {
+                        bigintVal = BigInt(Math.trunc(parsed));
+                    } else {
+                        bigintVal = 0n;
+                    }
+                }
+            }
+            if (bigintVal < minVal) bigintVal = minVal;
+            else if (bigintVal > maxVal) bigintVal = maxVal;
+
+            const mask = 0xFFFFFFFFFFFFFFFFn;
+            const unsignedVal = bigintVal & mask;
+            const high = Number(unsignedVal >> 32n);
+            const low = Number(unsignedVal & 0xFFFFFFFFn);
+            return [high, low];
+        }
+        case "UInt64": {
+            const minVal = 0n;
+            const maxVal = 18446744073709551615n;
+            let bigintVal;
+            if (Array.isArray(value) && value.length === 2) {
+                const h = BigInt(value[0]);
+                const l = BigInt(value[1]);
+                const shiftHigh = 1n << 32n;
+                bigintVal = h * shiftHigh + l;
+            } else {
+                try {
+                    bigintVal = BigInt(value);
+                } catch (e) {
+                    const parsed = Number(value);
+                    if (Number.isFinite(parsed)) {
+                        bigintVal = BigInt(Math.trunc(parsed));
+                    } else {
+                        bigintVal = 0n;
+                    }
+                }
+            }
+            if (bigintVal < minVal) bigintVal = minVal;
+            else if (bigintVal > maxVal) bigintVal = maxVal;
+
+            const high = Number(bigintVal >> 32n);
+            const low = Number(bigintVal & 0xFFFFFFFFn);
+            return [high, low];
+        }
 
         case "Float":
         case "Double":
@@ -218,12 +278,49 @@ function variantTypeToName(variant) {
     return DataType[variant.dataType] || String(variant.dataType);
 }
 
+function decode64BitValue(value, isUnsigned) {
+    if (Array.isArray(value) && value.length === 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+        const h = BigInt(value[0]);
+        const l = BigInt(value[1]);
+        const shiftHigh = 1n << 32n;
+        let bigintVal;
+        if (!isUnsigned) {
+            const signMask = 1n << 31n;
+            if ((h & signMask) === signMask) {
+                bigintVal = (h & ~signMask) * shiftHigh + l - 0x8000000000000000n;
+            } else {
+                bigintVal = h * shiftHigh + l;
+            }
+        } else {
+            bigintVal = h * shiftHigh + l;
+        }
+
+        const num = Number(bigintVal);
+        return num;
+    }
+    return value;
+}
+
+function resolve64BitValue(value, isUnsigned) {
+    if (Array.isArray(value)) {
+        if (value.length === 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+            return decode64BitValue(value, isUnsigned);
+        }
+        return value.map((val) => resolve64BitValue(val, isUnsigned));
+    }
+    return value;
+}
+
 function dataValueToItemResult(item, dataValue) {
     const variant = dataValue && dataValue.value ? dataValue.value : null;
+    let val = variant ? variant.value : null;
+    if (variant && (variant.dataType === DataType.Int64 || variant.dataType === DataType.UInt64)) {
+        val = resolve64BitValue(val, variant.dataType === DataType.UInt64);
+    }
     return {
         name: resolveName(item, resolveNodeId(item)),
         nodeID: resolveNodeId(item),
-        value: variant ? variant.value : null,
+        value: val,
         type: variantTypeToName(variant),
         status: statusCodeToString(dataValue && dataValue.statusCode),
         sourceTimestamp: timestampToIso(dataValue && dataValue.sourceTimestamp),
@@ -271,13 +368,19 @@ function callResultToItemResult(item, callResult, argumentDefinition) {
         name: resolveName(item, methodId),
         nodeID: methodId,
         status: statusCodeToString(callResult.statusCode),
-        outputs: outputArguments.map((variant, index) => ({
-            name: outputDefinitions[index] && outputDefinitions[index].name
-                ? String(outputDefinitions[index].name)
-                : "output" + (index + 1),
-            type: variantTypeToName(variant),
-            value: variant ? variant.value : null
-        }))
+        outputs: outputArguments.map((variant, index) => {
+            let val = variant ? variant.value : null;
+            if (variant && (variant.dataType === DataType.Int64 || variant.dataType === DataType.UInt64)) {
+                val = resolve64BitValue(val, variant.dataType === DataType.UInt64);
+            }
+            return {
+                name: outputDefinitions[index] && outputDefinitions[index].name
+                    ? String(outputDefinitions[index].name)
+                    : "output" + (index + 1),
+                type: variantTypeToName(variant),
+                value: val
+            };
+        })
     };
 }
 
