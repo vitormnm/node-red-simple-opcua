@@ -83,6 +83,7 @@ class OpcUaAddressSpaceBuilder {
         this.variableStore.clear();
         this.variableNodeIdStore.clear();
         this.objectTypeStore.clear();
+        if (this.enumerationStore) this.enumerationStore.clear();
         this.alarmStore.clear(); // Adicione esta linha
         this.pendingAlarms = [];
     }
@@ -163,6 +164,10 @@ class OpcUaAddressSpaceBuilder {
             this.collectObjectTypeDefinition(desiredEntries, objectTypeConfig, objectTypeConfigs);
         });
 
+        (Array.isArray(treeConfig.enumerations) ? treeConfig.enumerations : []).forEach((enumerationConfig) => {
+            this.collectEnumerationDefinition(desiredEntries, enumerationConfig);
+        });
+
         (Array.isArray(treeConfig.folders) ? treeConfig.folders : []).forEach((folderConfig) => {
             this.collectBranch(desiredEntries, "folder", folderConfig, "", "organizedBy", objectTypeConfigs);
         });
@@ -195,6 +200,11 @@ class OpcUaAddressSpaceBuilder {
             preserveCollectionNames: true,
             typeRootPath: path
         });
+    }
+
+    collectEnumerationDefinition(desiredEntries, config) {
+        const path = this.buildEnumerationPath(config.name);
+        desiredEntries.set(path, this.buildEntryDefinition("enumeration", config, path, "", "typeDefinition"));
     }
 
     collectBranch(desiredEntries, kind, config, parentPath, relationship, objectTypeConfigs, options) {
@@ -649,6 +659,11 @@ class OpcUaAddressSpaceBuilder {
             return;
         }
 
+        if (definition.kind === "enumeration") {
+            this.addEnumerationTypeDefinition(definition.config);
+            return;
+        }
+
         if (definition.kind === "object") {
             this.addObject(parentNode, definition.config, definition.parentPath, definition.relationship, definition.path);
             return;
@@ -714,6 +729,10 @@ class OpcUaAddressSpaceBuilder {
 
         if (entry.kind === "objectTypeDefinition") {
             this.objectTypeStore.delete(entry.config.name);
+        }
+
+        if (entry.kind === "enumeration" && this.enumerationStore) {
+            this.enumerationStore.delete(entry.config.name);
         }
 
         try {
@@ -783,6 +802,28 @@ class OpcUaAddressSpaceBuilder {
         this.objectTypeStore.set(objectTypeConfig.name, {
             node: objectTypeNode,
             config: objectTypeConfig,
+            path: path,
+            namespace: namespace
+        });
+    }
+
+    addEnumerationTypeDefinition(config) {
+        const namespace = this.getNamespaceForConfig(config);
+        const enumTypeNode = namespace.addEnumerationType({
+            browseName: config.displayName || config.name,
+            displayName: config.displayName || config.name,
+            description: config.description || "",
+            nodeId: this.resolveNodeId(config, this.buildEnumerationPath(config.name), namespace),
+            enumeration: config.enumeration
+        });
+
+        const path = this.buildEnumerationPath(config.name);
+
+        this.registerNodeEntry("enumeration", path, "", "typeDefinition", config, enumTypeNode, namespace);
+        if (!this.enumerationStore) this.enumerationStore = new Map();
+        this.enumerationStore.set(config.name, {
+            node: enumTypeNode,
+            config: config,
             path: path,
             namespace: namespace
         });
@@ -1046,6 +1087,14 @@ class OpcUaAddressSpaceBuilder {
         this.registerNodeEntry("folder", nextPath, parentPath, relationship, folderConfig, folderNode, namespace);
     }
 
+    resolveDataType(type) {
+        if (DATA_TYPE_MAP[type]) return DATA_TYPE_MAP[type];
+        if (this.enumerationStore && this.enumerationStore.has(type)) {
+            return this.enumerationStore.get(type).node.nodeId;
+        }
+        return type;
+    }
+
     addVariable(parentNode, variableConfig, parentPath, pathOverride) {
         const namespace = this.getNamespaceForConfig(variableConfig);
         const name = variableConfig.name;
@@ -1068,7 +1117,7 @@ class OpcUaAddressSpaceBuilder {
             description: variableConfig.description || "",
             nodeId,
             rolePermissions: this.buildRolePermissions("variable", variableConfig),
-            dataType: type,
+            dataType: this.resolveDataType(type),
             modellingRule: this.isObjectTypePath(parentPath) ? "Mandatory" : undefined,
             valueRank: state.isArray ? 1 : -1,
             accessLevel: access === "readwrite" ? "CurrentRead | CurrentWrite" : "CurrentRead",
@@ -1109,7 +1158,7 @@ class OpcUaAddressSpaceBuilder {
                     }
 
                     const variantOptions = {
-                        dataType: DATA_TYPE_MAP[state.type],
+                        dataType: DATA_TYPE_MAP[state.type] || DataType.Int32,
                         value: val
                     };
 
@@ -1268,6 +1317,10 @@ class OpcUaAddressSpaceBuilder {
 
     buildObjectTypePath(name) {
         return "__objectTypes." + name;
+    }
+
+    buildEnumerationPath(name) {
+        return "__enumerations." + name;
     }
 
     buildCollectionPath(parentPath, collectionName, name) {
@@ -1715,7 +1768,7 @@ function compareEntryCreationOrder(left, right) {
 }
 
 function kindRank(kind) {
-    if (kind === "objectTypeDefinition") {
+    if (kind === "objectTypeDefinition" || kind === "enumeration") {
         return -1;
     }
     if (kind === "folder") {

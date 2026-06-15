@@ -1,6 +1,6 @@
 
 (function () {
-    var editorState = { objects: [], folders: [], objectsTypes: [], nameSpaces: [] };
+    var editorState = { objects: [], folders: [], objectsTypes: [], enumerations: [], nameSpaces: [] };
     var expansionState = {};
     var selectedPath = "";
     var pendingCreate = null;
@@ -21,11 +21,11 @@
     function closeAuthModal() { $("#node-input-auth-modal").hide(); syncModalBodyClass(); }
 
     function parseTree(rawValue, strict) {
-        if (!rawValue) return { objects: [], folders: [], objectsTypes: [], nameSpaces: [] };
+        if (!rawValue) return { objects: [], folders: [], objectsTypes: [], enumerations: [], nameSpaces: [] };
         if (typeof rawValue === "object") return rawValue;
         try { var parsed = JSON.parse(rawValue); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed; }
         catch (error) { if (strict) throw error; }
-        return { objects: [], folders: [], objectsTypes: [], nameSpaces: [] };
+        return { objects: [], folders: [], objectsTypes: [], enumerations: [], nameSpaces: [] };
     }
 
     function parseCredentialArray(rawValue) {
@@ -225,6 +225,29 @@
         };
     }
 
+    function normalizeEnumerationState(state) {
+        state = state || {};
+        return {
+            value: state.value !== undefined ? Number(state.value) : 0,
+            displayName: state.displayName ? String(state.displayName) : ""
+        };
+    }
+
+    function normalizeEnumeration(enumeration) {
+        enumeration = enumeration || {};
+        return {
+            name: enumeration.name ? String(enumeration.name) : "",
+            description: enumeration.description ? String(enumeration.description) : "",
+            displayName: enumeration.displayName ? String(enumeration.displayName) : "",
+            nodeId: enumeration.nodeId ? String(enumeration.nodeId) : "",
+            namespaceId: normalizeNamespaceId(enumeration.namespaceId),
+            accessPermission: normalizeAccessPermissionValues(enumeration.accessPermission || enumeration.accessPermissions),
+            enumeration: Array.isArray(enumeration.enumeration)
+                ? enumeration.enumeration.map(normalizeEnumerationState)
+                : []
+        };
+    }
+
     function normalizeBranch(branch) {
         branch = branch || {};
         return {
@@ -250,6 +273,7 @@
             objects: Array.isArray(tree.objects) ? tree.objects.map(normalizeBranch) : [],
             folders: Array.isArray(tree.folders) ? tree.folders.map(normalizeBranch) : [],
             objectsTypes: Array.isArray(tree.objectsTypes) ? tree.objectsTypes.map(normalizeBranch) : (Array.isArray(tree.objectTypes) ? tree.objectTypes.map(normalizeBranch) : []),
+            enumerations: Array.isArray(tree.enumerations) ? tree.enumerations.map(normalizeEnumeration) : (Array.isArray(tree.enumeration) ? tree.enumeration.map(normalizeEnumeration) : []),
             nameSpaces: Array.isArray(tree.nameSpaces) ? tree.nameSpaces.map(normalizeNamespaceDefinition) : (Array.isArray(tree.namespaces) ? tree.namespaces.map(normalizeNamespaceDefinition) : [])
         });
     }
@@ -304,6 +328,7 @@
         if (collectionToken === "methods") return "Method";
         if (collectionToken === "alarms") return "Alarm";
         if (collectionToken === "objectsTypes" || collectionToken === "objectTypes") return "ObjectType";
+        if (collectionToken === "enumerations" || collectionToken === "enumeration") return "Enumeration";
         if (collectionToken === "nameSpaces" || collectionToken === "namespaces") return "Namespace";
         if (collectionToken === "folders") return "Folder";
         return "Object";
@@ -324,6 +349,28 @@
 
     function buildObjectTypeSelect(id, currentValue) {
         var names = getDefinedObjectTypeNames();
+        var cv = String(currentValue || "");
+        var opts = "";
+        var noneSelected = (cv === "") ? " selected" : "";
+        opts += "<option value=\"\"" + noneSelected + ">\u2014 none \u2014</option>";
+        names.forEach(function (n) {
+            var esc = n.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            var sel = (n === cv) ? " selected" : "";
+            opts += "<option value=\"" + esc + "\"" + sel + ">" + esc + "</option>";
+        });
+        return "<select id=\"" + id + "\">" + opts + "</select>";
+    }
+
+    function getDefinedEnumerationNames() {
+        var names = [];
+        (editorState.enumerations || []).forEach(function (e) {
+            if (e && e.name) names.push(String(e.name));
+        });
+        return names;
+    }
+
+    function buildEnumerationSelect(id, currentValue) {
+        var names = getDefinedEnumerationNames();
         var cv = String(currentValue || "");
         var opts = "";
         var noneSelected = (cv === "") ? " selected" : "";
@@ -497,6 +544,7 @@
         (editorState.folders || []).forEach(function (_, i) { paths.push("folders." + i); });
         (editorState.objects || []).forEach(function (_, i) { paths.push("objects." + i); });
         (editorState.objectsTypes || []).forEach(function (_, i) { paths.push("objectsTypes." + i); });
+        (editorState.enumerations || []).forEach(function (_, i) { paths.push("enumerations." + i); });
         (editorState.nameSpaces || []).forEach(function (_, i) { paths.push("nameSpaces." + i); });
         return paths;
     }
@@ -524,6 +572,7 @@
         if (nodeClass === "Object") return "fa-cube";
         if (nodeClass === "Variable") return "fa-tag";
         if (nodeClass === "ObjectType") return "fa-cubes";
+        if (nodeClass === "Enumeration") return "fa-list-ol";
         if (nodeClass === "Namespace") return "fa-sitemap";
         if (nodeClass === "Alarm") return "fa-bell";
         if (nodeClass === "Method") return "fa-cog";
@@ -630,9 +679,9 @@
         pendingCreate = {
             parentPath: path,
             kind: kind,
-            name: kind === "variable" ? "newVariable" : kind === "folder" ? "newFolder" : kind === "objecttype" ? "newObjectType" : kind === "alarm" ? "newAlarm" : kind === "method" ? "newMethod" : "newObject",
+            name: kind === "variable" ? "newVariable" : kind === "enum-variable" ? "newEnumVariable" : kind === "folder" ? "newFolder" : kind === "objecttype" ? "newObjectType" : kind === "alarm" ? "newAlarm" : kind === "method" ? "newMethod" : "newObject",
             displayName: "",
-            dataType: "Int32",
+            dataType: kind === "enum-variable" ? (getDefinedEnumerationNames()[0] || "") : "Int32",
             value: "",
             access: "readwrite",
             accessPermission: ["public"],
@@ -658,7 +707,7 @@
         if (!pendingCreate) return;
         var parentPath = pendingCreate.parentPath;
         var kind = pendingCreate.kind;
-        var branchTargetPath = kind === "variable"
+        var branchTargetPath = (kind === "variable" || kind === "enum-variable")
             ? (parentPath + ".variables")
             : kind === "folder"
                 ? (parentPath + ".folders")
@@ -671,7 +720,7 @@
                             : (parentPath + ".objects");
         var target = getAtPath(editorState, branchTargetPath);
         if (!Array.isArray(target)) return;
-        if (kind === "variable") {
+        if (kind === "variable" || kind === "enum-variable") {
             target.push(normalizeVariable({
                 name: pendingCreate.name,
                 displayName: pendingCreate.displayName || "",
@@ -729,8 +778,10 @@
             panel.append('<div class="form-row"><label>Name</label><input type="text" id="opcua-create-name"></div>');
             panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-create-displayname" placeholder="Leave blank to use browseName"></div>');
             panel.append('<div class="form-row"><label>accessPermission</label>' + buildAccessPermissionSelect("opcua-create-accesspermission", pendingCreate.accessPermission || ["public"]) + '</div>');
-            if (pendingCreate.kind === "variable") {
-                panel.append('<div class="form-row"><label>dataType</label><select id="opcua-create-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select></div>');
+            if (pendingCreate.kind === "variable" || pendingCreate.kind === "enum-variable") {
+                var isEnum = pendingCreate.kind === "enum-variable";
+                var typeHtml = isEnum ? buildEnumerationSelect("opcua-create-type", pendingCreate.dataType) : '<select id="opcua-create-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select>';
+                panel.append('<div class="form-row"><label>dataType</label>' + typeHtml + '</div>');
                 panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-create-value"></div>');
                 panel.append('<div class="form-row"><label>Access</label><select id="opcua-create-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
             }
@@ -798,6 +849,37 @@
             if (normalizeNamespaceId(item.id) === DEFAULT_NAMESPACE_ID) $("#opcua-detail-namespace-entry-id").prop("disabled", true);
             return;
         }
+        if (nodeClass === "Enumeration") {
+            panel.append('<div class="form-row"><label>browseName</label><input type="text" id="opcua-detail-name"></div>');
+            panel.append('<div class="form-row"><label>namespace</label><select id="opcua-detail-namespace"></select></div>');
+            panel.append('<div class="form-row"><label>Description</label><input type="text" id="opcua-detail-description"></div>');
+            panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-detail-displayname" placeholder="Leave blank to use browseName"></div>');
+            panel.append('<hr style="margin:8px 0; border-color:#e3e3e3;">');
+            panel.append('<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;margin-bottom:4px;">States</div>');
+            var statesDiv = $('<div id="opcua-detail-states"></div>').appendTo(panel);
+            (item.enumeration || []).forEach(function (state, idx) {
+                var statePath = selectedPath + ".enumeration." + idx;
+                var stateBlock = $('<div style="border:1px solid #e3e3e3;border-radius:4px;padding:6px;margin-bottom:4px;"></div>');
+                stateBlock.append('<div class="form-row"><label>value</label><input type="number" class="opcua-enum-state-bind" data-state-path="' + statePath + '" data-field="value"></div>');
+                stateBlock.append('<div class="form-row"><label>displayName</label><input type="text" class="opcua-enum-state-bind" data-state-path="' + statePath + '" data-field="displayName"></div>');
+                stateBlock.append('<div class="form-row"><label></label><a href="#" class="editor-button editor-button-small opcua-enum-state-remove" data-state-path="' + statePath + '"><i class="fa fa-trash"></i> Remove</a></div>');
+                stateBlock.find('[data-field="value"]').val(state.value !== undefined ? state.value : 0);
+                stateBlock.find('[data-field="displayName"]').val(state.displayName || "");
+                statesDiv.append(stateBlock);
+            });
+            panel.append('<div class="form-row"><label></label><a href="#" class="editor-button editor-button-small" id="opcua-enum-add-state"><i class="fa fa-plus"></i> Add state</a></div>');
+            panel.append('<div class="form-row"><label style="width:90px;">Actions</label><div><a href="#" id="opcua-detail-edit" class="editor-button editor-button-small"><i class="fa fa-pencil"></i> Edit</a> <a href="#" id="opcua-detail-remove" class="editor-button editor-button-small"><i class="fa fa-trash"></i> Remove</a></div></div>');
+            
+            $("#opcua-detail-name").val(item.name || "");
+            $("#opcua-detail-description").val(item.description || "");
+            namespaceOptions.forEach(function (option) {
+                $("#opcua-detail-namespace").append($("<option></option>").val(option.id).text(getNamespaceLabel(option.id)));
+            });
+            $("#opcua-detail-namespace").val(String(namespaceId));
+            $("#opcua-detail-displayname").val(item.displayName || "");
+            return;
+        }
+
         panel.append('<div class="form-row"><label>browseName</label><input type="text" id="opcua-detail-name"></div>');
         panel.append('<div class="form-row"><label>nodeClass</label><input type="text" id="opcua-detail-class" readonly></div>');
         panel.append('<div class="form-row"><label>namespace</label><select id="opcua-detail-namespace"></select></div>');
@@ -809,7 +891,12 @@
             panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-detail-objectstype", item.objectsType || "") + '</div>');
         }
         if (nodeClass === "Variable") {
-            panel.append('<div class="form-row"><label>dataType</label><select id="opcua-detail-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option><option value="ByteString">ByteString</option></select></div>');
+            var enumNames = getDefinedEnumerationNames();
+            if (enumNames.indexOf(item.type) !== -1) {
+                panel.append('<div class="form-row"><label>dataType</label>' + buildEnumerationSelect("opcua-detail-type", item.type) + '</div>');
+            } else {
+                panel.append('<div class="form-row"><label>dataType</label><select id="opcua-detail-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option><option value="ByteString">ByteString</option></select></div>');
+            }
             panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-detail-value"></div>');
             panel.append('<div class="form-row"><label>Access</label><select id="opcua-detail-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
         }
@@ -1114,8 +1201,12 @@
     function addItem(parentPath, kind) {
         var target = getAtPath(editorState, parentPath);
         if (!Array.isArray(target)) return;
-        if (kind === "object" || kind === "folder" || kind === "objectTypeDefinition") {
-            target.push(normalizeBranch());
+        if (kind === "object" || kind === "folder" || kind === "objectTypeDefinition" || kind === "enumeration") {
+            if (kind === "enumeration") {
+                target.push(normalizeEnumeration({ name: "newEnumeration", enumeration: [{ value: 0, displayName: "State0" }] }));
+            } else {
+                target.push(normalizeBranch());
+            }
             if (kind === "objectTypeDefinition") {
                 target[target.length - 1].nodeId = buildGeneratedNodeIdForPath(parentPath + "." + (target.length - 1));
             }
@@ -1167,6 +1258,8 @@
         if (action === "add-object") addNode(selectedPath, "object");
         if (action === "add-variable") addNode(selectedPath, "variable");
         if (action === "add-objecttype") addNode(selectedPath, "objecttype");
+        if (action === "add-enumeration") { addItem("enumerations", "enumeration"); syncStateToJson(true); renderVisualEditor(); }
+        if (action === "add-enum-variable") addNode(selectedPath, "enum-variable");
         if (action === "add-alarm") addNode(selectedPath, "alarm");
         if (action === "add-method") addNode(selectedPath, "method");
         if (action === "add-method") addNode(selectedPath, "method");
@@ -1209,6 +1302,36 @@
         if (!item) return;
         if (!Array.isArray(item.outputs)) item.outputs = [];
         item.outputs.push(normalizeMethodArg());
+        syncStateToJson(false);
+        renderDetails();
+    });
+
+    $(document).on("input change", ".opcua-enum-state-bind", function () {
+        var el = $(this);
+        var statePath = el.attr("data-state-path");
+        var field = el.attr("data-field");
+        var state = getAtPath(editorState, statePath);
+        if (!state) return;
+        state[field] = field === "value" ? Number(el.val()) : el.val();
+        syncStateToJson(false);
+    });
+
+    $(document).on("click", ".opcua-enum-state-remove", function (e) {
+        e.preventDefault();
+        var statePath = $(this).attr("data-state-path");
+        removeAtPath(editorState, statePath);
+        syncStateToJson(false);
+        renderDetails();
+    });
+
+    $(document).on("click", "#opcua-enum-add-state", function (e) {
+        e.preventDefault();
+        var item = getAtPath(editorState, selectedPath);
+        if (!item) return;
+        if (!Array.isArray(item.enumeration)) item.enumeration = [];
+        var maxValue = -1;
+        item.enumeration.forEach(function (s) { if (s.value > maxValue) maxValue = s.value; });
+        item.enumeration.push(normalizeEnumerationState({ value: maxValue + 1, displayName: "State" + (maxValue + 1) }));
         syncStateToJson(false);
         renderDetails();
     });
@@ -1429,6 +1552,7 @@
             $("#node-input-add-object").off("click").on("click", function (event) { event.preventDefault(); addItem("objects", "object"); syncStateToJson(true); renderVisualEditor(); });
             $("#node-input-add-folder").off("click").on("click", function (event) { event.preventDefault(); addItem("folders", "folder"); syncStateToJson(true); renderVisualEditor(); });
             $("#node-input-add-object-type").off("click").on("click", function (event) { event.preventDefault(); addItem("objectsTypes", "objectTypeDefinition"); syncStateToJson(true); renderVisualEditor(); });
+            $("#node-input-add-enumeration").off("click").on("click", function (event) { event.preventDefault(); addItem("enumerations", "enumeration"); syncStateToJson(true); renderVisualEditor(); });
             $("#node-input-add-namespace").off("click").on("click", function (event) { event.preventDefault(); addItem("nameSpaces", "namespace"); syncStateToJson(true); renderVisualEditor(); });
             $("#node-input-expand-all").off("click").on("click", function (event) {
                 event.preventDefault();

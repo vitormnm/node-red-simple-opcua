@@ -131,10 +131,17 @@ class OpcUaServerConfigParser {
             this._objectsTypesMap[typeDef.name] = typeDef;
         }
 
+        const enumerations = this.normalizeEnumerations(parsed.enumerations || parsed.enumeration || []);
+        this._enumerationsMap = {};
+        for (const enumDef of enumerations) {
+            this._enumerationsMap[enumDef.name] = enumDef;
+        }
+
         return {
             objects: this.normalizeObjects(parsed.objects || []),
             folders: this.normalizeFolders(parsed.folders || []),
             objectsTypes,
+            enumerations,
             nameSpaces: this.normalizeNamespaces(parsed.nameSpaces || parsed.namespaces || [])
         };
     }
@@ -376,6 +383,41 @@ class OpcUaServerConfigParser {
         return normalizedBranch;
     }
 
+    normalizeEnumerations(enumerations) {
+        if (!Array.isArray(enumerations)) {
+            throw new Error("'enumerations' must be an array");
+        }
+        return enumerations.map((config) => this.normalizeEnumeration(config));
+    }
+
+    normalizeEnumeration(enumerationConfig) {
+        if (!enumerationConfig || typeof enumerationConfig !== "object" || Array.isArray(enumerationConfig)) {
+            throw new Error("Each enumeration must be an object");
+        }
+
+        const name = this.requiredName(enumerationConfig, "enumeration");
+        
+        let enumerationStates = [];
+        if (Array.isArray(enumerationConfig.enumeration)) {
+            enumerationStates = enumerationConfig.enumeration.map(state => {
+                return {
+                    value: Number.isFinite(Number(state.value)) ? Number(state.value) : 0,
+                    displayName: typeof state.displayName === "string" ? state.displayName : ""
+                };
+            });
+        }
+
+        return {
+            name,
+            displayName: enumerationConfig.displayName || name,
+            description: enumerationConfig.description || "",
+            nodeId: this.normalizeOptionalNodeId(enumerationConfig.nodeId),
+            namespaceId: this.normalizeNamespaceId(enumerationConfig.namespaceId),
+            accessPermission: this.normalizeAccessPermissions(enumerationConfig.accessPermission || enumerationConfig.accessPermissions),
+            enumeration: enumerationStates
+        };
+    }
+
     // Returns the string value after "s=" in a nodeId like "ns=2;s=Motor_type2"
     _extractNodeIdValue(nodeId) {
         if (!nodeId) return "";
@@ -571,7 +613,7 @@ class OpcUaServerConfigParser {
             localizedText: "LocalizedText",
         };
         const canonical = aliases[normalized.toLowerCase()] || normalized;
-        if (!DATA_TYPE_MAP[canonical]) {
+        if (!DATA_TYPE_MAP[canonical] && (!this._enumerationsMap || !this._enumerationsMap[canonical])) {
             throw new Error("Unsupported variable type: " + type);
         }
 
@@ -659,7 +701,7 @@ class OpcUaServerConfigParser {
     }
 
     coerceScalarValue(value, type) {
-        if (type === "Int32") {
+        if (type === "Int32" || (this._enumerationsMap && this._enumerationsMap[type])) {
             const parsed = Number(value);
             if (!Number.isFinite(parsed)) {
                 return 0;

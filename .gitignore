@@ -24,6 +24,9 @@ dist-ssr
 *.sln
 *.sw?
 
+#
+scratch
+
 # No need to include lock file
 package-lock.json
 AGENTS.MD
