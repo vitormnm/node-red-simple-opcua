@@ -485,7 +485,6 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
                 nodeId: nodeId,
                 attributeId: AttributeIds.DataType
             });
-            console.log("Read DataType dv:", dv.statusCode.toString(), dv.value ? dv.value.value.toString() : "null");
             if (dv.statusCode.isGood()) {
                 dtNodeId = dv.value.value;
                 if (cache) cache.set(cacheKeyType, dtNodeId);
@@ -494,7 +493,6 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
             }
         }
         
-        console.log("dtNodeId:", dtNodeId ? dtNodeId.toString() : "null");
         if (!dtNodeId) return result;
         
         const cacheKeyStrings = "enumStrings:" + dtNodeId.toString();
@@ -508,7 +506,6 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
                 includeSubtypes: true,
                 resultMask: 63
             });
-            console.log("Browse references:", browseResult.references ? browseResult.references.map(r => r.browseName.name) : "none");
             
             const enumStringsRef = browseResult.references ? browseResult.references.find(r => r.browseName.name === "EnumStrings") : null;
             const enumValuesRef = browseResult.references ? browseResult.references.find(r => r.browseName.name === "EnumValues") : null;
@@ -518,7 +515,6 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
                     nodeId: enumStringsRef.nodeId,
                     attributeId: AttributeIds.Value
                 });
-                console.log("Read EnumStrings dataValue:", dataValue.statusCode.toString());
                 if (dataValue.statusCode.isGood() && dataValue.value.value) {
                     enumStrings = dataValue.value.value.map(lt => lt.text);
                     if (cache) cache.set(cacheKeyStrings, enumStrings);
@@ -530,7 +526,6 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
                     nodeId: enumValuesRef.nodeId,
                     attributeId: AttributeIds.Value
                 });
-                console.log("Read EnumValues dataValue:", dataValue.statusCode.toString());
                 if (dataValue.statusCode.isGood() && dataValue.value.value) {
                     const map = {};
                     dataValue.value.value.forEach(ev => {
@@ -552,7 +547,6 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
             }
         }
         
-        console.log("Resolved enumStrings:", enumStrings);
         if (enumStrings && enumStrings[result.value] !== undefined) {
             result.valueEnumeration = enumStrings[result.value];
         }
