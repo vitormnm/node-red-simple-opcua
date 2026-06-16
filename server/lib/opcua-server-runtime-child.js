@@ -264,8 +264,8 @@ class OpcUaServerProcess {
             // Emit a partialError for items that could not be read, so catch nodes can handle them
             if (Array.isArray(result.payload)) {
                 const failed = result.payload
-                    .filter(item => item && item._error)
-                    .map(item => ({ name: item.name, path: item.path, message: item._error }));
+                    .filter(item => item && item.status !== "Good")
+                    .map(item => ({ name: item.name, path: item.path, status: item.status }));
 
                 if (failed.length) {
                     process.send({
@@ -509,8 +509,8 @@ class OpcUaServerProcess {
             // Emit a partialError for items that could not be written, so catch nodes can handle them
             if (Array.isArray(msg.payload)) {
                 const failed = msg.payload
-                    .filter(item => item && item._error)
-                    .map(item => ({ name: item.name, path: item.path, message: item._error }));
+                    .filter(item => item && item.status !== "Good")
+                    .map(item => ({ name: item.name, path: item.path, status: item.status }));
 
                 if (failed.length) {
                     process.send({
@@ -580,37 +580,37 @@ class OpcUaServerProcess {
     readPayloadItem(identifierType, item) {
         const identifier = this.resolvePayloadItemIdentifier(item);
         let value = null;
-        let errorMessage = null;
+        let status = "Good";
         try {
             value = this.node.readValue(identifierType, identifier);
         } catch (e) {
             value = null;
-            errorMessage = e.message || String(e);
+            status = e.message || String(e);
         }
         return {
             name: item.name,
             path: identifier,
             value,
-            _error: errorMessage
+            status
         };
     }
 
     writePayloadItem(identifierType, item) {
         const identifier = this.resolvePayloadItemIdentifier(item);
         let writtenValue = null;
-        let errorMessage = null;
+        let status = "Good";
         try {
             this.node.writeValue(identifierType, identifier, item.value);
             writtenValue = item.value;
         } catch (e) {
             writtenValue = null;
-            errorMessage = e.message || String(e);
+            status = e.message || String(e);
         }
         return {
             name: item.name,
             path: identifier,
             value: writtenValue,
-            _error: errorMessage
+            status
         };
     }
 

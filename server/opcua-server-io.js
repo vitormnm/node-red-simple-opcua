@@ -144,13 +144,6 @@ module.exports = function (RED) {
                     data.payload = restoreBuffers(data.payload);
                 }
 
-                // Strip internal _error tracking fields before forwarding to the flow
-                if (Array.isArray(data && data.payload)) {
-                    data.payload.forEach(item => {
-                        if (item && typeof item === "object") delete item._error;
-                    });
-                }
-
                 node.send(data);
             }
 
