@@ -403,13 +403,13 @@ class OpcUaServerProcess {
                     throw new Error("msg.payload array does not contain any items");
                 }
 
-                payload.forEach(item => {
-                    this.writePayloadItem(identifierType, item);
-                });
-
-                writtenPaths = payload.map(item =>
-                    this.resolvePayloadItemIdentifier(item)
+                const writeResults = payload.map(item =>
+                    this.writePayloadItem(identifierType, item)
                 );
+
+                msg.payload = writeResults;
+
+                writtenPaths = writeResults.map(item => item.path);
             }
 
             // Objeto { path: value }
@@ -429,11 +429,15 @@ class OpcUaServerProcess {
                 }
 
                 identifiers.forEach(identifier => {
-                    this.node.writeValue(
-                        identifierType,
-                        identifier,
-                        payload[identifier]
-                    );
+                    try {
+                        this.node.writeValue(
+                            identifierType,
+                            identifier,
+                            payload[identifier]
+                        );
+                    } catch (e) {
+                        // suppress per-item errors; unknown paths become undefined
+                    }
                 });
 
                 writtenPaths = identifiers;
@@ -541,20 +545,32 @@ class OpcUaServerProcess {
 
     readPayloadItem(identifierType, item) {
         const identifier = this.resolvePayloadItemIdentifier(item);
+        let value = null;
+        try {
+            value = this.node.readValue(identifierType, identifier);
+        } catch (e) {
+            value = null;
+        }
         return {
             name: item.name,
             path: identifier,
-            value: this.node.readValue(identifierType, identifier)
+            value
         };
     }
 
     writePayloadItem(identifierType, item) {
         const identifier = this.resolvePayloadItemIdentifier(item);
-        this.node.writeValue(identifierType, identifier, item.value);
+        let writtenValue = null;
+        try {
+            this.node.writeValue(identifierType, identifier, item.value);
+            writtenValue = item.value;
+        } catch (e) {
+            writtenValue = null;
+        }
         return {
             name: item.name,
             path: identifier,
-            value: item.value
+            value: writtenValue
         };
     }
 
