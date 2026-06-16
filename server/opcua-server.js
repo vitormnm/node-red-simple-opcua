@@ -21,6 +21,7 @@ module.exports = function (RED) {
         node.serverName = settings.serverName;
         node.server = null;
         node.namespace = null;
+        node.isClosing = false;
 
         node.status({ fill: "yellow", shape: "ring", text: "initializing OPC UA server" });
 
@@ -44,12 +45,35 @@ module.exports = function (RED) {
 
         registry.registerServerNames(node.serverName, node.serverName);
 
-        child.on("exit", () => {
+        let crashHandled = false;
+        function handleUnexpectedExit(code, signal) {
+            if (node.isClosing || crashHandled) {
+                return;
+            }
+            crashHandled = true;
+
+            const errorDetails = `OPC UA server child process exited unexpectedly with code ${code} and signal ${signal}`;
+            node.status({ fill: "red", shape: "dot", text: "Child process crashed" });
+
+            const catchMsg = {
+                topic: node.serverName,
+                payload: {
+                    status: "error",
+                    error: errorDetails
+                }
+            };
+            node.send(catchMsg);
+            node.error(errorDetails, catchMsg);
+        }
+
+        child.on("exit", (code, signal) => {
             registry.unregisterChild(node.serverName, child);
+            handleUnexpectedExit(code, signal);
         });
 
-        child.on("close", () => {
+        child.on("close", (code, signal) => {
             registry.unregisterChild(node.serverName, child);
+            handleUnexpectedExit(code, signal);
         });
 
 
@@ -112,6 +136,7 @@ module.exports = function (RED) {
 
         node.on("close", async function (removed, done) {
             try {
+                node.isClosing = true;
                 registry.unregisterChild(node.serverName, child);
                 registry.unregisterServerNames(node.serverName);
                 child.kill();
