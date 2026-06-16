@@ -261,6 +261,23 @@ class OpcUaServerProcess {
                 nodeId: nodeId
             });
 
+            // Emit a partialError for items that could not be read, so catch nodes can handle them
+            if (Array.isArray(result.payload)) {
+                const failed = result.payload
+                    .filter(item => item && item._error)
+                    .map(item => ({ name: item.name, path: item.path, message: item._error }));
+
+                if (failed.length) {
+                    process.send({
+                        type: "partialError",
+                        error: "Some tags could not be read: " + failed.map(f => f.path).join(", "),
+                        failed: failed,
+                        originalMsg: msg,
+                        nodeId: nodeId
+                    });
+                }
+            }
+
         } catch (error) {
 
             process.send({
@@ -489,6 +506,23 @@ class OpcUaServerProcess {
                 nodeId
             });
 
+            // Emit a partialError for items that could not be written, so catch nodes can handle them
+            if (Array.isArray(msg.payload)) {
+                const failed = msg.payload
+                    .filter(item => item && item._error)
+                    .map(item => ({ name: item.name, path: item.path, message: item._error }));
+
+                if (failed.length) {
+                    process.send({
+                        type: "partialError",
+                        error: "Some tags could not be written: " + failed.map(f => f.path).join(", "),
+                        failed: failed,
+                        originalMsg: msg,
+                        nodeId
+                    });
+                }
+            }
+
         } catch (error) {
 
             process.send({
@@ -546,31 +580,37 @@ class OpcUaServerProcess {
     readPayloadItem(identifierType, item) {
         const identifier = this.resolvePayloadItemIdentifier(item);
         let value = null;
+        let errorMessage = null;
         try {
             value = this.node.readValue(identifierType, identifier);
         } catch (e) {
             value = null;
+            errorMessage = e.message || String(e);
         }
         return {
             name: item.name,
             path: identifier,
-            value
+            value,
+            _error: errorMessage
         };
     }
 
     writePayloadItem(identifierType, item) {
         const identifier = this.resolvePayloadItemIdentifier(item);
         let writtenValue = null;
+        let errorMessage = null;
         try {
             this.node.writeValue(identifierType, identifier, item.value);
             writtenValue = item.value;
         } catch (e) {
             writtenValue = null;
+            errorMessage = e.message || String(e);
         }
         return {
             name: item.name,
             path: identifier,
-            value: writtenValue
+            value: writtenValue,
+            _error: errorMessage
         };
     }
 

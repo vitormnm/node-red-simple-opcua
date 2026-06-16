@@ -144,12 +144,28 @@ module.exports = function (RED) {
                     data.payload = restoreBuffers(data.payload);
                 }
 
+                // Strip internal _error tracking fields before forwarding to the flow
+                if (Array.isArray(data && data.payload)) {
+                    data.payload.forEach(item => {
+                        if (item && typeof item === "object") delete item._error;
+                    });
+                }
+
                 node.send(data);
             }
 
             if (msg.type === "error") {
                 node.status(msg.data);
                 node.error(msg.error);
+            }
+
+            if (msg.type === "partialError") {
+                // Route failed items to catch node without changing the node status
+                const catchMsg = Object.assign({}, msg.originalMsg || {}, {
+                    payload: msg.failed,
+                    error: msg.error
+                });
+                node.error(msg.error, catchMsg);
             }
 
             if (msg.type === "sendMethod") {
