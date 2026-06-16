@@ -193,15 +193,18 @@ class OpcUaServerProcess {
             const target = msg && msg.opcuaServerIo ? msg.opcuaServerIo : {};
             const identifierType = this.resolveIdentifierType(target);
 
-            let result = {}
+            let result = {};
+            let readArrayResults = null;
 
             if (Array.isArray(payload)) {
                 if (!payload.length) {
                     throw new Error("msg.payload array does not contain any items");
                 }
 
+                readArrayResults = payload.map((item) => this.readPayloadItem(identifierType, item));
+
                 result = {
-                    payload: payload.map((item) => this.readPayloadItem(identifierType, item)),
+                    payload: readArrayResults,
                     identifiers: payload.map((item) => this.resolvePayloadItemIdentifier(item))
                 };
             } else if (payload && typeof payload === "object" && !Array.isArray(payload)) {
@@ -225,9 +228,18 @@ class OpcUaServerProcess {
                 };
             } else {
                 const identifier = this.resolveIdentifier(target);
+                let directValue = null;
+                let directError = null;
+                try {
+                    directValue = server.readValue(identifierType, identifier);
+                } catch (e) {
+                    directValue = null;
+                    directError = { identifier, message: e.message || String(e) };
+                }
                 result = {
-                    payload: server.readValue(identifierType, identifier),
-                    identifiers: [identifier]
+                    payload: directValue,
+                    identifiers: [identifier],
+                    directError
                 };
 
             }
@@ -261,9 +273,9 @@ class OpcUaServerProcess {
                 nodeId: nodeId
             });
 
-            // Emit a partialError for items that could not be read, so catch nodes can handle them
-            if (Array.isArray(result.payload)) {
-                const failed = result.payload
+            // Emit a partialError for items that could not be read (array-of-objects mode only)
+            if (readArrayResults) {
+                const failed = readArrayResults
                     .filter(item => item && item.status !== "Good")
                     .map(item => ({ name: item.name, path: item.path, status: item.status }));
 
@@ -276,6 +288,18 @@ class OpcUaServerProcess {
                         nodeId: nodeId
                     });
                 }
+            }
+
+            // Emit a partialError for a direct single-tag read failure
+            if (result.directError) {
+                const { identifier, message } = result.directError;
+                process.send({
+                    type: "partialError",
+                    error: "Some tags could not be read: " + identifier,
+                    failed: [{ name: "", path: identifier, status: message }],
+                    originalMsg: msg,
+                    nodeId: nodeId
+                });
             }
 
         } catch (error) {
@@ -352,6 +376,7 @@ class OpcUaServerProcess {
         try {
             let writtenPaths = null;
             let payload = msg ? msg.payload : undefined;
+            let directError = null;
 
             const target = msg && msg.opcuaServerIo ? msg.opcuaServerIo : {};
             const identifierType = this.resolveIdentifierType(target);
@@ -382,14 +407,18 @@ class OpcUaServerProcess {
             if (Buffer.isBuffer(payload) || payload instanceof Uint8Array) {
 
                 const identifier = this.resolveIdentifier(target);
-
-                this.node.writeValue(
-                    identifierType,
-                    identifier,
-                    Buffer.isBuffer(payload)
-                        ? payload
-                        : Buffer.from(payload)
-                );
+                try {
+                    this.node.writeValue(
+                        identifierType,
+                        identifier,
+                        Buffer.isBuffer(payload)
+                            ? payload
+                            : Buffer.from(payload)
+                    );
+                } catch (e) {
+                    directError = { identifier, message: e.message || String(e) };
+                    msg.payload = null;
+                }
 
                 writtenPaths = [identifier];
             }
@@ -401,14 +430,18 @@ class OpcUaServerProcess {
             ) {
 
                 const identifier = this.resolveIdentifier(target);
-
-                this.node.writeValue(
-                    identifierType,
-                    identifier,
-                    isByteString
-                        ? Buffer.from(payload)
-                        : payload
-                );
+                try {
+                    this.node.writeValue(
+                        identifierType,
+                        identifier,
+                        isByteString
+                            ? Buffer.from(payload)
+                            : payload
+                    );
+                } catch (e) {
+                    directError = { identifier, message: e.message || String(e) };
+                    msg.payload = null;
+                }
 
                 writtenPaths = [identifier];
             }
@@ -420,13 +453,13 @@ class OpcUaServerProcess {
                     throw new Error("msg.payload array does not contain any items");
                 }
 
-                const writeResults = payload.map(item =>
+                const writeArrayResults = payload.map(item =>
                     this.writePayloadItem(identifierType, item)
                 );
 
-                msg.payload = writeResults;
+                msg.payload = writeArrayResults;
 
-                writtenPaths = writeResults.map(item => item.path);
+                writtenPaths = writeArrayResults.map(item => item.path);
             }
 
             // Objeto { path: value }
@@ -464,12 +497,16 @@ class OpcUaServerProcess {
             else {
 
                 const identifier = this.resolveIdentifier(target);
-
-                this.node.writeValue(
-                    identifierType,
-                    identifier,
-                    payload
-                );
+                try {
+                    this.node.writeValue(
+                        identifierType,
+                        identifier,
+                        payload
+                    );
+                } catch (e) {
+                    directError = { identifier, message: e.message || String(e) };
+                    msg.payload = null;
+                }
 
                 writtenPaths = [identifier];
             }
@@ -506,10 +543,10 @@ class OpcUaServerProcess {
                 nodeId
             });
 
-            // Emit a partialError for items that could not be written, so catch nodes can handle them
-            if (Array.isArray(msg.payload)) {
+            // Emit a partialError for items that could not be written (array-of-objects mode only)
+            if (Array.isArray(msg.payload) && msg.payload.length && msg.payload[0] && typeof msg.payload[0].status === "string") {
                 const failed = msg.payload
-                    .filter(item => item && item.status !== "Good")
+                    .filter(item => item.status !== "Good")
                     .map(item => ({ name: item.name, path: item.path, status: item.status }));
 
                 if (failed.length) {
@@ -521,6 +558,18 @@ class OpcUaServerProcess {
                         nodeId
                     });
                 }
+            }
+
+            // Emit a partialError for a direct single-tag write failure
+            if (directError) {
+                const { identifier, message } = directError;
+                process.send({
+                    type: "partialError",
+                    error: "Some tags could not be written: " + identifier,
+                    failed: [{ name: "", path: identifier, status: message }],
+                    originalMsg: msg,
+                    nodeId
+                });
             }
 
         } catch (error) {
