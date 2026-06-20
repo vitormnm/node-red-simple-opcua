@@ -494,3 +494,28 @@ body.opcua-tree-modal-open {
         margin-left: 0;
     }
 }
+
+.opcua-cert-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--red-ui-form-input-border-color, #e0e0e0);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+.opcua-cert-item:last-child {
+    border-bottom: none;
+}
+.opcua-cert-item:hover {
+    background: var(--red-ui-list-item-background-hover, #f0f0f0);
+}
+.opcua-cert-item.is-selected {
+    background: var(--red-ui-list-item-background-selected, #d9ecff);
+    color: var(--red-ui-list-item-color-selected, inherit);
+    font-weight: 500;
+}
+.opcua-cert-item i {
+    font-size: 14px;
+}

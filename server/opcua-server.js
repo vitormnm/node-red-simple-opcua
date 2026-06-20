@@ -8,12 +8,26 @@ module.exports = function (RED) {
     const { fork } = require("child_process");
     const path = require("path");
 
+    const getCertificatesFolder = (serverName) => {
+        try {
+            const userDir = (RED.settings && RED.settings.userDir) || path.join(require('os').homedir(), ".node-red");
+            let flowFile = (RED.settings && RED.settings.flowFile) || "flows.json";
+            if (typeof flowFile !== "string") {
+                flowFile = "flows.json";
+            }
+            const flowFileFolder = path.isAbsolute(flowFile) ? path.dirname(flowFile) : path.join(userDir, path.dirname(flowFile));
+            return path.join(flowFileFolder, "simple_opcua", "server", "certificates");
+        } catch (err) {
+            return path.join(require('os').homedir(), ".node-red", "simple_opcua", "server", "certificates");
+        }
+    };
+
     function OpcUaServerNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
         const parser = new OpcUaServerConfigParser(node);
-
         const settings = parser.parseNodeConfig(config, this.credentials || {});
+        settings.certificatesFolder = getCertificatesFolder(settings.serverName);
 
 
 
@@ -168,6 +182,93 @@ module.exports = function (RED) {
     RED.httpAdmin.get("/opcua-server-resource/opcua-server.js", function (req, res) {
         const jsPath = path.join(__dirname, "view", "opcua-server.js");
         res.sendFile(jsPath);
+    });
+
+    RED.httpAdmin.get("/opc-ua-server/certificates", function (req, res) {
+        const serverName = req.query.serverName || "default";
+        const certificatesFolder = getCertificatesFolder(serverName);
+
+        const fs = require("fs");
+        const trustedDir = path.join(certificatesFolder, "trusted", "certs");
+        const rejectedDir = path.join(certificatesFolder, "rejected");
+
+        // Ensure directories exist
+        try {
+            if (!fs.existsSync(trustedDir)) {
+                fs.mkdirSync(trustedDir, { recursive: true });
+            }
+            if (!fs.existsSync(rejectedDir)) {
+                fs.mkdirSync(rejectedDir, { recursive: true });
+            }
+        } catch (e) {
+            // Ignore directory creation errors (fallback to empty)
+        }
+
+        const listFiles = (dir) => {
+            try {
+                if (!fs.existsSync(dir)) {
+                    return [];
+                }
+                return fs.readdirSync(dir).filter(file => {
+                    const stats = fs.statSync(path.join(dir, file));
+                    return stats.isFile() && (file.endsWith(".der") || file.endsWith(".pem") || file.endsWith(".crt"));
+                });
+            } catch (err) {
+                return [];
+            }
+        };
+
+        res.json({
+            trusted: listFiles(trustedDir),
+            rejected: listFiles(rejectedDir)
+        });
+    });
+
+    RED.httpAdmin.post("/opc-ua-server/certificates/move", function (req, res) {
+        const { serverName, filename, fromFolder, toFolder } = req.body;
+        const certificatesFolder = getCertificatesFolder(serverName);
+
+        const fs = require("fs");
+
+        if (!filename || !fromFolder || !toFolder) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const getFolderDir = (folderName) => {
+            if (folderName === "trusted") {
+                return path.join(certificatesFolder, "trusted", "certs");
+            }
+            if (folderName === "rejected") {
+                return path.join(certificatesFolder, "rejected");
+            }
+            return null;
+        };
+
+        const srcDir = getFolderDir(fromFolder);
+        const destDir = getFolderDir(toFolder);
+
+        if (!srcDir || !destDir) {
+            return res.status(400).json({ error: "Invalid folders specified" });
+        }
+
+        const srcPath = path.join(srcDir, filename);
+        const destPath = path.join(destDir, filename);
+
+        try {
+            if (!fs.existsSync(srcPath)) {
+                return res.status(404).json({ error: "Source certificate not found" });
+            }
+
+            // Ensure destination directory exists
+            if (!fs.existsSync(destDir)) {
+                fs.mkdirSync(destDir, { recursive: true });
+            }
+
+            fs.renameSync(srcPath, destPath);
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ error: "Failed to move certificate: " + err.message });
+        }
     });
 
 

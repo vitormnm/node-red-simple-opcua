@@ -2,13 +2,15 @@
 
 
 
+const path = require("path");
 const {
     OPCUAServer,
     UserTokenType,
     buildApplicationUri,
     makeRoles,
     WellKnownRoles,
-    resolveNodeId
+    resolveNodeId,
+    OPCUACertificateManager
 } = require("./opcua-constants");
 const { OpcUaAddressSpaceBuilder } = require("./opcua-address-space-builder");
 const { OpcUaServerMethods } = require("./opcua-server-methods");
@@ -32,6 +34,8 @@ class OpcUaServerRuntime {
         this.namespaceUri = options.settings.namespaceUri;
         this.resourcePath = options.settings.resourcePath;
         this.allowAnonymous = options.settings.allowAnonymous;
+        this.automaticallyAcceptUnknownCertificate = options.settings.automaticallyAcceptUnknownCertificate;
+        this.certificatesFolder = options.settings.certificatesFolder;
         this.groups = options.settings.groups;
         this.users = options.settings.users;
         this.securityPolicy = options.settings.securityPolicy;
@@ -50,6 +54,28 @@ class OpcUaServerRuntime {
     async start() {
         if (this.server) {
             return;
+        }
+
+        const certificateFolder = this.certificatesFolder || path.resolve(__dirname, "..", "..", "certificates");
+        this.serverCertificateManager = new OPCUACertificateManager({
+            rootFolder: certificateFolder,
+            automaticallyAcceptUnknownCertificate: this.automaticallyAcceptUnknownCertificate
+        });
+        await this.serverCertificateManager.initialize();
+
+        // Ensure directories exist immediately on startup
+        const fs = require("fs");
+        try {
+            const trustedDir = path.join(certificateFolder, "trusted", "certs");
+            const rejectedDir = path.join(certificateFolder, "rejected");
+            if (!fs.existsSync(trustedDir)) {
+                fs.mkdirSync(trustedDir, { recursive: true });
+            }
+            if (!fs.existsSync(rejectedDir)) {
+                fs.mkdirSync(rejectedDir, { recursive: true });
+            }
+        } catch (e) {
+            // Ignore directory creation errors
         }
 
         this.server = new OPCUAServer(this.buildServerOptions());
@@ -74,6 +100,7 @@ class OpcUaServerRuntime {
 
         this.addressSpaceBuilder.rebuild(this.treeConfig);
         await this.server.start();
+
         this.registry.registerServer(this);
 
         //Methods
@@ -200,9 +227,14 @@ class OpcUaServerRuntime {
             });
         }
 
+        const certificatesFolder = this.certificatesFolder || path.resolve(__dirname, "..", "..", "certificates");
+
         return {
             port: this.port,
             resourcePath: this.resourcePath,
+            serverCertificateManager: this.serverCertificateManager,
+            certificateFile: path.join(certificatesFolder, "own", "certs", "server_selfsigned_cert_2048.pem"),
+            privateKeyFile: path.join(certificatesFolder, "own", "private", "private_key.pem"),
             buildInfo: {
                 productName: "opc-ua-server",
                 buildNumber: "1",

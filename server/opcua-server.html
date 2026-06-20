@@ -44,8 +44,17 @@
         <span style="margin-left: 8px;">Allow anonymous login</span>
     </div>
     <div class="form-row">
+        <label for="node-input-automaticallyAcceptUnknownCertificate"><i class="fa fa-certificate"></i> Certificates</label>
+        <input type="checkbox" id="node-input-automaticallyAcceptUnknownCertificate" style="display:inline-block; width:auto; vertical-align:top; margin-top:8px;">
+        <span style="margin-left: 8px;">Automatically accept unknown certificates</span>
+    </div>
+    <div class="form-row">
         <label style="width: auto;"><i class="fa fa-users"></i> Users</label>
         <a href="#" id="node-input-open-auth-modal" class="editor-button"><i class="fa fa-user-plus"></i> Manage users and groups</a>
+    </div>
+    <div class="form-row">
+        <label style="width: auto;"><i class="fa fa-certificate"></i> Certificates</label>
+        <a href="#" id="node-input-open-cert-modal" class="editor-button"><i class="fa fa-folder-open"></i> Manage client certificates</a>
     </div>
 
 
@@ -87,6 +96,47 @@
                     <div class="opcua-auth-panel">
                         <div class="opcua-tree-details-title">Users</div>
                         <div id="opcua-auth-users" class="opcua-auth-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="node-input-cert-modal" class="opcua-tree-modal" style="display:none;">
+        <div class="opcua-tree-modal__dialog">
+            <div class="opcua-tree-modal__header">
+                <div class="opcua-tree-modal__title"><i class="fa fa-certificate"></i> Client Certificate Management</div>
+                <a href="#" id="node-input-close-cert-modal" class="editor-button editor-button-small"><i class="fa fa-times"></i> Close</a>
+            </div>
+            <div class="opcua-tree-modal__body">
+                <div class="opcua-auth-layout">
+                    <div class="opcua-auth-panel">
+                        <div class="opcua-tree-details-title">Folders</div>
+                        <div id="opcua-cert-folders" class="opcua-auth-list">
+                            <div class="opcua-cert-item is-selected" data-folder="rejected">
+                                <i class="fa fa-ban" style="color: #d9534f; width: 16px; text-align: center;"></i> Rejected Certificates
+                            </div>
+                            <div class="opcua-cert-item" data-folder="trusted">
+                                <i class="fa fa-check-circle" style="color: #5cb85c; width: 16px; text-align: center;"></i> Trusted Certificates
+                            </div>
+                        </div>
+                    </div>
+                    <div class="opcua-auth-panel">
+                        <div class="opcua-tree-details-title">Certificates</div>
+                        <div id="opcua-cert-files" class="opcua-auth-list" style="display: flex; flex-direction: column; gap: 2px;">
+                            <!-- List of certificates -->
+                        </div>
+                        <div id="opcua-cert-details" class="opcua-auth-card" style="margin-top: 10px; display: none;">
+                            <div class="form-row" style="margin-bottom: 8px;">
+                                <label style="width: auto; font-weight: bold;"><i class="fa fa-certificate"></i> Selected Certificate:</label>
+                                <span id="opcua-selected-cert-name" style="word-break: break-all; margin-left: 8px;"></span>
+                            </div>
+                            <div class="form-row" style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
+                                <label style="width: auto;">Move to:</label>
+                                <select id="opcua-cert-target-folder" style="width: 150px; margin: 0;"></select>
+                                <a href="#" id="opcua-cert-move-btn" class="editor-button"><i class="fa fa-exchange"></i> Move</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

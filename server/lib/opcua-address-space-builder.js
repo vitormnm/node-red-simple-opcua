@@ -1103,11 +1103,15 @@ class OpcUaAddressSpaceBuilder {
         const path = pathOverride || this.buildPath(parentPath, name);
         const nodeId = this.resolveNodeId(variableConfig, path, namespace);
         const browseName = variableConfig.displayName || name;
+        let initialValue = variableConfig.value;
+        if (browseName === "AcceptAllCertificates" && this.server && this.server.serverCertificateManager) {
+            initialValue = this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate;
+        }
         const state = {
             type,
             access,
-            isArray: this.isArrayValue(variableConfig.value),
-            currentValue: this.coerceValue(variableConfig.value, type, this.isArrayValue(variableConfig.value))
+            isArray: this.isArrayValue(initialValue),
+            currentValue: this.coerceValue(initialValue, type, this.isArrayValue(initialValue))
         };
 
         const variableNode = namespace.addVariable({
@@ -1125,6 +1129,9 @@ class OpcUaAddressSpaceBuilder {
             minimumSamplingInterval: 500,
             value: {
                 get: () => {
+                    if (browseName === "AcceptAllCertificates" && this.server && this.server.serverCertificateManager) {
+                        state.currentValue = this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate;
+                    }
                     this.emitTagAccess("read", {
                         path,
                         nodeID: nodeId,
@@ -1186,10 +1193,14 @@ class OpcUaAddressSpaceBuilder {
                             value: state.currentValue
                         });
 
+                        if (browseName === "AcceptAllCertificates" && this.server && this.server.serverCertificateManager) {
+                            this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate = !!state.currentValue;
+                            console.log(`AcceptAllCertificates updated by client to: ${state.currentValue}`);
+                            console.log(`Server Certificate Manager automaticallyAcceptUnknownCertificate is now: ${this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate}`);
+                        }
+
                         const alarm = this.variableStore.get(path).alarm
                         this.addressSpaceAlarm.checkAlarm(alarm, variant.value)
-
-
 
                         return StatusCodes.Good;
                     } catch (error) {

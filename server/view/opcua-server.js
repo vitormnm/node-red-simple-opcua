@@ -12,13 +12,133 @@
     var isSyncing = false;
     var DEFAULT_NAMESPACE_ID = 2;
 
+    var selectedCertFolder = "rejected";
+    var selectedCertName = "";
+    var certificatesData = { trusted: [], rejected: [] };
+
     function syncModalBodyClass() {
-        $("body").toggleClass("opcua-tree-modal-open", $("#node-input-tree-modal").is(":visible") || $("#node-input-auth-modal").is(":visible"));
+        $("body").toggleClass("opcua-tree-modal-open", 
+            $("#node-input-tree-modal").is(":visible") || 
+            $("#node-input-auth-modal").is(":visible") ||
+            $("#node-input-cert-modal").is(":visible")
+        );
     }
     function openTreeModal() { $("#node-input-tree-modal").show(); syncModalBodyClass(); }
     function closeTreeModal() { $("#node-input-tree-modal").hide(); syncModalBodyClass(); }
     function openAuthModal() { $("#node-input-auth-modal").show(); syncModalBodyClass(); renderAuthEditor(); }
     function closeAuthModal() { $("#node-input-auth-modal").hide(); syncModalBodyClass(); }
+    function openCertModal() { $("#node-input-cert-modal").show(); syncModalBodyClass(); initCertEditor(); }
+    function closeCertModal() { $("#node-input-cert-modal").hide(); syncModalBodyClass(); }
+
+    function initCertEditor() {
+        selectedCertFolder = "rejected";
+        selectedCertName = "";
+        $("#opcua-cert-details").hide();
+        $("#opcua-cert-folders .opcua-cert-item").removeClass("is-selected");
+        $('#opcua-cert-folders .opcua-cert-item[data-folder="rejected"]').addClass("is-selected");
+        fetchCertificates();
+    }
+
+    function fetchCertificates() {
+        var filesContainer = $("#opcua-cert-files");
+        filesContainer.empty().append('<div class="opcua-tree-empty"><i class="fa fa-spinner fa-spin"></i> Loading certificates...</div>');
+        
+        var currentServerName = $("#node-input-serverName").val() || "";
+
+        $.ajax({
+            url: "opc-ua-server/certificates",
+            type: "GET",
+            data: {
+                serverName: currentServerName
+            },
+            dataType: "json",
+            success: function (data) {
+                certificatesData = data || { trusted: [], rejected: [] };
+                renderCertificatesList();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                filesContainer.empty().append('<div class="opcua-tree-empty" style="color: #d9534f;"><i class="fa fa-exclamation-triangle"></i> Failed to load certificates.</div>');
+            }
+        });
+    }
+
+    function renderCertificatesList() {
+        var filesContainer = $("#opcua-cert-files");
+        filesContainer.empty();
+        
+        var list = certificatesData[selectedCertFolder] || [];
+        if (list.length === 0) {
+            filesContainer.append('<div class="opcua-tree-empty">No certificates found in this folder.</div>');
+            $("#opcua-cert-details").hide();
+            return;
+        }
+
+        list.forEach(function (filename) {
+            var item = $('<div class="opcua-cert-item"></div>');
+            item.attr("data-name", filename);
+            item.append('<i class="fa fa-certificate"></i> ' + escapeHtml(filename));
+            if (filename === selectedCertName) {
+                item.addClass("is-selected");
+            }
+            filesContainer.append(item);
+        });
+
+        // If previously selected cert is not in the list, hide details
+        if (selectedCertName && list.indexOf(selectedCertName) === -1) {
+            selectedCertName = "";
+            $("#opcua-cert-details").hide();
+        } else if (selectedCertName) {
+            showCertificateDetails();
+        }
+    }
+
+    function showCertificateDetails() {
+        $("#opcua-selected-cert-name").text(selectedCertName);
+        var targetSelect = $("#opcua-cert-target-folder");
+        targetSelect.empty();
+        
+        if (selectedCertFolder === "rejected") {
+            targetSelect.append('<option value="trusted">Trusted Certificates</option>');
+        } else {
+            targetSelect.append('<option value="rejected">Rejected Certificates</option>');
+        }
+        
+        $("#opcua-cert-details").show();
+    }
+
+    function moveCertificate() {
+        if (!selectedCertName) return;
+        var targetFolder = $("#opcua-cert-target-folder").val();
+        if (!targetFolder) return;
+
+        var currentServerName = $("#node-input-serverName").val() || "";
+        var moveBtn = $("#opcua-cert-move-btn");
+        moveBtn.addClass("disabled").append(' <i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: "opc-ua-server/certificates/move",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                serverName: currentServerName,
+                filename: selectedCertName,
+                fromFolder: selectedCertFolder,
+                toFolder: targetFolder
+            }),
+            success: function (res) {
+                moveBtn.removeClass("disabled").find("i.fa-spin").remove();
+                selectedCertName = "";
+                $("#opcua-cert-details").hide();
+                RED.notify("Certificate moved successfully.", "success");
+                fetchCertificates();
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                moveBtn.removeClass("disabled").find("i.fa-spin").remove();
+                var errMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : "Failed to move certificate.";
+                RED.notify(errMsg, "error");
+            }
+        });
+    }
 
     function parseTree(rawValue, strict) {
         if (!rawValue) return { objects: [], folders: [], objectsTypes: [], enumerations: [], nameSpaces: [] };
@@ -1475,7 +1595,7 @@
         color: "#d9edf7",
         credentials: { username: { type: "text" }, password: { type: "password" }, users: { type: "text" }, groups: { type: "text" } },
         defaults: {
-            name: { value: "" }, resourcePath: { value: "/" }, serverName: { value: "Node-RED OPC UA Server", required: true }, allowAnonymous: { value: true },
+            name: { value: "" }, resourcePath: { value: "/" }, serverName: { value: "Node-RED OPC UA Server", required: true }, allowAnonymous: { value: true }, automaticallyAcceptUnknownCertificate: { value: true },
             port: { value: 4840, required: true, validate: function (value) { var port = Number(value); return Number.isInteger(port) && port > 0 && port < 65536; } },
             maxConnections: { value: 10, required: true, validate: function (value) { var n = Number(value); return Number.isInteger(n) && n > 0; } },
             securityPolicy: { value: "None", required: true }, securityMode: { value: "None", required: true }, namespaceUri: { value: "urn:node-red:opc-ua-server", required: true },
@@ -1524,6 +1644,31 @@
             $("#node-input-add-auth-group").off("click").on("click", function (event) { event.preventDefault(); addAuthGroup(); });
             $("#node-input-add-auth-user").off("click").on("click", function (event) { event.preventDefault(); addAuthUser(); });
 
+            $("#node-input-open-cert-modal").off("click").on("click", function (event) { event.preventDefault(); openCertModal(); });
+            $("#node-input-close-cert-modal").off("click").on("click", function (event) { event.preventDefault(); closeCertModal(); });
+            $("#node-input-cert-modal").off("click").on("click", function (event) { if (event.target === this) closeCertModal(); });
+
+            $("#opcua-cert-folders").off("click", ".opcua-cert-item").on("click", ".opcua-cert-item", function () {
+                $("#opcua-cert-folders .opcua-cert-item").removeClass("is-selected");
+                $(this).addClass("is-selected");
+                selectedCertFolder = $(this).attr("data-folder");
+                selectedCertName = "";
+                $("#opcua-cert-details").hide();
+                renderCertificatesList();
+            });
+
+            $("#opcua-cert-files").off("click", ".opcua-cert-item").on("click", ".opcua-cert-item", function () {
+                $("#opcua-cert-files .opcua-cert-item").removeClass("is-selected");
+                $(this).addClass("is-selected");
+                selectedCertName = $(this).attr("data-name");
+                showCertificateDetails();
+            });
+
+            $("#opcua-cert-move-btn").off("click").on("click", function (event) {
+                event.preventDefault();
+                moveCertificate();
+            });
+
             $("#node-input-tree-search").off("input").on("input", debounce(function () {
                 treeSearchValue = $(this).val(); treeSearchTerm = normalizeSearchTerm(treeSearchValue);
                 $("#node-input-tree-search-clear").toggle(!!treeSearchTerm); renderTree();
@@ -1544,6 +1689,10 @@
                 if (event.key !== "Escape") return;
                 if ($("#node-input-auth-modal").is(":visible")) {
                     closeAuthModal();
+                    return;
+                }
+                if ($("#node-input-cert-modal").is(":visible")) {
+                    closeCertModal();
                     return;
                 }
                 closeTreeModal();

@@ -30,6 +30,7 @@ class OpcUaServerConfigParser {
             resourcePath: config.resourcePath || DEFAULT_RESOURCE_PATH,
             treeConfig: this.parseTreeConfig(config.tree),
             allowAnonymous: this.normalizeAllowAnonymous(config.allowAnonymous),
+            automaticallyAcceptUnknownCertificate: this.normalizeAutomaticallyAcceptUnknownCertificate(config.automaticallyAcceptUnknownCertificate),
             groups: auth.groups,
             users: auth.users,
             securityPolicy: security.securityPolicy,
@@ -636,6 +637,17 @@ class OpcUaServerConfigParser {
     }
 
     normalizeAllowAnonymous(value) {
+        if (typeof value === "string") {
+            return value !== "false";
+        }
+
+        return value !== false;
+    }
+
+    normalizeAutomaticallyAcceptUnknownCertificate(value) {
+        if (value === undefined) {
+            return true;
+        }
         if (typeof value === "string") {
             return value !== "false";
         }
