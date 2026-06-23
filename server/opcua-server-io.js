@@ -223,7 +223,9 @@ module.exports = function (RED) {
     async function registerMethodInput(node) {
         await sendToChild(node, {
             type: "registerMethodInput",
-            node: node,
+            node: {
+                methodName: node.methodName
+            },
             nodeId: node.id
 
         }, { throwOnError: false, waitForServer: true, timeoutMs: 5000 });
@@ -232,7 +234,9 @@ module.exports = function (RED) {
     async function registerEvents(node, options) {
         return sendToChild(node, {
             type: "eventsServer",
-            node: node,
+            node: {
+                intervalMs: node.intervalMs
+            },
             nodeId: node.id
         }, options);
     }
@@ -240,7 +244,6 @@ module.exports = function (RED) {
     async function requestSnapshot(node, msg, options) {
         return sendToChild(node, {
             type: "buildServerSnapshot",
-            node: node,
             msg: msg,
             nodeId: node.id
         }, options);

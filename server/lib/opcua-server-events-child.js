@@ -9,7 +9,7 @@ const { resolveRegisteredServer } = require("./server-node-utils");
 
 function eventsServer(node, rootNode, nodeId) {
 
-
+    node.intervalMs = rootNode.intervalMs;
 
     // 🔥 ALTERADO: usar Map para garantir unicidade por nodeID
     node.queue = {

@@ -10,13 +10,6 @@ function OpcUaServerStatusNode(node, msg, nodeId) {
         const serverNode = resolveRegisteredServer(node, msg, registry);
         const snapshot = buildServerSnapshot(serverNode);
 
-        msg.payload = snapshot;
-        msg.opcua = msg.opcua || {};
-        msg.opcua.server = snapshot.identity.serverRef;
-        msg.opcua.endpointUrl = snapshot.endpointUrl;
-
-
-
         process.send({
             type: "status",
             data: {
@@ -27,11 +20,18 @@ function OpcUaServerStatusNode(node, msg, nodeId) {
             nodeId: nodeId
         });
 
-        process.send({
-            type: "send",
-            data: msg,
-            nodeId: nodeId
-        });
+        if (msg) {
+            msg.payload = snapshot;
+            msg.opcua = msg.opcua || {};
+            msg.opcua.server = snapshot.identity.serverRef;
+            msg.opcua.endpointUrl = snapshot.endpointUrl;
+
+            process.send({
+                type: "send",
+                data: msg,
+                nodeId: nodeId
+            });
+        }
 
 
     } catch (error) {
