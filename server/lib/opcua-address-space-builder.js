@@ -881,13 +881,13 @@ class OpcUaAddressSpaceBuilder {
     }
 
     extractNodeIdStringValue(nodeId) {
-        const m = String(nodeId || "").match(/(?:^|;)s=(.+)$/);
+        const m = String(nodeId || "").match(/(?:^|;)[si]=(.+)$/);
         return m ? m[1] : "";
     }
 
     rewriteInheritedNodeId(nodeId, typePrefix, instancePrefix) {
         if (!nodeId || !typePrefix || !instancePrefix) return nodeId;
-        const m = String(nodeId).match(/^(ns=\d+;s=)([\s\S]*)$/);
+        const m = String(nodeId).match(/^(ns=\d+;[si]=)([\s\S]*)$/);
         if (m && m[2].startsWith(typePrefix)) {
             return m[1] + instancePrefix + m[2].slice(typePrefix.length);
         }

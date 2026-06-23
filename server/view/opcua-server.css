@@ -442,6 +442,9 @@ body.opcua-tree-modal-open {
 
 .opcua-auth-card .form-row {
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .opcua-auth-card .form-row:last-child {
@@ -450,15 +453,18 @@ body.opcua-tree-modal-open {
 
 .opcua-auth-card label {
     width: 90px;
+    margin: 0;
+    flex-shrink: 0;
 }
 
-.opcua-auth-card input,
-.opcua-auth-card select {
-    width: calc(100% - 100px);
-}
-
+.opcua-auth-card input[type="text"],
+.opcua-auth-card input[type="password"],
+.opcua-auth-card input[type="number"],
+.opcua-auth-card select,
 .opcua-auth-card .red-ui-typedInput-container {
-    width: calc(100% - 100px) !important;
+    flex: 1 1 auto;
+    margin: 0;
+    width: auto !important;
 }
 
 @media (max-width: 900px) {

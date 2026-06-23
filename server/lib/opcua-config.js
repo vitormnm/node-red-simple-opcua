@@ -26,6 +26,9 @@ class OpcUaServerConfigParser {
             serverName: config.serverName || DEFAULT_SERVER_NAME,
             port: normalizePort(config.port),
             maxConnections: this.normalizeMaxConnections(config.maxConnections),
+            minSessionTimeout: this.normalizeSessionTimeout(config.minSessionTimeout),
+            defaultSessionTimeout: this.normalizeSessionTimeout(config.defaultSessionTimeout),
+            maxSessionTimeout: this.normalizeSessionTimeout(config.maxSessionTimeout),
             namespaceUri: config.namespaceUri || DEFAULT_NAMESPACE_URI,
             resourcePath: config.resourcePath || DEFAULT_RESOURCE_PATH,
             treeConfig: this.parseTreeConfig(config.tree),
@@ -33,8 +36,8 @@ class OpcUaServerConfigParser {
             automaticallyAcceptUnknownCertificate: this.normalizeAutomaticallyAcceptUnknownCertificate(config.automaticallyAcceptUnknownCertificate),
             groups: auth.groups,
             users: auth.users,
-            securityPolicy: security.securityPolicy,
-            securityMode: security.securityMode
+            securityPolicies: security.securityPolicies,
+            securityModes: security.securityModes
         };
     }
 
@@ -663,30 +666,72 @@ class OpcUaServerConfigParser {
         return parsed;
     }
 
-    applySecuritySettings(policy, mode) {
-        const rawPolicy = typeof policy === "string" ? policy.trim() : "None";
-        const rawMode = typeof mode === "string" ? mode.trim() : "None";
+    normalizeSessionTimeout(value) {
+        if (value === undefined || value === null || value === "") {
+            return undefined;
+        }
+        const parsed = Number(value);
+        if (!Number.isInteger(parsed) || parsed < 0) {
+            return undefined;
+        }
+        return parsed;
+    }
 
-        let securityPolicy = Object.prototype.hasOwnProperty.call(SECURITY_POLICY_MAP, rawPolicy)
-            ? SECURITY_POLICY_MAP[rawPolicy]
-            : SECURITY_POLICY_MAP.None;
-        let securityMode = Object.prototype.hasOwnProperty.call(SECURITY_MODE_MAP, rawMode)
-            ? SECURITY_MODE_MAP[rawMode]
-            : SECURITY_MODE_MAP.None;
+    applySecuritySettings(policies, modes) {
+        // policies and modes can be comma-separated strings, e.g. "None,Basic256Sha256"
+        const rawPolicies = typeof policies === "string" ? policies.split(",").map(p => p.trim()).filter(Boolean) : ["None"];
+        const rawModes = typeof modes === "string" ? modes.split(",").map(m => m.trim()).filter(Boolean) : ["None"];
 
-        if (securityMode === MessageSecurityMode.None) {
-            securityPolicy = SecurityPolicy.None;
-            if (rawPolicy !== "None") {
-                this.node.warn("Security policy adjusted to None because security mode is None");
+        let securityPolicies = [];
+        rawPolicies.forEach(policy => {
+            if (Object.prototype.hasOwnProperty.call(SECURITY_POLICY_MAP, policy)) {
+                securityPolicies.push(SECURITY_POLICY_MAP[policy]);
             }
-        } else if (securityPolicy === SecurityPolicy.None) {
-            securityPolicy = SecurityPolicy.Basic256Sha256;
-            this.node.warn("Security policy adjusted to Basic256Sha256 because signed modes require a policy");
+        });
+        if (securityPolicies.length === 0) {
+            securityPolicies.push(SECURITY_POLICY_MAP.None);
+        }
+
+        let securityModes = [];
+        rawModes.forEach(mode => {
+            if (Object.prototype.hasOwnProperty.call(SECURITY_MODE_MAP, mode)) {
+                securityModes.push(SECURITY_MODE_MAP[mode]);
+            }
+        });
+        if (securityModes.length === 0) {
+            securityModes.push(SECURITY_MODE_MAP.None);
+        }
+
+        const hasNoneMode = securityModes.includes(MessageSecurityMode.None);
+        const hasSignedMode = securityModes.some(m => m !== MessageSecurityMode.None);
+
+        if (hasNoneMode && !hasSignedMode) {
+            // ONLY None mode is selected, so policy MUST be None
+            securityPolicies = [SecurityPolicy.None];
+        } else if (!hasNoneMode && hasSignedMode) {
+            // ONLY signed modes are selected, so policy cannot be None
+            securityPolicies = securityPolicies.filter(p => p !== SecurityPolicy.None);
+            if (securityPolicies.length === 0) {
+                securityPolicies.push(SecurityPolicy.Basic256Sha256);
+                this.node.warn("Security policy adjusted to Basic256Sha256 because signed modes require a policy");
+            }
+        } else {
+            // Both None and signed modes are selected. Policies can be a mix.
+            // If the user selected a signed mode but only selected "None" policy, we must add a default signed policy.
+            const hasSignedPolicy = securityPolicies.some(p => p !== SecurityPolicy.None);
+            if (!hasSignedPolicy) {
+                securityPolicies.push(SecurityPolicy.Basic256Sha256);
+                this.node.warn("Added default Security Policy Basic256Sha256 because signed modes require a policy");
+            }
+            // Ensure None policy is present for the None mode
+            if (!securityPolicies.includes(SecurityPolicy.None)) {
+                securityPolicies.push(SecurityPolicy.None);
+            }
         }
 
         return {
-            securityPolicy,
-            securityMode
+            securityPolicies,
+            securityModes
         };
     }
 

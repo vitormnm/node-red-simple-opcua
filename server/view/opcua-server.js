@@ -20,7 +20,8 @@
         $("body").toggleClass("opcua-tree-modal-open", 
             $("#node-input-tree-modal").is(":visible") || 
             $("#node-input-auth-modal").is(":visible") ||
-            $("#node-input-cert-modal").is(":visible")
+            $("#node-input-cert-modal").is(":visible") ||
+            $("#node-input-settings-modal").is(":visible")
         );
     }
     function openTreeModal() { $("#node-input-tree-modal").show(); syncModalBodyClass(); }
@@ -29,6 +30,8 @@
     function closeAuthModal() { $("#node-input-auth-modal").hide(); syncModalBodyClass(); }
     function openCertModal() { $("#node-input-cert-modal").show(); syncModalBodyClass(); initCertEditor(); }
     function closeCertModal() { $("#node-input-cert-modal").hide(); syncModalBodyClass(); }
+    function openSettingsModal() { $("#node-input-settings-modal").show(); syncModalBodyClass(); }
+    function closeSettingsModal() { $("#node-input-settings-modal").hide(); syncModalBodyClass(); }
 
     function initCertEditor() {
         selectedCertFolder = "rejected";
@@ -564,7 +567,7 @@
     function nodeIdSuffixFromValue(nodeId, defaultSuffix) {
         var raw = String(nodeId || "").trim();
         if (!raw) return defaultSuffix;
-        var match = /^ns=\d+;s=(.*)$/.exec(raw);
+        var match = /^ns=\d+;[si]=(.*)$/.exec(raw);
         if (match) return match[1];
         return raw;
     }
@@ -605,8 +608,69 @@
         var item = getAtPath(editorState, path);
         if (isObjectTypeModelPath(path)) return buildGeneratedNodeIdForPath(path);
         var customNodeId = item && item.nodeId ? String(item.nodeId).trim() : "";
-        var suffix = nodeIdSuffixFromValue(customNodeId, buildDefaultNodeIdSuffixFromEditorPath(path));
-        return getNodeIdPrefix(getNodeNamespaceId(path)) + suffix;
+        if (customNodeId) {
+            if (/^ns=\d+;[si]=/.test(customNodeId)) {
+                return customNodeId;
+            }
+            return getNodeIdPrefix(getNodeNamespaceId(path)) + customNodeId;
+        }
+        return buildGeneratedNodeIdForPath(path);
+    }
+    function parseNodeId(nodeId, defaultSuffix) {
+        var raw = String(nodeId || "").trim();
+        if (!raw) {
+            return { type: "s", value: defaultSuffix };
+        }
+        var match = /^ns=\d+;([si])=(.*)$/.exec(raw);
+        if (match) {
+            return { type: match[1], value: match[2] };
+        }
+        return { type: "s", value: raw };
+    }
+    function updateNodeIdValueInputState(mode, type) {
+        var inputId = "#opcua-" + mode + "-nodeid-value";
+        var labelId = "#opcua-" + mode + "-nodeid-value-label";
+        var input = $(inputId);
+        var label = $(labelId);
+
+        if (type === "i") {
+            if (label.length) label.text("nodeId Value (Numeric)");
+            input.attr("type", "number");
+            input.attr("step", "1");
+            input.attr("placeholder", "Enter a number");
+        } else {
+            if (label.length) label.text("nodeId Value (String)");
+            input.attr("type", "text");
+            input.removeAttr("step");
+            if (mode === "create") {
+                input.attr("placeholder", "Leave blank for default (s)");
+            } else {
+                input.attr("placeholder", "Enter a string");
+            }
+        }
+    }
+    function saveDetailNodeId(path) {
+        if (!path) return;
+        var type = $("#opcua-detail-nodeid-type").val();
+        var rawVal = $("#opcua-detail-nodeid-value").val();
+        var nsId = getNodeNamespaceId(path);
+        
+        var customNodeId = "";
+        if (rawVal) {
+            if (type === "i") {
+                var numVal = parseInt(rawVal, 10);
+                if (!isNaN(numVal)) {
+                    customNodeId = "ns=" + nsId + ";i=" + numVal;
+                }
+            } else {
+                var defaultSuffix = buildDefaultNodeIdSuffixFromEditorPath(path);
+                var nextSuffix = String(rawVal).trim();
+                if (nextSuffix && nextSuffix !== defaultSuffix) {
+                    customNodeId = "ns=" + nsId + ";s=" + nextSuffix;
+                }
+            }
+        }
+        updateNode(path, { nodeId: customNodeId });
     }
     function normalizeCustomNodeIdFromSuffix(path, suffix) {
         if (isObjectTypeModelPath(path)) return "";
@@ -796,10 +860,14 @@
             RED.notify("Selected item cannot have children", "warning");
             return;
         }
+        var parentSuffix = buildDefaultNodeIdSuffixFromEditorPath(path);
+        var defaultName = kind === "variable" ? "newVariable" : kind === "enum-variable" ? "newEnumVariable" : "newObject";
+        var defaultSuffix = parentSuffix ? parentSuffix + "." + defaultName : defaultName;
+
         pendingCreate = {
             parentPath: path,
             kind: kind,
-            name: kind === "variable" ? "newVariable" : kind === "enum-variable" ? "newEnumVariable" : kind === "folder" ? "newFolder" : kind === "objecttype" ? "newObjectType" : kind === "alarm" ? "newAlarm" : kind === "method" ? "newMethod" : "newObject",
+            name: defaultName,
             displayName: "",
             dataType: kind === "enum-variable" ? (getDefinedEnumerationNames()[0] || "") : "Int32",
             value: "",
@@ -818,7 +886,9 @@
             lowLowLimit: 0,
             lowLowMessage: "Low Low alarm",
             normalStateValue: 0,
-            digitalMessage: "Digital alarm"
+            digitalMessage: "Digital alarm",
+            nodeIdType: "s",
+            nodeIdValue: (kind === "variable" || kind === "enum-variable") ? defaultSuffix : ""
         };
         renderDetails();
     }
@@ -841,13 +911,26 @@
         var target = getAtPath(editorState, branchTargetPath);
         if (!Array.isArray(target)) return;
         if (kind === "variable" || kind === "enum-variable") {
+            var customNodeId = "";
+            var nsId = getNodeNamespaceId(parentPath);
+            if (pendingCreate.nodeIdValue) {
+                if (pendingCreate.nodeIdType === "i") {
+                    var numVal = parseInt(pendingCreate.nodeIdValue, 10);
+                    if (!isNaN(numVal)) {
+                        customNodeId = "ns=" + nsId + ";i=" + numVal;
+                    }
+                } else {
+                    customNodeId = "ns=" + nsId + ";s=" + pendingCreate.nodeIdValue.trim();
+                }
+            }
             target.push(normalizeVariable({
                 name: pendingCreate.name,
                 displayName: pendingCreate.displayName || "",
                 type: pendingCreate.dataType,
                 value: pendingCreate.value,
                 access: pendingCreate.access || "readwrite",
-                accessPermission: pendingCreate.accessPermission
+                accessPermission: pendingCreate.accessPermission,
+                nodeId: customNodeId
             }));
         } else if (kind === "folder") {
             target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", accessPermission: pendingCreate.accessPermission }));
@@ -904,6 +987,8 @@
                 panel.append('<div class="form-row"><label>dataType</label>' + typeHtml + '</div>');
                 panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-create-value"></div>');
                 panel.append('<div class="form-row"><label>Access</label><select id="opcua-create-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
+                panel.append('<div class="form-row"><label>nodeId Type</label><select id="opcua-create-nodeid-type"><option value="s">s (String)</option><option value="i">i (Numeric)</option></select></div>');
+                panel.append('<div class="form-row" id="opcua-create-nodeid-value-row"><label id="opcua-create-nodeid-value-label">nodeId Value</label><input type="text" id="opcua-create-nodeid-value" placeholder="Leave blank for default (s)"></div>');
             }
             if (pendingCreate.kind === "objecttype") {
                 panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-create-objectstype", pendingCreate.objectsType || "") + '</div>');
@@ -932,6 +1017,11 @@
             $("#opcua-create-name").val(pendingCreate.name);
             $("#opcua-create-displayname").val(pendingCreate.displayName || "");
             $("#opcua-create-accesspermission").val(normalizeAccessPermissionValues(pendingCreate.accessPermission));
+            if (pendingCreate.kind === "variable" || pendingCreate.kind === "enum-variable") {
+                $("#opcua-create-nodeid-type").val(pendingCreate.nodeIdType || "s");
+                $("#opcua-create-nodeid-value").val(pendingCreate.nodeIdValue || "");
+                updateNodeIdValueInputState("create", pendingCreate.nodeIdType || "s");
+            }
             $("#opcua-create-type").val(pendingCreate.dataType);
             $("#opcua-create-value").val(pendingCreate.value);
             $("#opcua-create-objectstype").val(pendingCreate.objectsType);
@@ -1003,7 +1093,18 @@
         panel.append('<div class="form-row"><label>browseName</label><input type="text" id="opcua-detail-name"></div>');
         panel.append('<div class="form-row"><label>nodeClass</label><input type="text" id="opcua-detail-class" readonly></div>');
         panel.append('<div class="form-row"><label>namespace</label><select id="opcua-detail-namespace"></select></div>');
-        panel.append('<div class="form-row"><label>nodeId</label><div class="opcua-nodeid-field"><span class="opcua-nodeid-prefix">' + getNodeIdPrefix(namespaceId) + '</span><input type="text" id="opcua-detail-nodeid"' + (nodeIdLocked ? ' readonly title="Generated automatically for object type models."' : '') + '><a href="#" id="opcua-detail-copy-nodeid" class="editor-button editor-button-small"><i class="fa fa-copy"></i> Copy</a></div></div>');
+        if (nodeClass === "Variable" && !nodeIdLocked) {
+            panel.append('<div class="form-row"><label>nodeId</label>' +
+                '<div class="opcua-nodeid-field">' +
+                '<span class="opcua-nodeid-prefix">ns=' + namespaceId + ';</span>' +
+                '<select id="opcua-detail-nodeid-type" style="width: 70px; flex: 0 0 auto;"><option value="s">s</option><option value="i">i</option></select>' +
+                '<span style="padding: 0 4px; flex: 0 0 auto;">=</span>' +
+                '<input type="text" id="opcua-detail-nodeid-value" style="flex: 1 1 auto; font-family: monospace;">' +
+                '<a href="#" id="opcua-detail-copy-nodeid" class="editor-button editor-button-small"><i class="fa fa-copy"></i> Copy</a>' +
+                '</div></div>');
+        } else {
+            panel.append('<div class="form-row"><label>nodeId</label><div class="opcua-nodeid-field"><span class="opcua-nodeid-prefix">' + getNodeIdPrefix(namespaceId) + '</span><input type="text" id="opcua-detail-nodeid"' + (nodeIdLocked ? ' readonly title="Generated automatically for object type models."' : '') + '><a href="#" id="opcua-detail-copy-nodeid" class="editor-button editor-button-small"><i class="fa fa-copy"></i> Copy</a></div></div>');
+        }
         panel.append('<div class="form-row"><label>Description</label><input type="text" id="opcua-detail-description"></div>');
         panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-detail-displayname" placeholder="Leave blank to use browseName"></div>');
         panel.append('<div class="form-row"><label>accessPermission</label>' + buildAccessPermissionSelect("opcua-detail-accesspermission", item.accessPermission || ["public"]) + '</div>');
@@ -1079,7 +1180,14 @@
         panel.append('<div class="form-row"><label style="width:90px;">Actions</label><div><a href="#" id="opcua-detail-edit" class="editor-button editor-button-small"><i class="fa fa-pencil"></i> Edit</a> <a href="#" id="opcua-detail-remove" class="editor-button editor-button-small"><i class="fa fa-trash"></i> Remove</a></div></div>');
         $("#opcua-detail-name").val(item.name || "");
         $("#opcua-detail-class").val(nodeClass);
-        $("#opcua-detail-nodeid").val(nodeIdLocked ? buildDefaultNodeIdSuffixFromEditorPath(selectedPath) : nodeIdSuffix);
+        if (nodeClass === "Variable" && !nodeIdLocked) {
+            var parsed = parseNodeId(item.nodeId, buildDefaultNodeIdSuffixFromEditorPath(selectedPath));
+            $("#opcua-detail-nodeid-type").val(parsed.type);
+            $("#opcua-detail-nodeid-value").val(parsed.value);
+            updateNodeIdValueInputState("detail", parsed.type);
+        } else {
+            $("#opcua-detail-nodeid").val(nodeIdLocked ? buildDefaultNodeIdSuffixFromEditorPath(selectedPath) : nodeIdSuffix);
+        }
         $("#opcua-detail-description").val(item.description || "");
         namespaceOptions.forEach(function (option) {
             $("#opcua-detail-namespace").append($("<option></option>").val(option.id).text(getNamespaceLabel(option.id)));
@@ -1464,13 +1572,25 @@
         var item = getAtPath(editorState, selectedPath);
         if (!item) return;
         item.namespaceId = nextNamespaceId;
-        item.nodeId = normalizeCustomNodeIdFromSuffix(selectedPath, $("#opcua-detail-nodeid").val());
+        if (nodeClassFromPath(selectedPath) === "Variable" && !isObjectTypeModelPath(selectedPath)) {
+            saveDetailNodeId(selectedPath);
+        } else {
+            item.nodeId = normalizeCustomNodeIdFromSuffix(selectedPath, $("#opcua-detail-nodeid").val());
+        }
         syncStateToJson(false);
         renderTree();
         renderBreadcrumbs();
         renderDetails();
     });
     $(document).on("input", "#opcua-detail-nodeid", function () { updateNode(selectedPath, { nodeId: normalizeCustomNodeIdFromSuffix(selectedPath, $(this).val()) }); });
+    $(document).on("change", "#opcua-detail-nodeid-type", function () {
+        var type = $(this).val();
+        updateNodeIdValueInputState("detail", type);
+        saveDetailNodeId(selectedPath);
+    });
+    $(document).on("input", "#opcua-detail-nodeid-value", function () {
+        saveDetailNodeId(selectedPath);
+    });
     $(document).on("click", "#opcua-detail-copy-nodeid", function (event) {
         event.preventDefault();
         copyNodeIdValue(buildDisplayNodeIdFromEditorPath(selectedPath));
@@ -1519,8 +1639,35 @@
     $(document).on("input", "#opcua-detail-lowlowmessage", function () { updateNode(selectedPath, { lowLowMessage: $(this).val() }); });
     $(document).on("input", "#opcua-detail-normalstatevalue", function () { updateNode(selectedPath, { normalStateValue: Number($(this).val() || 0) }); });
     $(document).on("input", "#opcua-detail-digitalmessage", function () { updateNode(selectedPath, { digitalMessage: $(this).val() }); });
-    $(document).on("input", "#opcua-create-name", function () { if (pendingCreate) pendingCreate.name = $(this).val(); });
+    $(document).on("input", "#opcua-create-name", function () {
+        if (pendingCreate) {
+            var oldName = pendingCreate.name;
+            var nextName = $(this).val();
+            pendingCreate.name = nextName;
+
+            if (pendingCreate.kind === "variable" || pendingCreate.kind === "enum-variable") {
+                if (pendingCreate.nodeIdType === "s") {
+                    var parentSuffix = buildDefaultNodeIdSuffixFromEditorPath(pendingCreate.parentPath);
+                    var oldAutoSuffix = parentSuffix ? parentSuffix + "." + oldName : oldName;
+                    var nextAutoSuffix = parentSuffix ? parentSuffix + "." + nextName : nextName;
+
+                    if (!pendingCreate.nodeIdValue || pendingCreate.nodeIdValue === oldAutoSuffix) {
+                        pendingCreate.nodeIdValue = nextAutoSuffix;
+                        $("#opcua-create-nodeid-value").val(nextAutoSuffix);
+                    }
+                }
+            }
+        }
+    });
     $(document).on("input", "#opcua-create-displayname", function () { if (pendingCreate) pendingCreate.displayName = $(this).val(); });
+    $(document).on("change", "#opcua-create-nodeid-type", function () {
+        var type = $(this).val();
+        if (pendingCreate) pendingCreate.nodeIdType = type;
+        updateNodeIdValueInputState("create", type);
+    });
+    $(document).on("input", "#opcua-create-nodeid-value", function () {
+        if (pendingCreate) pendingCreate.nodeIdValue = $(this).val();
+    });
     $(document).on("change", "#opcua-create-accesspermission", function () { if (pendingCreate) pendingCreate.accessPermission = normalizeAccessPermissionValues($(this).val()); });
     $(document).on("change", "#opcua-create-type", function () { if (pendingCreate) pendingCreate.dataType = $(this).val(); });
     $(document).on("input", "#opcua-create-value", function () { if (pendingCreate) pendingCreate.value = $(this).val(); });
@@ -1598,6 +1745,9 @@
             name: { value: "" }, resourcePath: { value: "/" }, serverName: { value: "Node-RED OPC UA Server", required: true }, allowAnonymous: { value: true }, automaticallyAcceptUnknownCertificate: { value: true },
             port: { value: 4840, required: true, validate: function (value) { var port = Number(value); return Number.isInteger(port) && port > 0 && port < 65536; } },
             maxConnections: { value: 10, required: true, validate: function (value) { var n = Number(value); return Number.isInteger(n) && n > 0; } },
+            minSessionTimeout: { value: 100, required: true, validate: function (value) { var n = Number(value); return Number.isInteger(n) && n >= 0; } },
+            defaultSessionTimeout: { value: 30000, required: true, validate: function (value) { var n = Number(value); return Number.isInteger(n) && n >= 0; } },
+            maxSessionTimeout: { value: 3000000, required: true, validate: function (value) { var n = Number(value); return Number.isInteger(n) && n >= 0; } },
             securityPolicy: { value: "None", required: true }, securityMode: { value: "None", required: true }, namespaceUri: { value: "urn:node-red:opc-ua-server", required: true },
             tree: {
                 value: "{\n  \"folders\": [],\n  \"objects\": [],\n  \"objectsTypes\": [],\n  \"nameSpaces\": [\n    {\n      \"id\": 2,\n      \"name\": \"urn:node-red:opc-ua-server\"\n    }\n  ]\n}",
@@ -1613,6 +1763,15 @@
         label: function () { return this.name || this.serverName || "opc-ua-server"; },
         oneditprepare: function () {
             var node = this;
+            if (!$("#node-input-minSessionTimeout").val()) {
+                $("#node-input-minSessionTimeout").val(100);
+            }
+            if (!$("#node-input-defaultSessionTimeout").val()) {
+                $("#node-input-defaultSessionTimeout").val(30000);
+            }
+            if (!$("#node-input-maxSessionTimeout").val()) {
+                $("#node-input-maxSessionTimeout").val(3000000);
+            }
             editorState = cloneTree(normalizeTree(parseTree(node.tree)));
             authGroups = normalizeAuthGroups($("#node-input-groups").val());
             authUsers = normalizeAuthUsers($("#node-input-users").val());
@@ -1621,6 +1780,35 @@
                 $("#node-input-namespaceUri").val(defaultNamespaceEntry.name);
             }
             syncAuthCredentialFields();
+            $("#node-input-securityPolicy").typedInput({
+                types: [
+                    {
+                        value: "securityPolicy",
+                        multiple: "true",
+                        options: [
+                            { value: "None", label: "None" },
+                            { value: "Basic128Rsa15", label: "Basic128Rsa15" },
+                            { value: "Basic256", label: "Basic256" },
+                            { value: "Basic256Sha256", label: "Basic256Sha256" },
+                            { value: "Aes128_Sha256_RsaOaep", label: "Aes128_Sha256_RsaOaep" },
+                            { value: "Aes256_Sha256_RsaPss", label: "Aes256_Sha256_RsaPss" }
+                        ]
+                    }
+                ]
+            });
+            $("#node-input-securityMode").typedInput({
+                types: [
+                    {
+                        value: "securityMode",
+                        multiple: "true",
+                        options: [
+                            { value: "None", label: "None" },
+                            { value: "Sign", label: "Sign" },
+                            { value: "SignAndEncrypt", label: "SignAndEncrypt" }
+                        ]
+                    }
+                ]
+            });
             updateTreeField(prettyTree(editorState), false);
             $("#node-input-tree-editor").typedInput({ type: "json", types: ["json"] });
             $("#node-input-tree-editor").typedInput("value", prettyTree(editorState));
@@ -1647,6 +1835,10 @@
             $("#node-input-open-cert-modal").off("click").on("click", function (event) { event.preventDefault(); openCertModal(); });
             $("#node-input-close-cert-modal").off("click").on("click", function (event) { event.preventDefault(); closeCertModal(); });
             $("#node-input-cert-modal").off("click").on("click", function (event) { if (event.target === this) closeCertModal(); });
+
+            $("#node-input-open-settings-modal").off("click").on("click", function (event) { event.preventDefault(); openSettingsModal(); });
+            $("#node-input-close-settings-modal").off("click").on("click", function (event) { event.preventDefault(); closeSettingsModal(); });
+            $("#node-input-settings-modal").off("click").on("click", function (event) { if (event.target === this) closeSettingsModal(); });
 
             $("#opcua-cert-folders").off("click", ".opcua-cert-item").on("click", ".opcua-cert-item", function () {
                 $("#opcua-cert-folders .opcua-cert-item").removeClass("is-selected");

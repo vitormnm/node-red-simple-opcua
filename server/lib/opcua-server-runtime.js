@@ -10,7 +10,9 @@ const {
     makeRoles,
     WellKnownRoles,
     resolveNodeId,
-    OPCUACertificateManager
+    OPCUACertificateManager,
+    SecurityPolicy,
+    MessageSecurityMode
 } = require("./opcua-constants");
 const { OpcUaAddressSpaceBuilder } = require("./opcua-address-space-builder");
 const { OpcUaServerMethods } = require("./opcua-server-methods");
@@ -31,6 +33,9 @@ class OpcUaServerRuntime {
         this.serverName = options.settings.serverName;
         this.port = options.settings.port;
         this.maxConnections = options.settings.maxConnections;
+        this.minSessionTimeout = options.settings.minSessionTimeout;
+        this.defaultSessionTimeout = options.settings.defaultSessionTimeout;
+        this.maxSessionTimeout = options.settings.maxSessionTimeout;
         this.namespaceUri = options.settings.namespaceUri;
         this.resourcePath = options.settings.resourcePath;
         this.allowAnonymous = options.settings.allowAnonymous;
@@ -38,8 +43,12 @@ class OpcUaServerRuntime {
         this.certificatesFolder = options.settings.certificatesFolder;
         this.groups = options.settings.groups;
         this.users = options.settings.users;
-        this.securityPolicy = options.settings.securityPolicy;
-        this.securityMode = options.settings.securityMode;
+        this.securityPolicies = Array.isArray(options.settings.securityPolicies) && options.settings.securityPolicies.length > 0
+            ? options.settings.securityPolicies
+            : [SecurityPolicy.None];
+        this.securityModes = Array.isArray(options.settings.securityModes) && options.settings.securityModes.length > 0
+            ? options.settings.securityModes
+            : [MessageSecurityMode.None];
         this.treeConfig = options.settings.treeConfig;
 
         this.server = null;
@@ -231,6 +240,9 @@ class OpcUaServerRuntime {
 
         return {
             port: this.port,
+            minSessionTimeout: this.minSessionTimeout !== undefined ? this.minSessionTimeout : 100,
+            defaultSessionTimeout: this.defaultSessionTimeout !== undefined ? this.defaultSessionTimeout : 30000,
+            maxSessionTimeout: this.maxSessionTimeout !== undefined ? this.maxSessionTimeout : 3000000,
             resourcePath: this.resourcePath,
             serverCertificateManager: this.serverCertificateManager,
             certificateFile: path.join(certificatesFolder, "own", "certs", "server_selfsigned_cert_2048.pem"),
@@ -248,8 +260,8 @@ class OpcUaServerRuntime {
                 applicationUri: buildApplicationUri(this.serverName),
                 productUri: "urn:node-red:opc-ua-server"
             },
-            securityPolicies: [this.securityPolicy],
-            securityModes: [this.securityMode],
+            securityPolicies: this.securityPolicies,
+            securityModes: this.securityModes,
             allowAnonymous: this.allowAnonymous,
             userManager: {
                 isValidUser: (username, password) => this.isValidUser(username, password),
