@@ -51,24 +51,24 @@
                 <a href="#" id="node-input-close-auth-modal" class="editor-button editor-button-small"><i class="fa fa-times"></i> Close</a>
             </div>
             <div class="opcua-tree-modal__body" style="display: flex; flex-direction: column; gap: 14px;">
-                <div class="opcua-auth-card" style="padding: 14px; background: var(--red-ui-form-input-background, #fcfcfc); border: 1px solid var(--red-ui-form-input-border-color, #d9d9d9); border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <div class="opcua-tree-details-title" style="margin-top: 0; margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid var(--red-ui-form-input-border-color, #eee); padding-bottom: 6px;"><i class="fa fa-shield"></i> Security Settings</div>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <div class="form-row" style="margin: 0; display: flex; align-items: center;">
-                            <label for="node-input-securityPolicy" style="width: 240px; margin: 0; font-weight: 500; flex-shrink: 0;"><i class="fa fa-lock"></i> Security Policy</label>
-                            <input type="text" id="node-input-securityPolicy" style="width: 300px; margin: 0;">
+                <div class="opcua-config-card">
+                    <div class="opcua-tree-details-title opcua-card-title"><i class="fa fa-shield"></i> Security Settings</div>
+                    <div class="opcua-config-form">
+                        <div class="opcua-config-row">
+                            <label class="opcua-config-label" for="node-input-securityPolicy"><i class="fa fa-lock"></i> Security Policy</label>
+                            <input class="opcua-config-input" type="text" id="node-input-securityPolicy">
                         </div>
-                        <div class="form-row" style="margin: 0; display: flex; align-items: center;">
-                            <label for="node-input-securityMode" style="width: 240px; margin: 0; font-weight: 500; flex-shrink: 0;"><i class="fa fa-shield"></i> Security Mode</label>
-                            <input type="text" id="node-input-securityMode" style="width: 300px; margin: 0;">
+                        <div class="opcua-config-row">
+                            <label class="opcua-config-label" for="node-input-securityMode"><i class="fa fa-shield"></i> Security Mode</label>
+                            <input class="opcua-config-input" type="text" id="node-input-securityMode">
                         </div>
-                        <div class="form-row" style="margin: 0; display: flex; align-items: center; height: 34px;">
-                            <label for="node-input-allowAnonymous" style="width: 240px; margin: 0; display: inline-block; vertical-align: middle; font-weight: 500; flex-shrink: 0;"><i class="fa fa-user-secret"></i> Allow anonymous login</label>
-                            <input type="checkbox" id="node-input-allowAnonymous" style="display:inline-block; width:auto; margin:0;">
+                        <div class="opcua-config-row opcua-config-row--checkbox">
+                            <label class="opcua-config-label" for="node-input-allowAnonymous"><i class="fa fa-user-secret"></i> Allow anonymous login</label>
+                            <input class="opcua-config-input" type="checkbox" id="node-input-allowAnonymous">
                         </div>
-                        <div class="form-row" style="margin: 0; display: flex; align-items: center; height: 34px;">
-                            <label for="node-input-automaticallyAcceptUnknownCertificate" style="width: 240px; margin: 0; display: inline-block; vertical-align: middle; font-weight: 500; flex-shrink: 0;"><i class="fa fa-certificate"></i> Automatically accept unknown certificates</label>
-                            <input type="checkbox" id="node-input-automaticallyAcceptUnknownCertificate" style="display:inline-block; width:auto; margin:0;">
+                        <div class="opcua-config-row opcua-config-row--checkbox">
+                            <label class="opcua-config-label" for="node-input-automaticallyAcceptUnknownCertificate"><i class="fa fa-certificate"></i> Automatically accept unknown certificates</label>
+                            <input class="opcua-config-input" type="checkbox" id="node-input-automaticallyAcceptUnknownCertificate">
                         </div>
                     </div>
                 </div>
@@ -98,26 +98,31 @@
                 <div class="opcua-tree-modal__title"><i class="fa fa-cogs"></i> Server Settings</div>
                 <a href="#" id="node-input-close-settings-modal" class="editor-button editor-button-small"><i class="fa fa-times"></i> Close</a>
             </div>
-            <div class="opcua-tree-modal__body">
-                <div class="form-row">
-                    <label for="node-input-resourcePath"><i class="fa fa-server"></i> Resource path</label>
-                    <input type="text" id="node-input-resourcePath" placeholder="Resource path OPC UA Server" style="width: 100%;">
-                </div>
-                <div class="form-row">
-                    <label for="node-input-maxConnections"><i class="fa fa-users"></i> Number connections</label>
-                    <input type="number" id="node-input-maxConnections" min="1" placeholder="10" style="width: 100%;">
-                </div>
-                <div class="form-row">
-                    <label for="node-input-minSessionTimeout"><i class="fa fa-clock-o"></i> Min Session Timeout (ms)</label>
-                    <input type="number" id="node-input-minSessionTimeout" min="0" placeholder="100" style="width: 100%;">
-                </div>
-                <div class="form-row">
-                    <label for="node-input-defaultSessionTimeout"><i class="fa fa-clock-o"></i> Default Session Timeout (ms)</label>
-                    <input type="number" id="node-input-defaultSessionTimeout" min="0" placeholder="30000" style="width: 100%;">
-                </div>
-                <div class="form-row">
-                    <label for="node-input-maxSessionTimeout"><i class="fa fa-clock-o"></i> Max Session Timeout (ms)</label>
-                    <input type="number" id="node-input-maxSessionTimeout" min="0" placeholder="3000000" style="width: 100%;">
+            <div class="opcua-tree-modal__body" style="display: flex; flex-direction: column; gap: 14px;">
+                <div class="opcua-config-card">
+                    <div class="opcua-tree-details-title opcua-card-title"><i class="fa fa-cogs"></i> General Settings</div>
+                    <div class="opcua-config-form">
+                        <div class="opcua-config-row">
+                            <label class="opcua-config-label" for="node-input-resourcePath"><i class="fa fa-server"></i> Resource path</label>
+                            <input class="opcua-config-input" type="text" id="node-input-resourcePath" placeholder="Resource path OPC UA Server">
+                        </div>
+                        <div class="opcua-config-row">
+                            <label class="opcua-config-label" for="node-input-maxConnections"><i class="fa fa-users"></i> Number connections</label>
+                            <input class="opcua-config-input" type="number" id="node-input-maxConnections" min="1" placeholder="10">
+                        </div>
+                        <div class="opcua-config-row">
+                            <label class="opcua-config-label" for="node-input-minSessionTimeout"><i class="fa fa-clock-o"></i> Min Session Timeout (ms)</label>
+                            <input class="opcua-config-input" type="number" id="node-input-minSessionTimeout" min="0" placeholder="100">
+                        </div>
+                        <div class="opcua-config-row">
+                            <label class="opcua-config-label" for="node-input-defaultSessionTimeout"><i class="fa fa-clock-o"></i> Default Session Timeout (ms)</label>
+                            <input class="opcua-config-input" type="number" id="node-input-defaultSessionTimeout" min="0" placeholder="30000">
+                        </div>
+                        <div class="opcua-config-row">
+                            <label class="opcua-config-label" for="node-input-maxSessionTimeout"><i class="fa fa-clock-o"></i> Max Session Timeout (ms)</label>
+                            <input class="opcua-config-input" type="number" id="node-input-maxSessionTimeout" min="0" placeholder="3000000">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

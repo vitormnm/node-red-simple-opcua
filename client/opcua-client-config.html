@@ -9,6 +9,7 @@
             category: "config",
             defaults: {
                 name: { value: "" },
+                sessionName: { value: "ClientSession1" },
                 endpoint: { value: "opc.tcp://localhost:4840", required: true },
                 securityPolicy: { value: "None", required: true },
                 securityMode: { value: "None", required: true },
@@ -33,6 +34,10 @@
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="OPC UA Client">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-sessionName"><i class="fa fa-info-circle"></i> Session Name</label>
+        <input type="text" id="node-config-input-sessionName" placeholder="ClientSession1">
     </div>
     <div class="form-row">
         <label for="node-config-input-endpoint"><i class="fa fa-plug"></i> Endpoint</label>

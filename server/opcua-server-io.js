@@ -49,10 +49,13 @@ module.exports = function (RED) {
             registerMethodInput(node);
         }
         if (node.mode === "events") {
-            registerEvents(node, { throwOnError: false, waitForServer: true, timeoutMs: 5000 });
+            registerEvents(node, { throwOnError: false, waitForServer: true, timeoutMs: 5000, silentOnError: true });
         }
         if (node.mode === "status") {
-            requestSnapshot(node, null, { throwOnError: false, waitForServer: true, timeoutMs: 5000 });
+            requestSnapshot(node, null, { throwOnError: false, waitForServer: true, timeoutMs: 5000, silentOnError: true });
+        }
+        if (node.mode === "getSessions") {
+            requestSessions(node, null, { throwOnError: false, waitForServer: true, timeoutMs: 5000, silentOnError: true });
         }
 
 
@@ -88,6 +91,12 @@ module.exports = function (RED) {
                 }
                 if (node.mode === "status") {
                     await requestSnapshot(node, msg, { waitForServer: true, timeoutMs: 5000 });
+                }
+                if (node.mode === "getSessions") {
+                    await requestSessions(node, msg, { waitForServer: true, timeoutMs: 5000 });
+                }
+                if (node.mode === "deleteSessions") {
+                    await handleDeleteSessions(node, msg, { waitForServer: true, timeoutMs: 5000 });
                 }
 
                 done();
@@ -228,7 +237,7 @@ module.exports = function (RED) {
             },
             nodeId: node.id
 
-        }, { throwOnError: false, waitForServer: true, timeoutMs: 5000 });
+        }, { throwOnError: false, waitForServer: true, timeoutMs: 5000, silentOnError: true });
     }
 
     async function registerEvents(node, options) {
@@ -244,6 +253,22 @@ module.exports = function (RED) {
     async function requestSnapshot(node, msg, options) {
         return sendToChild(node, {
             type: "buildServerSnapshot",
+            msg: msg,
+            nodeId: node.id
+        }, options);
+    }
+
+    async function requestSessions(node, msg, options) {
+        return sendToChild(node, {
+            type: "readActiveSessions",
+            msg: msg,
+            nodeId: node.id
+        }, options);
+    }
+
+    async function handleDeleteSessions(node, msg, options) {
+        return sendToChild(node, {
+            type: "deleteActiveSessions",
             msg: msg,
             nodeId: node.id
         }, options);
@@ -458,7 +483,9 @@ module.exports = function (RED) {
             const error = new Error("OPC UA server child process is not available for serverRef: " + node.serverRef);
             node.status({ fill: "red", shape: "ring", text: "server unavailable" });
             if (options.throwOnError === false) {
-                node.error(error.message);
+                if (!options.silentOnError) {
+                    node.error(error.message);
+                }
                 return false;
             }
             throw error;
@@ -476,7 +503,9 @@ module.exports = function (RED) {
             node._attachedChild = null;
             ensureChildListener(node, handler);
             if (options.throwOnError === false) {
-                node.error(error.message);
+                if (!options.silentOnError) {
+                    node.error(error.message);
+                }
                 return false;
             }
             throw error;

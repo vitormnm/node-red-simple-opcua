@@ -525,3 +525,55 @@ body.opcua-tree-modal-open {
 .opcua-cert-item i {
     font-size: 14px;
 }
+
+/* Standardized configuration card styling */
+.opcua-config-card {
+    padding: 14px;
+    background: var(--red-ui-form-input-background, #fcfcfc);
+    border: 1px solid var(--red-ui-form-input-border-color, #d9d9d9);
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.opcua-config-card .opcua-card-title {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--red-ui-form-input-border-color, #eee);
+    padding-bottom: 6px;
+}
+
+.opcua-config-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.opcua-config-row {
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+}
+
+.opcua-config-row--checkbox {
+    height: 34px;
+}
+
+.opcua-config-label {
+    width: 240px;
+    margin: 0 !important;
+    font-weight: 500;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.opcua-config-input {
+    width: 300px !important;
+    margin: 0 !important;
+}
+
+.opcua-config-input[type="checkbox"] {
+    width: auto !important;
+    display: inline-block;
+}

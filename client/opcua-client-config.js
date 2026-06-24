@@ -23,6 +23,7 @@ module.exports = function (RED) {
         
 
         node.name = (config.name || "").trim();
+        node.sessionName = (config.sessionName || "ClientSession1").trim();
         node.endpoint = (config.endpoint || "").trim();
         node.securityPolicy = config.securityPolicy || "None";
         node.securityMode = config.securityMode || "None";
@@ -56,19 +57,26 @@ module.exports = function (RED) {
                 endpointMustExist: false,
                 keepSessionAlive: true,
                 securityMode: resolveSecurityMode(this.securityMode),
-                securityPolicy: resolveSecurityPolicy(this.securityPolicy)
+                securityPolicy: resolveSecurityPolicy(this.securityPolicy),
+                clientName: this.sessionName || "ClientSession"
             });
+
+            client._nextSessionName = () => {
+                return this.sessionName || "ClientSession1";
+            };
 
             try {
                 await client.connect(this.endpoint);
 
                 const credentials = this.credentials || {};
-                const session = this.authType === "username"
-                    ? await client.createSession({
-                        userName: credentials.username || "",
-                        password: credentials.password || ""
-                    })
-                    : await client.createSession();
+                const sessionOptions = {
+                    sessionName: this.sessionName || "ClientSession1"
+                };
+                if (this.authType === "username") {
+                    sessionOptions.userName = credentials.username || "";
+                    sessionOptions.password = credentials.password || "";
+                }
+                const session = await client.createSession(sessionOptions);
 
                 session.on("session_closed", () => {
                     this.session = null;

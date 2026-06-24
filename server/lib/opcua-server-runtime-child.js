@@ -880,6 +880,220 @@ class OpcUaServerProcess {
         }
     }
 
+    async readActiveSessions(msg, nodeId) {
+        try {
+            await this.ensureReady();
+            const server = this.node && this.node.server;
+            if (!server || !server.engine) {
+                throw new Error("OPC UA server is not available");
+            }
+
+            const rawSessions = server.engine._sessions || {};
+            const sessions = Object.values(rawSessions).map((session) => buildSessionSnapshot(session));
+
+            if (msg) {
+                const outMsg = Object.assign({}, msg);
+                outMsg.payload = sessions;
+
+                process.send({
+                    type: "send",
+                    data: outMsg,
+                    nodeId: nodeId
+                });
+            }
+
+            process.send({
+                type: "status",
+                data: {
+                    fill: "green",
+                    shape: "dot",
+                    text: sessions.length === 1
+                        ? "1 session"
+                        : sessions.length + " sessions"
+                },
+                nodeId: nodeId
+            });
+        } catch (error) {
+            if (msg) {
+                process.send({
+                    type: "error",
+                    data: { fill: "red", shape: "ring", text: "failed getSessions" },
+                    error: error.message,
+                    nodeId: nodeId
+                });
+            } else {
+                process.send({
+                    type: "status",
+                    data: { fill: "red", shape: "ring", text: "failed getSessions: " + error.message },
+                    nodeId: nodeId
+                });
+            }
+        }
+    }
+
+    async deleteActiveSessions(msg, nodeId) {
+        try {
+            await this.ensureReady();
+            const server = this.node && this.node.server;
+            if (!server || !server.engine) {
+                throw new Error("OPC UA server is not available");
+            }
+
+            const payload = msg && Array.isArray(msg.payload) ? msg.payload : [];
+            if (!payload.length) {
+                throw new Error("msg.payload must be a non-empty array of { sessionId } objects");
+            }
+
+            const engine = server.engine;
+            const rawSessions = engine._sessions || {};
+
+            const results = payload.map((item) => {
+                const requestedId = String(item && item.sessionId || "").trim();
+                if (!requestedId) {
+                    return { sessionId: requestedId, status: "error", error: "sessionId is required" };
+                }
+
+                // Sessions are keyed by authenticationToken; find by matching nodeId (the GUID sessionId)
+                const found = Object.values(rawSessions).find(
+                    (s) => safeToString(s.nodeId) === requestedId
+                );
+
+                if (!found) {
+                    return { sessionId: requestedId, status: "not_found" };
+                }
+
+                try {
+                    engine.closeSession(found.authenticationToken, true, "Forcing");
+                    return { sessionId: requestedId, status: "deleted" };
+                } catch (closeError) {
+                    return { sessionId: requestedId, status: "error", error: closeError.message };
+                }
+            });
+
+            const deletedCount = results.filter((r) => r.status === "deleted").length;
+            const notFoundCount = results.filter((r) => r.status === "not_found").length;
+            const errorCount = results.filter((r) => r.status === "error").length;
+
+            if (msg) {
+                const outMsg = Object.assign({}, msg);
+                outMsg.payload = results;
+
+                process.send({
+                    type: "send",
+                    data: outMsg,
+                    nodeId: nodeId
+                });
+            }
+
+            const statusParts = [];
+            if (deletedCount) statusParts.push("deleted " + deletedCount);
+            if (notFoundCount) statusParts.push("not found " + notFoundCount);
+            if (errorCount) statusParts.push("error " + errorCount);
+
+            process.send({
+                type: "status",
+                data: {
+                    fill: errorCount ? "red" : (notFoundCount ? "yellow" : "green"),
+                    shape: "dot",
+                    text: statusParts.join(", ") || "no sessions"
+                },
+                nodeId: nodeId
+            });
+        } catch (error) {
+            if (msg) {
+                process.send({
+                    type: "error",
+                    data: { fill: "red", shape: "ring", text: "failed deleteSessions" },
+                    error: error.message,
+                    nodeId: nodeId
+                });
+            } else {
+                process.send({
+                    type: "status",
+                    data: { fill: "red", shape: "ring", text: "failed deleteSessions: " + error.message },
+                    nodeId: nodeId
+                });
+            }
+        }
+    }
+
+}
+
+/**
+ * Serializes a node-opcua ServerSession into a plain, IPC-safe object.
+ */
+function buildSessionSnapshot(session) {
+    return {
+        sessionId: safeToString(session.nodeId),
+        sessionName: String(session.sessionName || ""),
+        status: String(session.__status || ""),
+        creationDate: session.creationDate instanceof Date ? session.creationDate.toISOString() : null,
+        sessionTimeout: safeNumber(session.sessionTimeout),
+        clientLastContactTime: safeNumber(session.clientLastContactTime),
+        channelId: session.channelId != null ? session.channelId : null,
+        clientDescription: buildClientDescription(session.clientDescription),
+        userIdentityToken: buildUserIdentityToken(session.userIdentityToken),
+        channel: buildChannelInfo(session.channel),
+        currentSubscriptionCount: safeNumber(session.currentSubscriptionCount),
+        cumulatedSubscriptionCount: safeNumber(session.cumulatedSubscriptionCount),
+        currentMonitoredItemCount: safeNumber(session.currentMonitoredItemCount),
+        aborted: Boolean(session.aborted)
+    };
+}
+
+function safeToString(value) {
+    try {
+        return value != null ? String(value) : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function safeNumber(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+}
+
+function buildClientDescription(desc) {
+    if (!desc || typeof desc !== "object") {
+        return null;
+    }
+    return {
+        applicationUri: safeToString(desc.applicationUri),
+        productUri: safeToString(desc.productUri),
+        applicationName: desc.applicationName && desc.applicationName.text
+            ? String(desc.applicationName.text)
+            : safeToString(desc.applicationName),
+        applicationType: safeToString(desc.applicationType)
+    };
+}
+
+function buildUserIdentityToken(token) {
+    if (!token || typeof token !== "object") {
+        return null;
+    }
+    return {
+        policyId: safeToString(token.policyId),
+        userName: safeToString(token.userName),
+        // Never expose passwords or raw credential bytes
+        tokenType: safeToString(token.schema && token.schema.name)
+    };
+}
+
+function buildChannelInfo(channel) {
+    if (!channel || typeof channel !== "object") {
+        return null;
+    }
+    return {
+        channelId: channel.channelId != null ? channel.channelId : null,
+        remoteAddress: safeToString(channel.remoteAddress),
+        remotePort: safeNumber(channel.remotePort),
+        bytesRead: safeNumber(channel.bytesRead),
+        bytesWritten: safeNumber(channel.bytesWritten),
+        transactionsCount: safeNumber(channel.transactionsCount),
+        securityMode: safeToString(channel.securityMode),
+        securityPolicy: safeToString(channel.securityPolicy)
+    };
 }
 
 /**
@@ -932,13 +1146,32 @@ process.on("message", async (msg) => {
                 break;
 
             case "buildServerSnapshot":
-                OpcUaServerStatusNode(serverProcess.node, msg.msg, msg.nodeId)
-                break
+                try {
+                    await serverProcess.ensureReady();
+                    OpcUaServerStatusNode(serverProcess.node, msg.msg, msg.nodeId);
+                } catch (error) {
+                    process.send({
+                        type: "status",
+                        data: {
+                            fill: msg.msg ? "red" : "yellow",
+                            shape: "ring",
+                            text: msg.msg ? "Status: " + error.message : "waiting for server"
+                        },
+                        nodeId: msg.nodeId
+                    });
+                }
+                break;
             case "eventsServer":
                 eventsServer(serverProcess.node, msg.node, msg.nodeId)
                 break;
             case "readActiveAlarms":
                 serverProcess.readActiveAlarms(msg.msg, msg.nodeId)
+                break;
+            case "readActiveSessions":
+                await serverProcess.readActiveSessions(msg.msg, msg.nodeId);
+                break;
+            case "deleteActiveSessions":
+                await serverProcess.deleteActiveSessions(msg.msg, msg.nodeId);
                 break;
 
 

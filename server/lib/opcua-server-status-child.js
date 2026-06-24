@@ -41,9 +41,9 @@ function OpcUaServerStatusNode(node, msg, nodeId) {
          process.send({
             type: "status",
             data: {
-                fill: "red",
+                fill: msg ? "red" : "yellow",
                 shape: "ring",
-                text: "Status: " + error
+                text: msg ? "Status: " + error.message : "waiting for server"
             },
             nodeId: nodeId
         });

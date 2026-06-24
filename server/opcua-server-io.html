@@ -170,6 +170,8 @@
             <option value="events">Events Server</option>
             <option value="status">Status Server</option>
             <option value="activeAlarms">Active Alarms</option>
+            <option value="getSessions">Get Sessions</option>
+            <option value="deleteSessions">Delete Sessions</option>
             <option value="method-input">Method Input</option>
             <option value="method-output">Method Output</option>
         </select>
@@ -341,6 +343,80 @@ msg.payload = [
 ]
 </code></pre>
 
+    <h3>Get Sessions</h3>
+    <p>Returns a JSON array of all currently active OPC UA sessions on the server.</p>
+    <p><b>Input</b>: any message triggers a session snapshot.</p>
+    <p><b>Output</b>: <code>msg.payload</code> is an array of session objects:</p>
+    <pre><code>[
+  {
+    "sessionId": "ns=1;g=...",
+    "sessionName": "UaExpert@hostname",
+    "status": "active",
+    "creationDate": "2024-01-01T00:00:00.000Z",
+    "sessionTimeout": 30000,
+    "clientLastContactTime": 1234567890,
+    "channelId": 1,
+    "clientDescription": {
+      "applicationUri": "urn:hostname:client",
+      "productUri": "urn:hostname:client",
+      "applicationName": "UaExpert",
+      "applicationType": "1"
+    },
+    "userIdentityToken": {
+      "policyId": "anonymous",
+      "userName": null,
+      "tokenType": "AnonymousIdentityToken"
+    },
+    "channel": {
+      "channelId": 1,
+      "remoteAddress": "127.0.0.1",
+      "remotePort": 54321,
+      "bytesRead": 500,
+      "bytesWritten": 300,
+      "transactionsCount": 10,
+      "securityMode": "None",
+      "securityPolicy": "None"
+    },
+    "currentSubscriptionCount": 1,
+    "cumulatedSubscriptionCount": 2,
+    "currentMonitoredItemCount": 5,
+    "aborted": false
+  }
+]</code></pre>
+    <p>The node also fetches sessions automatically on deploy, just like <b>Status Server</b> mode.</p>
+
+    <h3>Delete Sessions</h3>
+    <p>Forces the server to close one or more active OPC UA sessions by their <code>sessionId</code>.</p>
+    <p><b>Input</b>: <code>msg.payload</code> must be an array of objects, each containing a <code>sessionId</code>
+    (the GUID string returned by <b>Get Sessions</b>):</p>
+    <pre><code>[
+  { "sessionId": "ns=1;g=F4F511E2-664B-2191-89A7-46EE461DB86C" },
+  { "sessionId": "ns=1;g=A1B2C3D4-1234-5678-ABCD-EF0123456789" }
+]</code></pre>
+    <p><b>Output</b>: <code>msg.payload</code> is an array of result objects, one per requested session.  
+    The node status badge summarises deleted / not found / error counts:</p>
+    <pre><code>[
+  {
+    "sessionId": "ns=1;g=F4F511E2-664B-2191-89A7-46EE461DB86C",
+    "status": "deleted"
+  },
+  {
+    "sessionId": "ns=1;g=AAAAAAAA-0000-0000-0000-000000000000",
+    "status": "not_found"
+  },
+  {
+    "sessionId": "ns=1;g=BBBBBBBB-0000-0000-0000-000000000000",
+    "status": "error",
+    "error": "cannot find session …"
+  }
+]</code></pre>
+    <p>Possible <code>status</code> values:</p>
+    <ul>
+        <li><b>deleted</b> — session was found and successfully closed with reason <code>Forcing</code>.</li>
+        <li><b>not_found</b> — no active session with that <code>sessionId</code> exists.</li>
+        <li><b>error</b> — the session was found but <code>engine.closeSession()</code> threw; the
+        <code>error</code> field contains the message.</li>
+    </ul>
 
 
 
