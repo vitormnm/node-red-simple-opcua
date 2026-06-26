@@ -513,17 +513,18 @@ class OpcUaServerConfigParser {
             nodeId: this.normalizeOptionalNodeId(alarmConfig.nodeId),
             namespaceId: this.normalizeNamespaceId(alarmConfig.namespaceId),
             accessPermission: this.normalizeAccessPermissions(alarmConfig.accessPermission || alarmConfig.accessPermissions),
-            enabled: typeof alarmConfig.enabled === "boolean" ? alarmConfig.enabled : true
+            enabled: typeof alarmConfig.enabled === "boolean" ? alarmConfig.enabled : true,
+            sendValue: typeof alarmConfig.sendValue === "boolean" ? alarmConfig.sendValue : true
         };
 
         if (type === "levelAlarm") {
-            base.highHighLimit = Number.isFinite(Number(alarmConfig.highHighLimit)) ? Number(alarmConfig.highHighLimit) : 100;
+            base.highHighLimit = Number.isFinite(Number(alarmConfig.highHighLimit)) ? Number(alarmConfig.highHighLimit) : 90;
             base.highHighMessage = typeof alarmConfig.highHighMessage === "string" ? alarmConfig.highHighMessage : "High High alarm";
             base.highLimit = Number.isFinite(Number(alarmConfig.highLimit)) ? Number(alarmConfig.highLimit) : 80;
             base.highMessage = typeof alarmConfig.highMessage === "string" ? alarmConfig.highMessage : "High alarm";
             base.lowLimit = Number.isFinite(Number(alarmConfig.lowLimit)) ? Number(alarmConfig.lowLimit) : 20;
             base.lowMessage = typeof alarmConfig.lowMessage === "string" ? alarmConfig.lowMessage : "Low alarm";
-            base.lowLowLimit = Number.isFinite(Number(alarmConfig.lowLowLimit)) ? Number(alarmConfig.lowLowLimit) : 0;
+            base.lowLowLimit = Number.isFinite(Number(alarmConfig.lowLowLimit)) ? Number(alarmConfig.lowLowLimit) : 10;
             base.lowLowMessage = typeof alarmConfig.lowLowMessage === "string" ? alarmConfig.lowLowMessage : "Low Low alarm";
         } else if (type === "digitalAlarm") {
             base.normalStateValue = Number.isFinite(Number(alarmConfig.normalStateValue)) ? Number(alarmConfig.normalStateValue) : 0;

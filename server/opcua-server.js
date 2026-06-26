@@ -9,6 +9,9 @@ module.exports = function (RED) {
     const path = require("path");
 
     const getCertificatesFolder = (serverName) => {
+        const safeServerName = (serverName || "default")
+            .replace(/[\\/:\*\?"<>|]/g, "_")
+            .replace(/^\.+$/, "");
         try {
             const userDir = (RED.settings && RED.settings.userDir) || path.join(require('os').homedir(), ".node-red");
             let flowFile = (RED.settings && RED.settings.flowFile) || "flows.json";
@@ -16,9 +19,9 @@ module.exports = function (RED) {
                 flowFile = "flows.json";
             }
             const flowFileFolder = path.isAbsolute(flowFile) ? path.dirname(flowFile) : path.join(userDir, path.dirname(flowFile));
-            return path.join(flowFileFolder, "simple_opcua", "server", "certificates");
+            return path.join(flowFileFolder, "simple_opcua", "server", safeServerName);
         } catch (err) {
-            return path.join(require('os').homedir(), ".node-red", "simple_opcua", "server", "certificates");
+            return path.join(require('os').homedir(), ".node-red", "simple_opcua", "server", safeServerName);
         }
     };
 

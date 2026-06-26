@@ -297,19 +297,20 @@
             variableNodeId: alarm.variableNodeId ? String(alarm.variableNodeId) : "",
             type: type,
             enabled: alarm.enabled !== undefined ? !!alarm.enabled : true,
+            sendValue: alarm.sendValue !== undefined ? !!alarm.sendValue : true,
             severity: alarm.severity !== undefined ? alarm.severity : 500,
             description: alarm.description ? String(alarm.description) : "",
             displayName: alarm.displayName ? String(alarm.displayName) : "",
             nodeId: alarm.nodeId ? String(alarm.nodeId) : "",
             namespaceId: normalizeNamespaceId(alarm.namespaceId),
             accessPermission: normalizeAccessPermissionValues(alarm.accessPermission || alarm.accessPermissions),
-            highHighLimit: alarm.highHighLimit !== undefined ? alarm.highHighLimit : 100,
+            highHighLimit: alarm.highHighLimit !== undefined ? alarm.highHighLimit : 90,
             highHighMessage: alarm.highHighMessage ? String(alarm.highHighMessage) : "High High alarm",
             highLimit: alarm.highLimit !== undefined ? alarm.highLimit : 80,
             highMessage: alarm.highMessage ? String(alarm.highMessage) : "High alarm",
             lowLimit: alarm.lowLimit !== undefined ? alarm.lowLimit : 20,
             lowMessage: alarm.lowMessage ? String(alarm.lowMessage) : "Low alarm",
-            lowLowLimit: alarm.lowLowLimit !== undefined ? alarm.lowLowLimit : 0,
+            lowLowLimit: alarm.lowLowLimit !== undefined ? alarm.lowLowLimit : 10,
             lowLowMessage: alarm.lowLowMessage ? String(alarm.lowLowMessage) : "Low Low alarm",
             normalStateValue: alarm.normalStateValue !== undefined ? alarm.normalStateValue : 0,
             digitalMessage: alarm.digitalMessage ? String(alarm.digitalMessage) : "Digital alarm"
@@ -443,6 +444,7 @@
     function normalizeSearchTerm(value) { return String(value || "").trim().toLowerCase(); }
     function isExpanded(path, defaultValue) { if (expansionState[path] === undefined) expansionState[path] = !!defaultValue; return expansionState[path]; }
     function nodeClassFromPath(path) {
+        if (path && path.indexOf("virtual:") === 0) return "VisualFolder";
         var tokens = pathToTokens(path);
         if (!tokens.length) return "Object";
 
@@ -456,7 +458,18 @@
         if (collectionToken === "folders") return "Folder";
         return "Object";
     }
-    function getNodeDisplayName(path) { var item = getAtPath(editorState, path); return item ? (item.name || "(unnamed)") : ""; }
+    function getVirtualNodeName(path) {
+        if (path === "virtual:Objects") return "Objects";
+        if (path === "virtual:Types") return "Types";
+        if (path === "virtual:Types.ObjectTypes") return "ObjectTypes";
+        if (path === "virtual:Types.DataTypes") return "DataTypes";
+        return "";
+    }
+    function getNodeDisplayName(path) {
+        if (path && path.indexOf("virtual:") === 0) return getVirtualNodeName(path);
+        var item = getAtPath(editorState, path);
+        return item ? (item.name || "(unnamed)") : "";
+    }
     function getNamespaceOptions() {
         return Array.isArray(editorState.nameSpaces) ? editorState.nameSpaces.slice().sort(function (left, right) { return left.id - right.id; }) : [];
     }
@@ -711,6 +724,25 @@
     }
 
     function getChildrenByPath(path) {
+        if (path === "virtual:Objects") {
+            var children = [];
+            (editorState.folders || []).forEach(function (_, i) { children.push("folders." + i); });
+            (editorState.objects || []).forEach(function (_, i) { children.push("objects." + i); });
+            return children;
+        }
+        if (path === "virtual:Types") {
+            return ["virtual:Types.ObjectTypes", "virtual:Types.DataTypes"];
+        }
+        if (path === "virtual:Types.ObjectTypes") {
+            var children = [];
+            (editorState.objectsTypes || []).forEach(function (_, i) { children.push("objectsTypes." + i); });
+            return children;
+        }
+        if (path === "virtual:Types.DataTypes") {
+            var children = [];
+            (editorState.enumerations || []).forEach(function (_, i) { children.push("enumerations." + i); });
+            return children;
+        }
         var item = getAtPath(editorState, path);
         if (!item) return [];
         var children = [];
@@ -724,11 +756,7 @@
     }
 
     function getTopLevelPaths() {
-        var paths = [];
-        (editorState.folders || []).forEach(function (_, i) { paths.push("folders." + i); });
-        (editorState.objects || []).forEach(function (_, i) { paths.push("objects." + i); });
-        (editorState.objectsTypes || []).forEach(function (_, i) { paths.push("objectsTypes." + i); });
-        (editorState.enumerations || []).forEach(function (_, i) { paths.push("enumerations." + i); });
+        var paths = ["virtual:Objects", "virtual:Types"];
         (editorState.nameSpaces || []).forEach(function (_, i) { paths.push("nameSpaces." + i); });
         return paths;
     }
@@ -740,6 +768,9 @@
 
     function nodeMatchesSearch(path) {
         if (!treeSearchTerm) return true;
+        if (path && path.indexOf("virtual:") === 0) {
+            return getVirtualNodeName(path).toLowerCase().indexOf(treeSearchTerm) !== -1;
+        }
         var item = getAtPath(editorState, path);
         if (!item) return false;
         var values = [path, item.name, item.displayName, item.description, nodeClassFromPath(path), item.type, item.value, item.id, item.namespaceId];
@@ -752,7 +783,7 @@
     }
 
     function iconForNodeClass(nodeClass) {
-        if (nodeClass === "Folder") return "fa-folder";
+        if (nodeClass === "Folder" || nodeClass === "VisualFolder") return "fa-folder";
         if (nodeClass === "Object") return "fa-cube";
         if (nodeClass === "Variable") return "fa-tag";
         if (nodeClass === "ObjectType") return "fa-cubes";
@@ -778,7 +809,7 @@
     }
 
     function appendNodeToFrag(frag, path, depth, ancestorMatched) {
-        var item = getAtPath(editorState, path);
+        var item = (path && path.indexOf("virtual:") === 0) ? {} : getAtPath(editorState, path);
         if (!item) return;
         var nodeClass = nodeClassFromPath(path);
         var hasChildren = nodeClass !== "Variable" && nodeClass !== "Alarm" && nodeClass !== "Namespace" && getChildrenByPath(path).length > 0;
@@ -791,11 +822,13 @@
         var row = document.createElement("div");
         row.className = "opcua-tree-row" + (path === selectedPath ? " is-selected" : "");
         row.setAttribute("data-path", path);
+        var label = (path && path.indexOf("virtual:") === 0) ? getVirtualNodeName(path) : (item.name || "(unnamed)");
+        var displayClass = (path && path.indexOf("virtual:") === 0) ? "Folder" : nodeClass;
         row.innerHTML = indents
             + '<span class="opcua-tree-twisty">' + (hasChildren ? '<i class="fa ' + (expanded ? "fa-caret-down" : "fa-caret-right") + '"></i>' : "") + "</span>"
             + '<span class="opcua-tree-icon"><i class="fa ' + iconForNodeClass(nodeClass) + '"></i></span>'
-            + '<span class="opcua-tree-label">' + escapeHtml(item.name || "(unnamed)") + "</span>"
-            + '<span class="opcua-tree-type">' + escapeHtml(nodeClass) + "</span>";
+            + '<span class="opcua-tree-label">' + escapeHtml(label) + "</span>"
+            + '<span class="opcua-tree-type">' + escapeHtml(displayClass) + "</span>";
         frag.appendChild(row);
 
         if (hasChildren && expanded) {
@@ -834,9 +867,28 @@
     function renderBreadcrumbs() {
         var el = $("#opcua-tree-breadcrumbs");
         if (!selectedPath) { el.text("No selection"); return; }
+        if (selectedPath.indexOf("virtual:") === 0) {
+            var parts = [];
+            if (selectedPath === "virtual:Objects") parts = ["Objects"];
+            else if (selectedPath === "virtual:Types") parts = ["Types"];
+            else if (selectedPath === "virtual:Types.ObjectTypes") parts = ["Types", "ObjectTypes"];
+            else if (selectedPath === "virtual:Types.DataTypes") parts = ["Types", "DataTypes"];
+            el.text(parts.join("."));
+            return;
+        }
         var tokens = pathToTokens(selectedPath);
         var cursor = [];
         var parts = [];
+        var rootToken = tokens[0];
+        if (rootToken === "folders" || rootToken === "objects") {
+            parts.push("Objects");
+        } else if (rootToken === "objectsTypes") {
+            parts.push("Types");
+            parts.push("ObjectTypes");
+        } else if (rootToken === "enumerations") {
+            parts.push("Types");
+            parts.push("DataTypes");
+        }
         tokens.forEach(function (token) {
             cursor.push(token);
             if (/^\d+$/.test(token)) parts.push(getNodeDisplayName(cursor.join(".")) || ("#" + token));
@@ -856,11 +908,31 @@
 
     function openCreateForm(path, kind) {
         if (!path) return;
-        if (nodeClassFromPath(path) === "Variable" || nodeClassFromPath(path) === "Namespace") {
+        if (path.indexOf("virtual:") === 0) {
+            if (path === "virtual:Objects") {
+                if (kind !== "folder" && kind !== "object") {
+                    RED.notify("Only Folders and Objects can be added directly under Objects", "warning");
+                    return;
+                }
+            } else if (path === "virtual:Types.ObjectTypes") {
+                if (kind !== "objecttype") {
+                    RED.notify("Only ObjectTypes can be added under ObjectTypes", "warning");
+                    return;
+                }
+            } else if (path === "virtual:Types.DataTypes") {
+                if (kind !== "enumeration") {
+                    RED.notify("Only Enumerations can be added under DataTypes", "warning");
+                    return;
+                }
+            } else {
+                RED.notify("Cannot add children to this visual folder", "warning");
+                return;
+            }
+        } else if (nodeClassFromPath(path) === "Variable" || nodeClassFromPath(path) === "Namespace") {
             RED.notify("Selected item cannot have children", "warning");
             return;
         }
-        var parentSuffix = buildDefaultNodeIdSuffixFromEditorPath(path);
+        var parentSuffix = path.indexOf("virtual:") === 0 ? "" : buildDefaultNodeIdSuffixFromEditorPath(path);
         var defaultName = kind === "variable" ? "newVariable" : kind === "enum-variable" ? "newEnumVariable" : "newObject";
         var defaultSuffix = parentSuffix ? parentSuffix + "." + defaultName : defaultName;
 
@@ -877,13 +949,14 @@
             alarmType: "levelAlarm",
             variableNodeId: "",
             severity: 500,
-            highHighLimit: 100,
+            sendValue: true,
+            highHighLimit: 90,
             highHighMessage: "High High alarm",
             highLimit: 80,
             highMessage: "High alarm",
             lowLimit: 20,
             lowMessage: "Low alarm",
-            lowLowLimit: 0,
+            lowLowLimit: 10,
             lowLowMessage: "Low Low alarm",
             normalStateValue: 0,
             digitalMessage: "Digital alarm",
@@ -897,17 +970,28 @@
         if (!pendingCreate) return;
         var parentPath = pendingCreate.parentPath;
         var kind = pendingCreate.kind;
-        var branchTargetPath = (kind === "variable" || kind === "enum-variable")
-            ? (parentPath + ".variables")
-            : kind === "folder"
-                ? (parentPath + ".folders")
-                : kind === "objecttype"
-                    ? (parentPath + ".objectsTypes")
-                    : kind === "alarm"
-                        ? (parentPath + ".alarms")
-                        : kind === "method"
-                            ? (parentPath + ".methods")
-                            : (parentPath + ".objects");
+        var branchTargetPath;
+        if (parentPath.indexOf("virtual:") === 0) {
+            if (parentPath === "virtual:Objects") {
+                branchTargetPath = kind === "folder" ? "folders" : "objects";
+            } else if (parentPath === "virtual:Types.ObjectTypes") {
+                branchTargetPath = "objectsTypes";
+            } else {
+                return;
+            }
+        } else {
+            branchTargetPath = (kind === "variable" || kind === "enum-variable")
+                ? (parentPath + ".variables")
+                : kind === "folder"
+                    ? (parentPath + ".folders")
+                    : kind === "objecttype"
+                        ? (parentPath + ".objectsTypes")
+                        : kind === "alarm"
+                            ? (parentPath + ".alarms")
+                            : kind === "method"
+                                ? (parentPath + ".methods")
+                                : (parentPath + ".objects");
+        }
         var target = getAtPath(editorState, branchTargetPath);
         if (!Array.isArray(target)) return;
         if (kind === "variable" || kind === "enum-variable") {
@@ -945,6 +1029,7 @@
                 type: pendingCreate.alarmType,
                 variableNodeId: pendingCreate.variableNodeId,
                 severity: Number(pendingCreate.severity || 500),
+                sendValue: pendingCreate.sendValue,
                 highHighLimit: pendingCreate.highHighLimit,
                 highHighMessage: pendingCreate.highHighMessage,
                 highLimit: pendingCreate.highLimit,
@@ -997,6 +1082,7 @@
                 panel.append('<div class="form-row"><label>alarmType</label><select id="opcua-create-alarm-type"><option value="levelAlarm">levelAlarm</option><option value="digitalAlarm">digitalAlarm</option></select></div>');
                 panel.append('<div class="form-row"><label>variablePath</label><input type="text" id="opcua-create-variable-nodeid"></div>');
                 panel.append('<div class="form-row"><label>severity</label><input type="number" id="opcua-create-severity"></div>');
+                panel.append('<div class="form-row"><label for="opcua-create-sendvalue">Send alarm value</label><input type="checkbox" id="opcua-create-sendvalue" style="width: auto; flex: 0 0 auto; min-width: 0;"></div>');
                 if (pendingCreate.alarmType === "levelAlarm") {
                     panel.append('<div class="form-row"><label>highHighLimit</label><input type="number" id="opcua-create-highhighlimit"></div>');
                     panel.append('<div class="form-row"><label>highHighMessage</label><input type="text" id="opcua-create-highhighmessage"></div>');
@@ -1029,6 +1115,7 @@
             $("#opcua-create-alarm-type").val(pendingCreate.alarmType);
             $("#opcua-create-variable-nodeid").val(pendingCreate.variableNodeId);
             $("#opcua-create-severity").val(pendingCreate.severity);
+            $("#opcua-create-sendvalue").prop("checked", pendingCreate.sendValue !== false);
             $("#opcua-create-highhighlimit").val(pendingCreate.highHighLimit);
             $("#opcua-create-highhighmessage").val(pendingCreate.highHighMessage);
             $("#opcua-create-highlimit").val(pendingCreate.highLimit);
@@ -1042,6 +1129,11 @@
             return;
         }
         if (!selectedPath) { panel.append('<div class="opcua-tree-empty">Select a node to edit browseName, namespace, nodeId, and description.</div>'); return; }
+        if (selectedPath.indexOf("virtual:") === 0) {
+            var visualName = getVirtualNodeName(selectedPath);
+            panel.append('<div class="opcua-tree-empty">Visual folder: <strong>' + escapeHtml(visualName) + '</strong><br><span style="font-size: 11px; color: #666;">This folder is used strictly for visual organization within the modal.</span></div>');
+            return;
+        }
         var item = getAtPath(editorState, selectedPath);
         if (!item) { panel.append('<div class="opcua-tree-empty">Selected node not found.</div>'); return; }
         var nodeClass = nodeClassFromPath(selectedPath);
@@ -1163,6 +1255,7 @@
             panel.append('<div class="form-row"><label>alarmType</label><select id="opcua-detail-alarm-type"><option value="levelAlarm">levelAlarm</option><option value="digitalAlarm">digitalAlarm</option></select></div>');
             panel.append('<div class="form-row"><label>variablePath</label><input type="text" id="opcua-detail-variable-nodeid"></div>');
             panel.append('<div class="form-row"><label>severity</label><input type="number" id="opcua-detail-severity"></div>');
+            panel.append('<div class="form-row"><label for="opcua-detail-sendvalue">Send alarm value</label><input type="checkbox" id="opcua-detail-sendvalue" style="width: auto; flex: 0 0 auto; min-width: 0;"></div>');
             if ((item.type || "levelAlarm") === "levelAlarm") {
                 panel.append('<div class="form-row"><label>highHighLimit</label><input type="number" id="opcua-detail-highhighlimit"></div>');
                 panel.append('<div class="form-row"><label>highHighMessage</label><input type="text" id="opcua-detail-highhighmessage"></div>');
@@ -1201,13 +1294,14 @@
             $("#opcua-detail-alarm-type").val(item.type || "levelAlarm");
             $("#opcua-detail-variable-nodeid").val(item.variableNodeId || "");
             $("#opcua-detail-severity").val(item.severity !== undefined ? item.severity : 500);
-            $("#opcua-detail-highhighlimit").val(item.highHighLimit !== undefined ? item.highHighLimit : 100);
+            $("#opcua-detail-sendvalue").prop("checked", item.sendValue !== false);
+            $("#opcua-detail-highhighlimit").val(item.highHighLimit !== undefined ? item.highHighLimit : 90);
             $("#opcua-detail-highhighmessage").val(item.highHighMessage || "High High alarm");
             $("#opcua-detail-highlimit").val(item.highLimit !== undefined ? item.highLimit : 80);
             $("#opcua-detail-highmessage").val(item.highMessage || "High alarm");
             $("#opcua-detail-lowlimit").val(item.lowLimit !== undefined ? item.lowLimit : 20);
             $("#opcua-detail-lowmessage").val(item.lowMessage || "Low alarm");
-            $("#opcua-detail-lowlowlimit").val(item.lowLowLimit !== undefined ? item.lowLowLimit : 0);
+            $("#opcua-detail-lowlowlimit").val(item.lowLowLimit !== undefined ? item.lowLowLimit : 10);
             $("#opcua-detail-lowlowmessage").val(item.lowLowMessage || "Low Low alarm");
             $("#opcua-detail-normalstatevalue").val(item.normalStateValue !== undefined ? item.normalStateValue : 0);
             $("#opcua-detail-digitalmessage").val(item.digitalMessage || "Digital alarm");
@@ -1221,6 +1315,10 @@
 
     function removeNode(path) {
         if (!path) return;
+        if (path.indexOf("virtual:") === 0) {
+            RED.notify("Visual folders cannot be removed.", "warning");
+            return;
+        }
         if (nodeClassFromPath(path) === "Namespace") {
             var namespaceItem = getAtPath(editorState, path);
             if (normalizeNamespaceId(namespaceItem && namespaceItem.id) === DEFAULT_NAMESPACE_ID) {
@@ -1474,8 +1572,48 @@
 
     $(document).on("contextmenu", ".opcua-tree-row", function (event) {
         event.preventDefault();
-        selectNode($(this).attr("data-path"));
-        $("#opcua-tree-context-menu").css({ left: event.clientX + "px", top: event.clientY + "px" }).show();
+        var path = $(this).attr("data-path");
+        selectNode(path);
+        
+        var contextMenu = $("#opcua-tree-context-menu");
+        contextMenu.find("a").hide();
+        
+        if (path.indexOf("virtual:") === 0) {
+            if (path === "virtual:Objects") {
+                contextMenu.find('[data-action="add-folder"]').show();
+                contextMenu.find('[data-action="add-object"]').show();
+            } else if (path === "virtual:Types.ObjectTypes") {
+                contextMenu.find('[data-action="add-objecttype"]').show();
+            } else if (path === "virtual:Types.DataTypes") {
+                contextMenu.find('[data-action="add-enumeration"]').show();
+            }
+        } else {
+            var nodeClass = nodeClassFromPath(path);
+            if (nodeClass === "Folder" || nodeClass === "Object" || nodeClass === "ObjectType") {
+                contextMenu.find('[data-action="add-folder"]').show();
+                contextMenu.find('[data-action="add-object"]').show();
+                contextMenu.find('[data-action="add-variable"]').show();
+                contextMenu.find('[data-action="add-enum-variable"]').show();
+                contextMenu.find('[data-action="add-alarm"]').show();
+                contextMenu.find('[data-action="add-method"]').show();
+                contextMenu.find('[data-action="edit"]').show();
+                contextMenu.find('[data-action="remove"]').show();
+            } else if (nodeClass === "Enumeration") {
+                contextMenu.find('[data-action="edit"]').show();
+                contextMenu.find('[data-action="remove"]').show();
+            } else if (nodeClass === "Namespace") {
+                contextMenu.find('[data-action="edit"]').show();
+                var item = getAtPath(editorState, path);
+                if (item && normalizeNamespaceId(item.id) !== DEFAULT_NAMESPACE_ID) {
+                    contextMenu.find('[data-action="remove"]').show();
+                }
+            } else {
+                contextMenu.find('[data-action="edit"]').show();
+                contextMenu.find('[data-action="remove"]').show();
+            }
+        }
+        
+        contextMenu.css({ left: event.clientX + "px", top: event.clientY + "px" }).show();
     });
 
     $(document).on("click", function () { $("#opcua-tree-context-menu").hide(); });
@@ -1629,6 +1767,7 @@
     });
     $(document).on("input", "#opcua-detail-variable-nodeid", function () { updateNode(selectedPath, { variableNodeId: $(this).val() }); });
     $(document).on("input", "#opcua-detail-severity", function () { updateNode(selectedPath, { severity: Number($(this).val() || 0) }); });
+    $(document).on("change", "#opcua-detail-sendvalue", function () { updateNode(selectedPath, { sendValue: $(this).is(":checked") }); });
     $(document).on("input", "#opcua-detail-highhighlimit", function () { updateNode(selectedPath, { highHighLimit: Number($(this).val() || 0) }); });
     $(document).on("input", "#opcua-detail-highhighmessage", function () { updateNode(selectedPath, { highHighMessage: $(this).val() }); });
     $(document).on("input", "#opcua-detail-highlimit", function () { updateNode(selectedPath, { highLimit: Number($(this).val() || 0) }); });
@@ -1681,6 +1820,7 @@
     });
     $(document).on("input", "#opcua-create-variable-nodeid", function () { if (pendingCreate) pendingCreate.variableNodeId = $(this).val(); });
     $(document).on("input", "#opcua-create-severity", function () { if (pendingCreate) pendingCreate.severity = Number($(this).val() || 0); });
+    $(document).on("change", "#opcua-create-sendvalue", function () { if (pendingCreate) pendingCreate.sendValue = $(this).is(":checked"); });
     $(document).on("input", "#opcua-create-highhighlimit", function () { if (pendingCreate) pendingCreate.highHighLimit = Number($(this).val() || 0); });
     $(document).on("input", "#opcua-create-highhighmessage", function () { if (pendingCreate) pendingCreate.highHighMessage = $(this).val(); });
     $(document).on("input", "#opcua-create-highlimit", function () { if (pendingCreate) pendingCreate.highLimit = Number($(this).val() || 0); });

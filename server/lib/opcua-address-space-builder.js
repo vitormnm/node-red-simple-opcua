@@ -196,7 +196,7 @@ class OpcUaAddressSpaceBuilder {
         const path = this.buildObjectTypePath(config.name);
         desiredEntries.set(path, this.buildEntryDefinition("objectTypeDefinition", config, path, "", "typeDefinition"));
         this.collectBranchChildren(desiredEntries, config, path, "componentOf", objectTypeConfigs, {
-            skipAlarms: false,
+            skipAlarms: true,
             preserveCollectionNames: true,
             typeRootPath: path
         });
@@ -835,6 +835,9 @@ class OpcUaAddressSpaceBuilder {
             throw new Error("Object type is not available for instance " + instanceConfig.name + ": " + instanceConfig.objectsType);
         }
 
+        const addressSpace = this.server.engine.addressSpace;
+        const serverNode = addressSpace.rootFolder.objects.server;
+
         const objectName = instanceConfig.name;
         const nextPath = pathOverride || this.buildPath(parentPath, objectName);
         const namespace = this.getNamespaceForConfig(instanceConfig);
@@ -846,7 +849,8 @@ class OpcUaAddressSpaceBuilder {
             nodeId: this.resolveNodeId(instanceConfig, nextPath, namespace),
             rolePermissions: this.buildRolePermissions("objectTypeInstance", instanceConfig),
             typeDefinition: objectTypeEntry.node.nodeId,
-            eventNotifier: 1
+            eventNotifier: 1,
+            eventSourceOf: serverNode
         };
 
         if (relationship === "organizedBy") {
@@ -894,11 +898,42 @@ class OpcUaAddressSpaceBuilder {
         return nodeId;
     }
 
+    /**
+     * Rewrites an alarm variableNodeId from the type to the instance.
+     * Handles three formats:
+     *   1. Full nodeId: "ns=2;s=motor.status" → "ns=2;s=myserver.motor01.status"
+     *   2. Plain type-relative path: "motor.status" → resolved to instance variable path
+     *   3. Bare variable name: "status" → resolved relative to instance path
+     */
+    rewriteInheritedAlarmVariableRef(variableRef, typePrefix, instancePrefix, instancePath) {
+        if (!variableRef) return variableRef;
+        const ref = String(variableRef).trim();
+
+        // Try full nodeId rewrite first (ns=X;s=...)
+        const rewritten = this.rewriteInheritedNodeId(ref, typePrefix, instancePrefix);
+        if (rewritten !== ref) {
+            return rewritten;
+        }
+
+        // Plain path starting with typePrefix (e.g. "motor.status" → "myserver.motor01.status")
+        if (typePrefix && instancePrefix && ref.startsWith(typePrefix)) {
+            return instancePrefix + ref.slice(typePrefix.length);
+        }
+
+        // Bare variable name (e.g. "status") → resolve relative to instance path
+        if (ref.indexOf(".") === -1 && instancePath) {
+            return this.buildPath(instancePath, ref);
+        }
+
+        return ref;
+    }
+
     createInheritedBranchChildren(typeConfig, parentOpcNode, parentPath, typePrefix, instancePrefix) {
         const variables = Array.isArray(typeConfig.variables) ? typeConfig.variables : [];
         const methods = Array.isArray(typeConfig.methods) ? typeConfig.methods : [];
         const folders = Array.isArray(typeConfig.folders) ? typeConfig.folders : [];
         const objects = Array.isArray(typeConfig.objects) ? typeConfig.objects : [];
+        const alarms = Array.isArray(typeConfig.alarms) ? typeConfig.alarms : [];
 
         variables.forEach((varConfig) => {
             const childPath = this.buildPath(parentPath, varConfig.name);
@@ -938,6 +973,17 @@ class OpcUaAddressSpaceBuilder {
             if (childNode) {
                 this.createInheritedBranchChildren(objectConfig, childNode, childPath, typePrefix, instancePrefix);
             }
+        });
+
+        alarms.forEach((alarmConfig) => {
+            const childPath = this.buildPath(parentPath, alarmConfig.name);
+            const rewrittenConfig = Object.assign({}, alarmConfig, {
+                nodeId: this.rewriteInheritedNodeId(alarmConfig.nodeId, typePrefix, instancePrefix),
+                variableNodeId: this.rewriteInheritedAlarmVariableRef(
+                    alarmConfig.variableNodeId, typePrefix, instancePrefix, parentPath
+                )
+            });
+            this.addAlarm(parentOpcNode, rewrittenConfig, parentPath, "componentOf", childPath);
         });
     }
 
@@ -1436,13 +1482,6 @@ class OpcUaAddressSpaceBuilder {
 
         if (reference.indexOf(".") === 0) {
             const relativeReference = this.resolveObjectTypeRelativeReference(parentPath, reference);
-
-            //not work
-            var corrente = parentNode.getComponentByName("corrent")
-
-            return {
-                node: corrente
-            }
             if (this.variableStore.has(relativeReference)) {
                 return this.variableStore.get(relativeReference);
             }

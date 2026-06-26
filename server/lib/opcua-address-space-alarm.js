@@ -94,6 +94,7 @@ class OpcUaAddressSpaceAlarm {
                 value: sourceName
             });
 
+            alarmNode.alarmConfig = alarmConfig;
             return alarmNode;
         } catch (error) {
             console.error("createAlarm");
@@ -128,20 +129,22 @@ class OpcUaAddressSpaceAlarm {
         let lastMessage = null;
         let message = null;
 
+        const sendValue = alarmConfig.sendValue !== false;
+
         if (variableValue >= highHighSp && enabled) {
-            message = alarmConfig.highHighMessage + ": " + variableValue;
+            message = sendValue ? (alarmConfig.highHighMessage + ": " + variableValue) : alarmConfig.highHighMessage;
             this.raiseAlarm(alarmNode, message, alarmConfig.severity);
             lastMessage = message;
         } else if (variableValue >= highSp && enabled) {
-            message = alarmConfig.highMessage + ": " + variableValue;
+            message = sendValue ? (alarmConfig.highMessage + ": " + variableValue) : alarmConfig.highMessage;
             this.raiseAlarm(alarmNode, message, alarmConfig.severity);
             lastMessage = message;
         } else if (variableValue <= lowLowSp && enabled) {
-            message = alarmConfig.lowLowMessage + ": " + variableValue;
+            message = sendValue ? (alarmConfig.lowLowMessage + ": " + variableValue) : alarmConfig.lowLowMessage;
             this.raiseAlarm(alarmNode, message, alarmConfig.severity);
             lastMessage = message;
         } else if (variableValue <= lowSp && enabled) {
-            message = alarmConfig.lowMessage + ": " + variableValue;
+            message = sendValue ? (alarmConfig.lowMessage + ": " + variableValue) : alarmConfig.lowMessage;
             this.raiseAlarm(alarmNode, message, alarmConfig.severity);
             lastMessage = message;
         } else if (isActive) {
@@ -252,12 +255,15 @@ class OpcUaAddressSpaceAlarm {
 
         this.registry.registerActiveAlarms(alarmNode, message, severity, retain, this.node);
 
+        const alarmConfig = alarmNode.alarmConfig || {};
+        const sendValue = alarmConfig.sendValue !== false;
+
         this.emitTagAccess("alarm", {
             message: message,
             severity: severity,
             retain: retain,
             dataType: "alarm",
-            value: "highHighSp"
+            value: sendValue ? "highHighSp" : null
         });
     }
 

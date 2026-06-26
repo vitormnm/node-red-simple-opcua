@@ -109,7 +109,77 @@ module.exports = function (RED) {
                 done();
             } catch (error) {
                 node.status({ fill: "red", shape: "ring", text: node.mode + " failed" });
-                done(error);
+                
+                let errorPayload;
+                try {
+                    if (node.mode === "read") {
+                        const items = itemsResolver.ensureClientItems(node, msg, "OPC UA read");
+                        errorPayload = items.map(item => ({
+                            name: resolveName(item, resolveNodeId(item)),
+                            nodeID: resolveNodeId(item),
+                            value: null,
+                            type: null,
+                            status: error.message || String(error),
+                            sourceTimestamp: null,
+                            serverTimestamp: null
+                        }));
+                    } else if (node.mode === "write") {
+                        const items = itemsResolver.ensureWriteItems(node, msg);
+                        errorPayload = items.map(item => ({
+                            name: item.name,
+                            nodeID: item.nodeID,
+                            value: item.value,
+                            type: item.type,
+                            status: error.message || String(error)
+                        }));
+                    } else if (node.mode === "browse") {
+                        const roots = normalizeBrowseRoots(node, msg ? msg.payload : undefined);
+                        errorPayload = roots.map(root => ({
+                            name: root.name,
+                            nodeID: root.nodeID,
+                            status: error.message || String(error),
+                            results: []
+                        }));
+                    } else if (node.mode === "method") {
+                        const items = itemsResolver.ensureMethodItems(node, msg);
+                        errorPayload = items.map(item => ({
+                            name: item.name,
+                            nodeID: item.nodeID,
+                            status: error.message || String(error),
+                            value: null
+                        }));
+                    } else if (node.mode === "subscription" || node.mode === "events") {
+                        const items = itemsResolver.ensureClientItems(node, msg, "OPC UA subscription");
+                        errorPayload = items.map(item => ({
+                            name: resolveName(item, resolveNodeId(item)),
+                            nodeID: resolveNodeId(item),
+                            value: null,
+                            type: null,
+                            status: error.message || String(error),
+                            sourceTimestamp: null,
+                            serverTimestamp: null
+                        }));
+                    } else {
+                        errorPayload = {
+                            status: "error",
+                            error: error.message || String(error)
+                        };
+                    }
+                } catch (payloadError) {
+                    errorPayload = {
+                        status: "error",
+                        error: error.message || String(error)
+                    };
+                }
+
+                msg.payload = errorPayload;
+                send(msg);
+
+                if (done) {
+                    done(error);
+                } else {
+                    node.error(error, msg);
+                }
             }
         });
 

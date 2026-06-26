@@ -3,6 +3,10 @@
         function toggleCredentials() {
             var authType = $("#node-config-input-authType").val();
             $(".opcua-client-auth-row").toggle(authType === "username");
+            if (authType === "anonymous") {
+                $("#node-config-input-username").val("");
+                $("#node-config-input-password").val("");
+            }
         }
 
         RED.nodes.registerType("opcua-client-config", {
@@ -13,7 +17,14 @@
                 endpoint: { value: "opc.tcp://localhost:4840", required: true },
                 securityPolicy: { value: "None", required: true },
                 securityMode: { value: "None", required: true },
-                authType: { value: "anonymous", required: true }
+                authType: { value: "anonymous", required: true },
+                initialDelay: { value: 1000, validate: RED.validators.number() },
+                maxDelay: { value: 10000, validate: RED.validators.number() },
+                maxRetry: { value: -1, validate: RED.validators.number() },
+                requestedSessionTimeout: { value: 300000, validate: RED.validators.number() },
+                keepSessionAlive: { value: true },
+                autoReconnect: { value: true },
+                endpointMustExist: { value: false }
             },
             credentials: {
                 username: { type: "text" },
@@ -23,14 +34,69 @@
                 return this.name || this.endpoint || "opcua-client-config";
             },
             oneditprepare: function () {
+                if (this.keepSessionAlive !== false) {
+                    $("#node-config-input-keepSessionAlive").prop("checked", true);
+                }
+                if (this.autoReconnect !== false) {
+                    $("#node-config-input-autoReconnect").prop("checked", true);
+                }
+                if (this.endpointMustExist === true) {
+                    $("#node-config-input-endpointMustExist").prop("checked", true);
+                }
+                if (this.maxRetry === undefined || Number(this.maxRetry) === 10) {
+                    $("#node-config-input-maxRetry").val(-1);
+                }
+
                 $("#node-config-input-authType").on("change", toggleCredentials);
                 toggleCredentials();
+
+                $("#node-config-input-securityPolicy").on("change", function () {
+                    var policy = $(this).val();
+                    var modeSelect = $("#node-config-input-securityMode");
+                    var mode = modeSelect.val();
+                    if (policy === "None") {
+                        if (mode !== "None") {
+                            modeSelect.val("None");
+                        }
+                    } else {
+                        if (mode === "None") {
+                            modeSelect.val("SignAndEncrypt");
+                        }
+                    }
+                });
+
+                $("#node-config-input-securityMode").on("change", function () {
+                    var mode = $(this).val();
+                    var policySelect = $("#node-config-input-securityPolicy");
+                    var policy = policySelect.val();
+                    if (mode === "None") {
+                        if (policy !== "None") {
+                            policySelect.val("None");
+                        }
+                    } else {
+                        if (policy === "None") {
+                            policySelect.val("Basic256Sha256");
+                        }
+                    }
+                });
+
+                function toggleReconnect() {
+                    var autoReconnect = $("#node-config-input-autoReconnect").prop("checked");
+                    $(".opcua-client-reconnect-row").toggle(autoReconnect);
+                }
+                $("#node-config-input-autoReconnect").on("change", toggleReconnect);
+                toggleReconnect();
             }
         });
     })();
 </script>
 
 <script type="text/html" data-template-name="opcua-client-config">
+    <!-- Connection Section -->
+    <div class="form-row" style="margin-top: 10px; margin-bottom: 10px;">
+        <span style="font-weight: bold;"><i class="fa fa-plug"></i> Connection Settings</span>
+        <hr style="margin-top: 5px; margin-bottom: 10px; border: 0; border-top: 1px solid #ccc;"/>
+    </div>
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="OPC UA Client">
@@ -42,6 +108,12 @@
     <div class="form-row">
         <label for="node-config-input-endpoint"><i class="fa fa-plug"></i> Endpoint</label>
         <input type="text" id="node-config-input-endpoint" placeholder="opc.tcp://localhost:4840">
+    </div>
+
+    <!-- Security Section -->
+    <div class="form-row" style="margin-top: 20px; margin-bottom: 10px;">
+        <span style="font-weight: bold;"><i class="fa fa-shield"></i> Security & Authentication</span>
+        <hr style="margin-top: 5px; margin-bottom: 10px; border: 0; border-top: 1px solid #ccc;"/>
     </div>
     <div class="form-row">
         <label for="node-config-input-securityPolicy"><i class="fa fa-lock"></i> Security Policy</label>
@@ -76,6 +148,46 @@
     <div class="form-row opcua-client-auth-row">
         <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="password" id="node-config-input-password">
+    </div>
+
+    <!-- Client Settings Section -->
+    <div class="form-row" style="margin-top: 20px; margin-bottom: 10px;">
+        <span style="font-weight: bold;"><i class="fa fa-cog"></i> Client Settings</span>
+        <hr style="margin-top: 5px; margin-bottom: 10px; border: 0; border-top: 1px solid #ccc;"/>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-requestedSessionTimeout"><i class="fa fa-clock-o"></i> Session Timeout (ms)</label>
+        <input type="number" id="node-config-input-requestedSessionTimeout" placeholder="300000">
+    </div>
+    <div class="form-row" style="display: flex; align-items: center;">
+        <label for="node-config-input-keepSessionAlive" style="width: auto; margin-right: 10px;"><i class="fa fa-heartbeat"></i> Keep Session Alive</label>
+        <input type="checkbox" id="node-config-input-keepSessionAlive" style="width: auto; margin: 0;">
+    </div>
+    <div class="form-row" style="display: flex; align-items: center; margin-bottom: 5px;">
+        <label for="node-config-input-endpointMustExist" style="width: auto; margin-right: 10px;"><i class="fa fa-exclamation-circle"></i> Endpoint Must Exist</label>
+        <input type="checkbox" id="node-config-input-endpointMustExist" style="width: auto; margin: 0;">
+    </div>
+    <div style="font-size: 0.85em; color: #666; margin-left: 20px; margin-top: -5px; margin-bottom: 10px;">
+        Verify that the server endpoint matches the requested security policy and mode before connecting.
+    </div>
+    <div class="form-row" style="display: flex; align-items: center;">
+        <label for="node-config-input-autoReconnect" style="width: auto; margin-right: 10px;"><i class="fa fa-refresh"></i> Automatic Reconnect</label>
+        <input type="checkbox" id="node-config-input-autoReconnect" style="width: auto; margin: 0;">
+    </div>
+    <div class="form-row opcua-client-reconnect-row">
+        <label for="node-config-input-initialDelay"><i class="fa fa-clock-o"></i> Initial Delay (ms)</label>
+        <input type="number" id="node-config-input-initialDelay" placeholder="1000">
+    </div>
+    <div class="form-row opcua-client-reconnect-row">
+        <label for="node-config-input-maxDelay"><i class="fa fa-clock-o"></i> Max Delay (ms)</label>
+        <input type="number" id="node-config-input-maxDelay" placeholder="10000">
+    </div>
+    <div class="form-row opcua-client-reconnect-row">
+        <label for="node-config-input-maxRetry"><i class="fa fa-repeat"></i> Max Retries</label>
+        <input type="number" id="node-config-input-maxRetry" placeholder="-1">
+        <div style="font-size: 0.85em; color: #666; margin-left: 110px; margin-top: 2px;">
+            -1: Retry indefinitely. 0: Do not attempt to reconnect.
+        </div>
     </div>
 </script>
 

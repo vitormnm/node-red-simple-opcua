@@ -224,12 +224,58 @@
 
 
 <script type="text/html" data-help-name="opc-ua-server">
-    <p>Creates a configurable OPC UA server using <code>node-opcua</code>.</p>
-    <p>The node starts an OPC UA server when deployed and exposes a dynamic tree under the configured namespace.</p>
+    <p>Creates a fully dynamic, configurable OPC UA server using <code>node-opcua</code>.</p>
+    <p>The server parses a JSON tree structure defined in the modal editor or provided dynamically to construct the OPC UA Address Space at runtime without manual coding.</p>
+
     <h3>Inputs</h3>
-    <p><code>msg.payload</code>: JSON object describing the OPC UA tree. When provided, the node validates the structure and rebuilds the dynamic namespace.</p>
-    <h3>Details</h3>
-    <p>Supported variable types: <code>Int16</code>, <code>Int32</code>, <code>Int64</code>, <code>Float</code>, <code>Boolean</code>, <code>String</code>.</p>
-    <p>Supported access modes: <code>readonly</code> and <code>readwrite</code>.</p>
-    <p>Authentication can be configured in the editor with multiple local users and groups stored in Node-RED credentials, and anonymous login can be disabled.</p>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object | string</span></dt>
+        <dd>A JSON object or string describing the target OPC UA tree configuration. The server will validate the payload and dynamically rebuild the entire address space.</dd>
+    </dl>
+
+    <h3>Address Space Categories</h3>
+    
+    <h4>1. Folders & Objects</h4>
+    <ul>
+        <li><strong>Folders:</strong> Standard structural directories used to group objects and variables.</li>
+        <li><strong>Objects:</strong> Real-world component representations. Objects and folders can be nested hierarchically.</li>
+    </ul>
+
+    <h4>2. Variables</h4>
+    <ul>
+        <li><strong>Data Types:</strong> Supported data types include <code>Int16</code>, <code>UInt16</code>, <code>Int32</code>, <code>UInt32</code>, <code>Float</code>, <code>Boolean</code>, <code>String</code>, <code>ByteString</code>, and <code>LocalizedText</code>.</li>
+        <li><strong>Access Control:</strong> Variable access can be set to <code>readonly</code> or <code>readwrite</code>.</li>
+    </ul>
+
+    <h4>3. ObjectTypes (Templates)</h4>
+    <ul>
+        <li>Define reusable object type definitions (templates) under the <code>Types/ObjectTypes</code> visual folder.</li>
+        <li>Instantiate these types under folders/objects. Changes to the ObjectType structure will automatically propagate to all instances.</li>
+        <li><strong>Alarms on ObjectTypes:</strong> When configuring an alarm inside an ObjectType, the alarm variable path must reference the variable using the format <code>'ObjectTypeName'.'VariableName'</code> (e.g. <code>motor.status</code>).</li>
+    </ul>
+
+    <h4>4. Enumerations (DataTypes)</h4>
+    <ul>
+        <li>Define custom enumeration data types mapping integer states to display strings (e.g. <code>0: Stopped</code>, <code>1: Running</code>).</li>
+        <li>Variables can select these custom Enumerations as their data type.</li>
+    </ul>
+
+    <h4>5. Methods</h4>
+    <ul>
+        <li>Define callable server methods with custom <strong>Input Arguments</strong> and <strong>Output Arguments</strong>.</li>
+        <li>Incoming method calls are routed automatically to matching <code>opcua-server-io</code> nodes (set to <code>method-input</code> mode) where flow logic handles execution and returns the result via <code>method-output</code>.</li>
+    </ul>
+
+    <h4>6. Alarms</h4>
+    <ul>
+        <li><strong>Level Alarms:</strong> Monitor numeric variables and trigger limit events (<code>highHighLimit</code>, <code>highLimit</code>, <code>lowLimit</code>, <code>lowLowLimit</code>) with custom severity.</li>
+        <li><strong>Digital Alarms:</strong> Triggered when a boolean/numeric variable matches or deviates from a configured normal state.</li>
+    </ul>
+
+    <h3>Security & Access Control</h3>
+    <ul>
+        <li><strong>Authentication:</strong> Supports anonymous login and authenticated username/password login. Passwords can be hashed automatically.</li>
+        <li><strong>Access Permissions:</strong> Each folder, variable, method, or alarm can restrict access to specified user groups (comma-separated list, e.g. <code>operator,engineer</code>). If no users are configured, permission checks are disabled.</li>
+        <li><strong>Client Certificates:</strong> Open the Certificate modal to inspect, trust, or reject incoming client certificates. Trusted certificates reside in the simple_opcua server storage.</li>
+    </ul>
 </script>

@@ -1,5 +1,8 @@
 "use strict";
 
+const path = require("path");
+const { OPCUACertificateManager, UserTokenType } = require("node-opcua");
+
 const {
     OPCUAClient,
     getMethodArgumentDefinition,
@@ -28,6 +31,13 @@ module.exports = function (RED) {
         node.securityPolicy = config.securityPolicy || "None";
         node.securityMode = config.securityMode || "None";
         node.authType = config.authType || "anonymous";
+        node.initialDelay = config.initialDelay !== undefined ? Number(config.initialDelay) : 1000;
+        node.maxDelay = config.maxDelay !== undefined ? Number(config.maxDelay) : 10000;
+        node.maxRetry = (config.maxRetry !== undefined && Number(config.maxRetry) !== 10) ? Number(config.maxRetry) : -1;
+        node.requestedSessionTimeout = config.requestedSessionTimeout !== undefined ? Number(config.requestedSessionTimeout) : 300000;
+        node.keepSessionAlive = config.keepSessionAlive !== false;
+        node.autoReconnect = config.autoReconnect !== false;
+        node.endpointMustExist = config.endpointMustExist === true;
         node.client = null;
         node.session = null;
         node.connectPromise = null;
@@ -53,12 +63,52 @@ module.exports = function (RED) {
         }
 
         this.connectPromise = (async () => {
+            const userDir = (RED.settings && RED.settings.userDir) || path.join(require('os').homedir(), ".node-red");
+            let flowFile = (RED.settings && RED.settings.flowFile) || "flows.json";
+            if (typeof flowFile !== "string") {
+                flowFile = "flows.json";
+            }
+            const flowFileFolder = path.isAbsolute(flowFile) ? path.dirname(flowFile) : path.join(userDir, path.dirname(flowFile));
+            const clientName = (this.name || "").trim() || this.sessionName || "default";
+            const safeClientName = clientName
+                .replace(/[\\/:\*\?"<>|]/g, "_")
+                .replace(/^\.+$/, "");
+            const clientCertificateFolder = path.join(flowFileFolder, "simple_opcua", "client", safeClientName);
+
+            // Ensure directories exist immediately
+            const fs = require("fs");
+            try {
+                const trustedDir = path.join(clientCertificateFolder, "trusted", "certs");
+                const rejectedDir = path.join(clientCertificateFolder, "rejected");
+                if (!fs.existsSync(trustedDir)) {
+                    fs.mkdirSync(trustedDir, { recursive: true });
+                }
+                if (!fs.existsSync(rejectedDir)) {
+                    fs.mkdirSync(rejectedDir, { recursive: true });
+                }
+            } catch (e) {
+                // Ignore directory creation errors
+            }
+
+            const clientCertificateManager = new OPCUACertificateManager({
+                rootFolder: clientCertificateFolder,
+                automaticallyAcceptUnknownCertificate: true
+            });
+            await clientCertificateManager.initialize();
+
             const client = OPCUAClient.create({
-                endpointMustExist: false,
-                keepSessionAlive: true,
+                endpointMustExist: this.endpointMustExist,
+                keepSessionAlive: this.keepSessionAlive,
                 securityMode: resolveSecurityMode(this.securityMode),
                 securityPolicy: resolveSecurityPolicy(this.securityPolicy),
-                clientName: this.sessionName || "ClientSession"
+                clientName: this.sessionName || "ClientSession",
+                clientCertificateManager: clientCertificateManager,
+                requestedSessionTimeout: this.requestedSessionTimeout,
+                connectionStrategy: {
+                    maxRetry: this.autoReconnect ? this.maxRetry : 0,
+                    initialDelay: this.initialDelay,
+                    maxDelay: this.maxDelay
+                }
             });
 
             client._nextSessionName = () => {
@@ -69,14 +119,16 @@ module.exports = function (RED) {
                 await client.connect(this.endpoint);
 
                 const credentials = this.credentials || {};
-                const sessionOptions = {
-                    sessionName: this.sessionName || "ClientSession1"
-                };
+                let userIdentity = { type: UserTokenType.Anonymous };
+
                 if (this.authType === "username") {
-                    sessionOptions.userName = credentials.username || "";
-                    sessionOptions.password = credentials.password || "";
+                    userIdentity = {
+                        type: UserTokenType.UserName,
+                        userName: credentials.username || "",
+                        password: credentials.password || ""
+                    };
                 }
-                const session = await client.createSession(sessionOptions);
+                const session = await client.createSession(userIdentity);
 
                 session.on("session_closed", () => {
                     this.session = null;
