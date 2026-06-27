@@ -177,7 +177,13 @@ module.exports = function (RED) {
                 }
 
                 if (node.mode === "browse" || node.mode === "browseRecursive") {
-                    msg.payload = Object.assign({}, msg);
+                    const safeClone = {};
+                    for (const key in msg) {
+                        if (msg.hasOwnProperty(key) && key !== "req" && key !== "res") {
+                            safeClone[key] = msg[key];
+                        }
+                    }
+                    msg.payload = safeClone;
                 } else {
                     msg.payload = errorPayload;
                 }
