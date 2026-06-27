@@ -203,7 +203,8 @@ The mode select dropdown in `opcua-client.html` supports a new mode:
 
 5. **Error Propagation & Catch Integration:**
    - Standard `browse` and `browseRecursive` modes validate the `statusCode` property of the `BrowseResult` returned from the OPC UA server.
-   - If the starting node (root) fails to browse (e.g. due to connection issues or `BadNodeIdUnknown` status), an exception is thrown and propagated to the main flow execution. This allows the Node-RED **Catch** node to intercept the error and handle it properly.
+   - If the starting node (root) fails to browse (e.g. due to connection issues or `BadNodeIdUnknown` status), an exception is thrown and caught in the client node's input handler.
+   - To route the error to the Node-RED **Catch** node without generating large console stack traces, the client calls `node.error(error.message, msg)` directly and resolves the execution callback via `done()` with no arguments.
 
 6. **Success Status Property:**
    - When a browse operation completes successfully, a `status: "Good"` property is appended to the root output object, mirroring the shape of error status payloads.
