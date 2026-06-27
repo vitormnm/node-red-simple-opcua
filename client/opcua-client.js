@@ -176,7 +176,11 @@ module.exports = function (RED) {
                     };
                 }
 
-                msg.payload = errorPayload;
+                if (node.mode === "browse" || node.mode === "browseRecursive") {
+                    msg.payload = Object.assign({}, msg);
+                } else {
+                    msg.payload = errorPayload;
+                }
 
                 node.error(error.message || String(error), msg);
                 if (done) {
