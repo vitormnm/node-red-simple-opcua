@@ -17,6 +17,7 @@
             <option value="read">Read</option>
             <option value="write">Write</option>
             <option value="browse">Browse</option>
+            <option value="browseRecursive">Browse Recursive</option>
             <option value="method">Method</option>
               <option value="getSubscriptionId">getSubscriptionId</option>
             <option value="subscription">Subscription</option>
@@ -85,6 +86,7 @@
     <p><b>Read</b>: reads one or more variable values.</p>
     <p><b>Write</b>: writes one or more variable values.</p>
     <p><b>Browse</b>: browses one or more OPC UA nodes and returns their children.</p>
+    <p><b>Browse Recursive</b>: perform a recursive search across all nodes starting from the specified node.</p>
     <p><b>Method</b>: calls one or more OPC UA methods.</p>
     <p><b>Subscription</b>: subscribes to one or more variable values and emits one message per change.</p>
 
@@ -112,6 +114,11 @@
     <h3>Browse</h3>
     <p>If <code>msg.payload</code> is not an array and <code>NodeId</code> is configured, the node browses that configured node.</p>
     <p>If <code>msg.payload = []</code>, the node browses the OPC UA <code>RootFolder</code>.</p>
+
+    <h3>Browse Recursive</h3>
+    <p>Perform a recursive search across all nodes starting from the specified <code>nodeId</code>. It will return the value (if it is a variable), display name, description, and all other item information.</p>
+    <p>If <code>msg.payload</code> is not an array and <code>NodeId</code> is configured, the node browses recursively starting from that configured node.</p>
+    <p>If <code>msg.payload = []</code>, the node browses recursively starting from the OPC UA <code>RootFolder</code>.</p>
 
     <h3>Method</h3>
     <p><code>nodeID</code> and <code>objectId</code> are accepted explicitly. For backward compatibility, <code>nodeID</code> is also accepted as the method id.</p>

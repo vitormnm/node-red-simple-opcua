@@ -218,7 +218,13 @@ module.exports = function (RED) {
 
 async function browseForEditor(configNode, nodeId) {
     const session = await configNode.getSession();
-    return browseNode(session, {
+    const result = await browseNode(session, {
         nodeID: nodeId || ROOT_NODE_ID
     });
+    if (result && result.children) {
+        result.browse = result.children;
+        delete result.children;
+    }
+    return result;
 }
+

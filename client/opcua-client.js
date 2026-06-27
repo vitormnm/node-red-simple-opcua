@@ -15,6 +15,7 @@ const {
 
 const {
     browseNode: browseNodeWithSession,
+    browseRecursiveNode,
     ROOT_NODE_ID
 } = require("./lib/opcua-client-browser");
 
@@ -92,6 +93,9 @@ module.exports = function (RED) {
                 } else if (node.mode === "browse") {
                     payload = await executeBrowse(node, msg, session);
                     node.status({ fill: "green", shape: "dot", text: "browsed " + payload.length + " nodes" });
+                } else if (node.mode === "browseRecursive") {
+                    payload = await executeBrowseRecursive(node, msg, session);
+                    node.status({ fill: "green", shape: "dot", text: "browsed recursive " + payload.length + " nodes" });
                 } else if (node.mode === "method") {
                     //payload = await executeMethod(node, msg, session);
 
@@ -132,7 +136,7 @@ module.exports = function (RED) {
                             type: item.type,
                             status: error.message || String(error)
                         }));
-                    } else if (node.mode === "browse") {
+                    } else if (node.mode === "browse" || node.mode === "browseRecursive") {
                         const roots = normalizeBrowseRoots(node, msg ? msg.payload : undefined);
                         errorPayload = roots.map(root => ({
                             name: root.name,
@@ -199,6 +203,17 @@ module.exports = function (RED) {
 
         for (const root of roots) {
             payload.push(await browseNodeWithSession(session, root));
+        }
+
+        return payload;
+    }
+
+    async function executeBrowseRecursive(node, msg, session) {
+        const roots = normalizeBrowseRoots(node, msg ? msg.payload : undefined);
+        const payload = [];
+
+        for (const root of roots) {
+            payload.push(await browseRecursiveNode(session, root));
         }
 
         return payload;

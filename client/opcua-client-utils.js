@@ -469,7 +469,15 @@ async function getMethodArgumentDefinition(session, methodNodeId, cache) {
 }
 
 async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
-    if (result.type !== "Int32" && result.type !== "Enumeration") {
+    const type = result.type || result.dataType;
+    if (!type) {
+        return result;
+    }
+
+    const isStandardEnum = type === "Int32" || type === "Enumeration";
+    const isCustomNodeId = typeof type === "string" && (type.includes("i=") || type.includes("ns="));
+
+    if (!isStandardEnum && !isCustomNodeId) {
         return result;
     }
     
@@ -481,15 +489,19 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
         const cacheKeyType = "dt:" + nodeId;
         let dtNodeId = cache ? cache.get(cacheKeyType) : undefined;
         if (dtNodeId === undefined) {
-            const dv = await session.read({
-                nodeId: nodeId,
-                attributeId: AttributeIds.DataType
-            });
-            if (dv.statusCode.isGood()) {
-                dtNodeId = dv.value.value;
-                if (cache) cache.set(cacheKeyType, dtNodeId);
+            if (result.dataType) {
+                dtNodeId = coerceNodeId(result.dataType);
             } else {
-                if (cache) cache.set(cacheKeyType, null);
+                const dv = await session.read({
+                    nodeId: nodeId,
+                    attributeId: AttributeIds.DataType
+                });
+                if (dv.statusCode.isGood()) {
+                    dtNodeId = dv.value.value;
+                    if (cache) cache.set(cacheKeyType, dtNodeId);
+                } else {
+                    if (cache) cache.set(cacheKeyType, null);
+                }
             }
         }
         
@@ -549,6 +561,8 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
         
         if (enumStrings && enumStrings[result.value] !== undefined) {
             result.valueEnumeration = enumStrings[result.value];
+            if (result.type) result.type = "Enumeration";
+            if (result.dataType) result.dataType = "Enumeration";
         }
     } catch (e) {
         console.error("Error in enrichItemResultWithEnumeration:", e);

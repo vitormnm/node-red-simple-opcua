@@ -9,12 +9,15 @@ const {
     makeNodeId
 } = require("node-opcua");
 
+const { enrichItemResultWithEnumeration } = require("../opcua-client-utils");
+
 async function browseNode(session, root) {
     const nodeID = normalizeNodeId(root.nodeID || root.nodeId || ROOT_NODE_ID);
     const result = {
         name: root.name || await readBrowseName(session, nodeID, "RootFolder"),
         nodeID,
-        browse: []
+        status: "Good",
+        children: []
     };
 
 
@@ -30,10 +33,15 @@ async function browseNode(session, root) {
 
     let browseResult = await session.browse({
         nodeId: nodeID,
+        referenceTypeId: makeNodeId(33, 0), // HierarchicalReferences
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
         resultMask: 63
     });
+
+    if (browseResult.statusCode && !browseResult.statusCode.isGood()) {
+        throw new Error("Browse failed: " + browseResult.statusCode.toString());
+    }
 
     let references = [
         ...(browseResult.references || [])
@@ -61,19 +69,34 @@ async function browseNode(session, root) {
 
     // Monta lista de todos os atributos de todos os nós de uma vez
     const nodeIds = references.map(ref => normalizeNodeId(ref.nodeId));
+    const typeIds = references
+        .map(ref => ref.typeDefinition ? normalizeNodeId(ref.typeDefinition) : null)
+        .filter(Boolean);
+    const uniqueTypeIds = [...new Set(typeIds)];
 
-
-    const attributesToRead = nodeIds.flatMap(nodeId => [
-        { nodeId, attributeId: AttributeIds.Description },
-        { nodeId, attributeId: AttributeIds.DataType },
-        { nodeId, attributeId: AttributeIds.Value },
-    ]);
+    const attributesToRead = [
+        ...nodeIds.flatMap(nodeId => [
+            { nodeId, attributeId: AttributeIds.Description },
+            { nodeId, attributeId: AttributeIds.DataType },
+            { nodeId, attributeId: AttributeIds.Value },
+        ]),
+        ...uniqueTypeIds.map(nodeId => ({ nodeId, attributeId: AttributeIds.BrowseName }))
+    ];
 
     // UMA única chamada para todos os nós e atributos
     const dataValues = await session.read(attributesToRead);
 
+    const typeNamesMap = new Map();
+    const typeStartIdx = nodeIds.length * 3;
+    uniqueTypeIds.forEach((typeId, index) => {
+        const browseNameVal = dataValues[typeStartIdx + index]?.value?.value;
+        const name = browseNameVal?.name || typeId;
+        typeNamesMap.set(typeId, name);
+    });
+
+    const cache = new Map();
     // Distribui os resultados por nó (3 atributos por nó)
-    result.browse = await Promise.all(references.map(async (reference, i) => {
+    result.children = await Promise.all(references.map(async (reference, i) => {
         const childNodeId = nodeIds[i];
         const nodeClass = resolveNodeClassName(reference.nodeClass);
         const browseName = extractBrowseName(reference.browseName, childNodeId);
@@ -86,15 +109,33 @@ async function browseNode(session, root) {
 
         const item = { nodeID: childNodeId, nodeClass, browseName, displayName, description };
 
+        const typeNodeId = reference.typeDefinition ? normalizeNodeId(reference.typeDefinition) : null;
+        if (typeNodeId) {
+            const typeName = typeNamesMap.get(typeNodeId) || typeNodeId;
+            item.typeDefinition = typeNodeId;
+            item.hasTypeDefinition = {
+                nodeID: typeNodeId,
+                browseName: typeName,
+                displayName: typeName
+            };
+        }
+
         if (nodeClass === "Variable") {
             const dataTypeValue = dataValues[i * 3 + 1]?.value?.value;
-            const rawValue = dataValues[i * 3 + 2]?.value?.value;
+            const rawValueVariant = dataValues[i * 3 + 2]?.value;
+            const rawValue = rawValueVariant?.value;
 
             item.dataType = dataTypeValue?.namespace === 0 && typeof dataTypeValue?.value === "number"
                 ? (DataType[dataTypeValue.value] || dataTypeValue.toString())
                 : (dataTypeValue?.toString() ?? "");
 
+            if (rawValueVariant?.dataType === DataType.Enumeration) {
+                item.dataType = "Enumeration";
+            }
+
             item.value = rawValue ?? "";
+
+            await enrichItemResultWithEnumeration(item, session, cache, childNodeId);
         }
 
         if (nodeClass === "Method") {
@@ -358,11 +399,198 @@ function resolveArgumentDataType(dataType) {
     return dataType.toString();
 }
 
+async function browseRecursiveNode(session, root) {
+    const startNodeId = normalizeNodeId(root.nodeID || root.nodeId || ROOT_NODE_ID);
+    const rootName = root.name || await readBrowseName(session, startNodeId, "RootFolder");
+
+    const visited = new Set();
+    visited.add(startNodeId);
+
+    const allItems = [];
+
+    async function traverse(nodeID) {
+        let browseResult;
+        try {
+            browseResult = await session.browse({
+                nodeId: nodeID,
+                referenceTypeId: makeNodeId(33, 0), // HierarchicalReferences
+                browseDirection: BrowseDirection.Forward,
+                includeSubtypes: true,
+                resultMask: 63
+            });
+        } catch (err) {
+            if (nodeID === startNodeId) {
+                throw err;
+            }
+            return [];
+        }
+
+        if (browseResult.statusCode && !browseResult.statusCode.isGood()) {
+            if (nodeID === startNodeId) {
+                throw new Error("Browse failed: " + browseResult.statusCode.toString());
+            }
+            return [];
+        }
+
+        let references = [...(browseResult.references || [])];
+
+        while (browseResult.continuationPoint) {
+            try {
+                browseResult = await session.browseNext(
+                    browseResult.continuationPoint,
+                    false
+                );
+                references.push(...(browseResult.references || []));
+            } catch (err) {
+                break;
+            }
+        }
+
+        if (!references.length) {
+            return [];
+        }
+
+        const items = [];
+        for (const ref of references) {
+            const childNodeId = normalizeNodeId(ref.nodeId);
+            const nodeClass = resolveNodeClassName(ref.nodeClass);
+            const browseName = extractBrowseName(ref.browseName, childNodeId);
+            const displayName = extractDisplayName(ref.displayName, browseName);
+            const typeNodeId = ref.typeDefinition ? normalizeNodeId(ref.typeDefinition) : null;
+
+            const item = {
+                nodeID: childNodeId,
+                nodeClass,
+                browseName,
+                displayName
+            };
+            if (typeNodeId) {
+                item.typeDefinition = typeNodeId;
+            }
+
+            items.push(item);
+            allItems.push(item);
+
+            const expandable = nodeClass === "Object" || nodeClass === "Folder" || nodeClass === "View" || nodeClass === "ObjectType";
+            if (expandable && !visited.has(childNodeId)) {
+                visited.add(childNodeId);
+                item.children = await traverse(childNodeId);
+            }
+        }
+
+        return items;
+    }
+
+    const browseResult = await traverse(startNodeId);
+
+    if (allItems.length > 0) {
+        const cache = new Map();
+        const typeIds = allItems
+            .map(item => item.typeDefinition)
+            .filter(Boolean);
+        const uniqueTypeIds = [...new Set(typeIds)];
+
+        const typeNamesMap = new Map();
+        if (uniqueTypeIds.length > 0) {
+            try {
+                const typeAttributes = uniqueTypeIds.map(nodeId => ({ nodeId, attributeId: AttributeIds.BrowseName }));
+                const typeDataValues = await session.read(typeAttributes);
+                uniqueTypeIds.forEach((typeId, index) => {
+                    const browseNameVal = typeDataValues[index]?.value?.value;
+                    const name = browseNameVal?.name || typeId;
+                    typeNamesMap.set(typeId, name);
+                });
+            } catch (err) {
+                // Ignore type names read error, we'll fallback to NodeId below
+            }
+        }
+
+        const BATCH_SIZE = 100;
+        for (let i = 0; i < allItems.length; i += BATCH_SIZE) {
+            const chunk = allItems.slice(i, i + BATCH_SIZE);
+            const attributesToRead = chunk.flatMap(item => [
+                { nodeId: item.nodeID, attributeId: AttributeIds.Description },
+                { nodeId: item.nodeID, attributeId: AttributeIds.DataType },
+                { nodeId: item.nodeID, attributeId: AttributeIds.Value }
+            ]);
+
+            try {
+                const dataValues = await session.read(attributesToRead);
+                await Promise.all(chunk.map(async (item, index) => {
+                    const descValue = dataValues[index * 3]?.value?.value;
+                    item.description = typeof descValue === "string"
+                        ? descValue
+                        : (descValue?.text ?? "");
+
+                    if (item.nodeClass === "Variable") {
+                        const dataTypeValue = dataValues[index * 3 + 1]?.value?.value;
+                        const rawValueVariant = dataValues[index * 3 + 2]?.value;
+                        const rawValue = rawValueVariant?.value;
+
+                        item.dataType = dataTypeValue?.namespace === 0 && typeof dataTypeValue?.value === "number"
+                            ? (DataType[dataTypeValue.value] || dataTypeValue.toString())
+                            : (dataTypeValue?.toString() ?? "");
+
+                        if (rawValueVariant?.dataType === DataType.Enumeration) {
+                            item.dataType = "Enumeration";
+                        }
+
+                        item.value = rawValue ?? "";
+
+                        await enrichItemResultWithEnumeration(item, session, cache, item.nodeID);
+                    }
+
+                    if (item.typeDefinition) {
+                        const typeName = typeNamesMap.get(item.typeDefinition) || item.typeDefinition;
+                        item.hasTypeDefinition = {
+                            nodeID: item.typeDefinition,
+                            browseName: typeName,
+                            displayName: typeName
+                        };
+                    }
+                }));
+            } catch (readError) {
+                chunk.forEach(item => {
+                    item.description = "";
+                    if (item.nodeClass === "Variable") {
+                        item.dataType = "";
+                        item.value = "";
+                    }
+                    if (item.typeDefinition) {
+                        const typeName = typeNamesMap.get(item.typeDefinition) || item.typeDefinition;
+                        item.hasTypeDefinition = {
+                            nodeID: item.typeDefinition,
+                            browseName: typeName,
+                            displayName: typeName
+                        };
+                    }
+                });
+            }
+        }
+
+        const methods = allItems.filter(item => item.nodeClass === "Method");
+        for (const method of methods) {
+            const definition = await readMethodArguments(session, method.nodeID);
+            method.inputArguments = definition.inputArguments;
+            method.outputArguments = definition.outputArguments;
+        }
+    }
+
+    return {
+        name: rootName,
+        nodeID: startNodeId,
+        status: "Good",
+        children: browseResult
+    };
+}
+
 const ROOT_NODE_ID = "i=84";
 
 module.exports = {
     browseNode,
+    browseRecursiveNode,
     normalizeBrowseRoots,
     normalizeNodeId,
     ROOT_NODE_ID
 };
+
