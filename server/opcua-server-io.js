@@ -36,6 +36,7 @@ module.exports = function (RED) {
         node._childListenerAttached = false;
         node._attachedChild = null;
         node._childListenerRetry = null;
+        node._pendingDoneCallbacks = new Map();
 
         const handler = (msg) => {
             onMessage(msg, node);
@@ -65,46 +66,66 @@ module.exports = function (RED) {
                     node.send.apply(node, arguments);
                 };
 
+                if (msg && msg._msgid) {
+                    node._pendingDoneCallbacks.set(msg._msgid, done);
+                }
+
                 if (node.mode === "read") {
                     await handleRead(node, msg, send);
                 }
-
-                if (node.mode === "write") {
+                else if (node.mode === "write") {
                     await handleWrite(node, msg, send);
                 }
-
-                if (node.mode === "event") {
+                else if (node.mode === "event") {
                     await handleEvent(node, msg, send);
                 }
-
-                if (node.mode === "activeAlarms") {
+                else if (node.mode === "activeAlarms") {
                     await handleActiveAlarms(node, msg, send);
                 }
-
-                if (node.mode === "method-output") {
+                else if (node.mode === "method-output") {
                     await handleMethodOutput(node, msg, send);
                     done();
-                    return;
+                    if (msg && msg._msgid) {
+                        node._pendingDoneCallbacks.delete(msg._msgid);
+                    }
                 }
-                if (node.mode === "events") {
+                else if (node.mode === "events") {
                     await registerEvents(node, { waitForServer: true, timeoutMs: 5000 });
+                    done();
+                    if (msg && msg._msgid) {
+                        node._pendingDoneCallbacks.delete(msg._msgid);
+                    }
                 }
-                if (node.mode === "status") {
+                else if (node.mode === "status") {
                     await requestSnapshot(node, msg, { waitForServer: true, timeoutMs: 5000 });
+                    done();
+                    if (msg && msg._msgid) {
+                        node._pendingDoneCallbacks.delete(msg._msgid);
+                    }
                 }
-                if (node.mode === "getSessions") {
+                else if (node.mode === "getSessions") {
                     await requestSessions(node, msg, { waitForServer: true, timeoutMs: 5000 });
+                    done();
+                    if (msg && msg._msgid) {
+                        node._pendingDoneCallbacks.delete(msg._msgid);
+                    }
                 }
-                if (node.mode === "deleteSessions") {
+                else if (node.mode === "deleteSessions") {
                     await handleDeleteSessions(node, msg, { waitForServer: true, timeoutMs: 5000 });
+                    done();
+                    if (msg && msg._msgid) {
+                        node._pendingDoneCallbacks.delete(msg._msgid);
+                    }
                 }
 
-                done();
             } catch (error) {
                 node.status({ fill: "red", shape: "ring", text: node.mode + " failed" });
                 node.error(error.message || String(error), msg);
                 if (done) {
                     done();
+                }
+                if (msg && msg._msgid) {
+                    node._pendingDoneCallbacks.delete(msg._msgid);
                 }
             }
         });
@@ -116,6 +137,7 @@ module.exports = function (RED) {
             }
 
             detachChildListener(node, handler);
+            node._pendingDoneCallbacks.clear();
 
 
             if (node.mode === "method-input") {
@@ -157,6 +179,13 @@ module.exports = function (RED) {
                 }
 
                 node.send(data);
+
+                const originalMsgId = data && data._msgid;
+                if (originalMsgId && node._pendingDoneCallbacks.has(originalMsgId)) {
+                    const pendingDone = node._pendingDoneCallbacks.get(originalMsgId);
+                    pendingDone();
+                    node._pendingDoneCallbacks.delete(originalMsgId);
+                }
             }
 
             if (msg.type === "error") {
@@ -165,6 +194,13 @@ module.exports = function (RED) {
                     error: msg.error
                 });
                 node.error(msg.error, catchMsg);
+
+                const originalMsgId = catchMsg._msgid;
+                if (originalMsgId && node._pendingDoneCallbacks.has(originalMsgId)) {
+                    const pendingDone = node._pendingDoneCallbacks.get(originalMsgId);
+                    pendingDone();
+                    node._pendingDoneCallbacks.delete(originalMsgId);
+                }
             }
 
             if (msg.type === "partialError") {
@@ -174,6 +210,13 @@ module.exports = function (RED) {
                     error: msg.error
                 });
                 node.error(msg.error, catchMsg);
+
+                const originalMsgId = catchMsg._msgid;
+                if (originalMsgId && node._pendingDoneCallbacks.has(originalMsgId)) {
+                    const pendingDone = node._pendingDoneCallbacks.get(originalMsgId);
+                    pendingDone();
+                    node._pendingDoneCallbacks.delete(originalMsgId);
+                }
             }
 
             if (msg.type === "sendMethod") {
