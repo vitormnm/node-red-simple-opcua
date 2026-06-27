@@ -102,7 +102,10 @@ module.exports = function (RED) {
                 done();
             } catch (error) {
                 node.status({ fill: "red", shape: "ring", text: node.mode + " failed" });
-                done(error);
+                node.error(error.message || String(error), msg);
+                if (done) {
+                    done();
+                }
             }
         });
 

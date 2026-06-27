@@ -146,8 +146,10 @@ module.exports = function (RED) {
 
                 done();
             } catch (error) {
-                reportError(node, "Input processing failed", error);
-                done(error);
+                reportError(node, "Input processing failed", error, msg);
+                if (done) {
+                    done();
+                }
             }
         });
 
@@ -169,9 +171,13 @@ module.exports = function (RED) {
 
 
 
-    function reportError(node, message, error) {
+    function reportError(node, message, error, msg) {
         const details = error && error.message ? error.message : String(error);
-        node.error(message + ": " + details);
+        if (msg) {
+            node.error(message + ": " + details, msg);
+        } else {
+            node.error(message + ": " + details);
+        }
         node.status({ fill: "red", shape: "ring", text: message });
     }
 

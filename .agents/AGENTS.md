@@ -224,6 +224,11 @@ To ensure errors are routed correctly without flooding Node-RED's system console
    ```
    This ensures the error is captured by the **Catch** node correctly without writing duplicate entries or stack traces to the Node-RED runtime console.
 
+---
 
+## General Node-RED Error Handling & Catch Integration Rules
 
-
+When writing or modifying Node-RED nodes in this repository, follow these rules to handle errors without generating clutter in the console logs or Debug sidebar:
+1. **No Standard Send on Failure**: When an input handler catches an error, it must **never** call `send(msg)` (or `node.send(msg)`) to send the failed message downstream. Doing so will make the error/status message appear in standard outputs (and any attached debug nodes), which clutters the Debug sidebar.
+2. **Route via Catch Node Only**: To route the error exclusively to the **Catch** node, call `node.error(errMessage, msg)` where the second argument `msg` is the active Node-RED message context.
+3. **Resolve Done Callback Cleanly**: Always call `done()` with **no arguments** (when `done` is defined). Do not call `done(error)` as the wrapper will automatically log a full stack trace to the console. Emitting the error via `node.error(errMessage, msg)` and then calling `done()` with no arguments ensures the error reaches the Catch block cleanly and silently.

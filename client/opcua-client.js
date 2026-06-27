@@ -177,7 +177,6 @@ module.exports = function (RED) {
                 }
 
                 msg.payload = errorPayload;
-                send(msg);
 
                 node.error(error.message || String(error), msg);
                 if (done) {
