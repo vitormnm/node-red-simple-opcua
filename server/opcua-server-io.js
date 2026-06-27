@@ -158,7 +158,10 @@ module.exports = function (RED) {
 
             if (msg.type === "error") {
                 node.status(msg.data);
-                node.error(msg.error);
+                const catchMsg = Object.assign({}, msg.originalMsg || {}, {
+                    error: msg.error
+                });
+                node.error(msg.error, catchMsg);
             }
 
             if (msg.type === "partialError") {

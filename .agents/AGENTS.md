@@ -209,5 +209,21 @@ The mode select dropdown in `opcua-client.html` supports a new mode:
 6. **Success Status Property:**
    - When a browse operation completes successfully, a `status: "Good"` property is appended to the root output object, mirroring the shape of error status payloads.
 
+---
+
+## Error Handling & Catch Integration — `opcua-server-io`
+
+To ensure errors are routed correctly without flooding Node-RED's system console log or printouts:
+1. **Child Process IPC Error Propagation**: Catch blocks in the child process (`readFromPayload`, `writeEventFromPayload`, `writeFromPayload`, `readActiveSessions`, `deleteActiveSessions` in `server/lib/opcua-server-runtime-child.js`) pass `originalMsg: msg` (the original incoming Node-RED message context) back to the parent process.
+2. **Silent Catch Triggering**: In `server/opcua-server-io.js`, the IPC message receiver for `type === "error"` was updated from calling log-heavy `node.error(msg.error)` to routing the error with the message context:
+   ```javascript
+   const catchMsg = Object.assign({}, msg.originalMsg || {}, {
+       error: msg.error
+   });
+   node.error(msg.error, catchMsg);
+   ```
+   This ensures the error is captured by the **Catch** node correctly without writing duplicate entries or stack traces to the Node-RED runtime console.
+
+
 
 

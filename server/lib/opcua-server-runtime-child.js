@@ -308,6 +308,7 @@ class OpcUaServerProcess {
                 type: "error",
                 data: { fill: "red", shape: "ring", text: "failed read" },
                 error: error.message,
+                originalMsg: msg,
                 nodeId: nodeId
             });
         }
@@ -362,6 +363,7 @@ class OpcUaServerProcess {
                 type: "error",
                 data: { fill: "red", shape: "ring", text: "failed write" },
                 error: error.message,
+                originalMsg: msg,
                 nodeId: nodeId
             });
         }
@@ -582,6 +584,7 @@ class OpcUaServerProcess {
                     text: "failed write"
                 },
                 error: error.message,
+                originalMsg: msg,
                 nodeId
             });
         }
@@ -919,6 +922,7 @@ class OpcUaServerProcess {
                     type: "error",
                     data: { fill: "red", shape: "ring", text: "failed getSessions" },
                     error: error.message,
+                    originalMsg: msg,
                     nodeId: nodeId
                 });
             } else {
@@ -1005,6 +1009,7 @@ class OpcUaServerProcess {
                     type: "error",
                     data: { fill: "red", shape: "ring", text: "failed deleteSessions" },
                     error: error.message,
+                    originalMsg: msg,
                     nodeId: nodeId
                 });
             } else {
