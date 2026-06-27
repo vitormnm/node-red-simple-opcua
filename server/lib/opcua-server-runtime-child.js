@@ -257,18 +257,33 @@ class OpcUaServerProcess {
 
 
 
-            process.send({
-                type: "send",
-                data: msg,
-                nodeId: nodeId
-            });
+            let hasFailures = false;
+            if (readArrayResults) {
+                const failed = readArrayResults.filter(item => item && item.status !== "Good");
+                if (failed.length) {
+                    hasFailures = true;
+                }
+            }
+            if (result.directError) {
+                hasFailures = true;
+            }
+
+            if (!hasFailures) {
+                process.send({
+                    type: "send",
+                    data: msg,
+                    nodeId: nodeId
+                });
+            }
 
             process.send({
                 type: "status",
                 data: {
-                    fill: "green",
+                    fill: hasFailures ? (result.directError ? "red" : "yellow") : "green",
                     shape: "dot",
-                    text: result.identifiers.length > 1 ? "read " + result.identifiers.length + " tags" : "read " + result.identifiers[0]
+                    text: hasFailures
+                        ? (result.directError ? "read failed" : "partial read failed")
+                        : (result.identifiers.length > 1 ? "read " + result.identifiers.length + " tags" : "read " + result.identifiers[0])
                 },
                 nodeId: nodeId
             });
@@ -526,21 +541,33 @@ class OpcUaServerProcess {
                 msg.topic = writtenPaths[0];
             }
 
-            process.send({
-                type: "send",
-                data: msg,
-                nodeId
-            });
+            let hasFailures = false;
+            if (Array.isArray(msg.payload) && msg.payload.length && msg.payload[0] && typeof msg.payload[0].status === "string") {
+                const failed = msg.payload.filter(item => item.status !== "Good");
+                if (failed.length) {
+                    hasFailures = true;
+                }
+            }
+            if (directError) {
+                hasFailures = true;
+            }
+
+            if (!hasFailures) {
+                process.send({
+                    type: "send",
+                    data: msg,
+                    nodeId
+                });
+            }
 
             process.send({
                 type: "status",
                 data: {
-                    fill: "green",
+                    fill: hasFailures ? (directError ? "red" : "yellow") : "green",
                     shape: "dot",
-                    text:
-                        writtenPaths.length > 1
-                            ? `write ${writtenPaths.length} tags`
-                            : `write ${writtenPaths[0]}`
+                    text: hasFailures
+                        ? (directError ? "write failed" : "partial write failed")
+                        : (writtenPaths.length > 1 ? `write ${writtenPaths.length} tags` : `write ${writtenPaths[0]}`)
                 },
                 nodeId
             });
