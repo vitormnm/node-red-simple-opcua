@@ -37,6 +37,7 @@ module.exports = function (RED) {
         node._attachedChild = null;
         node._childListenerRetry = null;
         node._pendingDoneCallbacks = new Map();
+        node._pendingMessages = new Map();
 
         const handler = (msg) => {
             onMessage(msg, node);
@@ -68,6 +69,7 @@ module.exports = function (RED) {
 
                 if (msg && msg._msgid) {
                     node._pendingDoneCallbacks.set(msg._msgid, done);
+                    node._pendingMessages.set(msg._msgid, msg);
                 }
 
                 if (node.mode === "read") {
@@ -126,6 +128,7 @@ module.exports = function (RED) {
                 }
                 if (msg && msg._msgid) {
                     node._pendingDoneCallbacks.delete(msg._msgid);
+                    node._pendingMessages.delete(msg._msgid);
                 }
             }
         });
@@ -138,6 +141,7 @@ module.exports = function (RED) {
 
             detachChildListener(node, handler);
             node._pendingDoneCallbacks.clear();
+            node._pendingMessages.clear();
 
 
             if (node.mode === "method-input") {
@@ -178,9 +182,18 @@ module.exports = function (RED) {
                     data.payload = restoreBuffers(data.payload);
                 }
 
-                node.send(data);
-
                 const originalMsgId = data && data._msgid;
+                let actualMsg = data;
+                if (originalMsgId && node._pendingMessages.has(originalMsgId)) {
+                    actualMsg = node._pendingMessages.get(originalMsgId);
+                    actualMsg.payload = data.payload;
+                    actualMsg.opcua = data.opcua;
+                    actualMsg.topic = data.topic;
+                    node._pendingMessages.delete(originalMsgId);
+                }
+
+                node.send(actualMsg);
+
                 if (originalMsgId && node._pendingDoneCallbacks.has(originalMsgId)) {
                     const pendingDone = node._pendingDoneCallbacks.get(originalMsgId);
                     pendingDone();
@@ -190,12 +203,17 @@ module.exports = function (RED) {
 
             if (msg.type === "error") {
                 node.status(msg.data);
-                const catchMsg = Object.assign({}, msg.originalMsg || {}, {
-                    error: msg.error
-                });
+
+                const originalMsgId = msg.originalMsg && msg.originalMsg._msgid;
+                let catchMsg = msg.originalMsg || {};
+                if (originalMsgId && node._pendingMessages.has(originalMsgId)) {
+                    catchMsg = node._pendingMessages.get(originalMsgId);
+                    node._pendingMessages.delete(originalMsgId);
+                }
+                catchMsg.error = msg.error;
+
                 node.error(msg.error, catchMsg);
 
-                const originalMsgId = catchMsg._msgid;
                 if (originalMsgId && node._pendingDoneCallbacks.has(originalMsgId)) {
                     const pendingDone = node._pendingDoneCallbacks.get(originalMsgId);
                     pendingDone();
@@ -205,13 +223,17 @@ module.exports = function (RED) {
 
             if (msg.type === "partialError") {
                 // Route failed items to catch node without changing the node status
-                const catchMsg = Object.assign({}, msg.originalMsg || {}, {
-                    payload: msg.failed,
-                    error: msg.error
-                });
+                const originalMsgId = msg.originalMsg && msg.originalMsg._msgid;
+                let catchMsg = msg.originalMsg || {};
+                if (originalMsgId && node._pendingMessages.has(originalMsgId)) {
+                    catchMsg = node._pendingMessages.get(originalMsgId);
+                    node._pendingMessages.delete(originalMsgId);
+                }
+                catchMsg.payload = msg.failed;
+                catchMsg.error = msg.error;
+
                 node.error(msg.error, catchMsg);
 
-                const originalMsgId = catchMsg._msgid;
                 if (originalMsgId && node._pendingDoneCallbacks.has(originalMsgId)) {
                     const pendingDone = node._pendingDoneCallbacks.get(originalMsgId);
                     pendingDone();
