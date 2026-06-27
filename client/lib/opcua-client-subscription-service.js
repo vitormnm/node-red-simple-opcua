@@ -34,7 +34,6 @@ class OpcUaClientSubscriptionService {
 
         subscription.on("error", (error) => {
             node.status({ fill: "red", shape: "ring", text: "subscription error" });
-            node.error(error);
         });
 
         node.subscription = subscription;
@@ -97,7 +96,6 @@ class OpcUaClientSubscriptionService {
 
         subscription.on("error", (error) => {
             node.status({ fill: "red", shape: "ring", text: "subscription error" });
-            node.error(error);
         });
 
         node.subscription = subscription;

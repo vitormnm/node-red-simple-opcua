@@ -1,6 +1,6 @@
 "use strict";
 
-const { dataValueToItemResult, ensureArrayPayload, resolveNodeId, resolveMethodObjectId, buildVariantFromItem, callResultToItemResult } = require("../opcua-client-utils");
+const { dataValueToItemResult, ensureArrayPayload, resolveNodeId, resolveMethodObjectId, buildVariantFromItem, callResultToItemResult, getMethodArgumentDefinition } = require("../opcua-client-utils");
 
 class OpcUaClientMethodService {
     async execute(node, msg, session, itemsResolver) {

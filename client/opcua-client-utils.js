@@ -489,9 +489,19 @@ async function enrichItemResultWithEnumeration(result, session, cache, nodeId) {
         const cacheKeyType = "dt:" + nodeId;
         let dtNodeId = cache ? cache.get(cacheKeyType) : undefined;
         if (dtNodeId === undefined) {
-            if (result.dataType) {
-                dtNodeId = coerceNodeId(result.dataType);
-            } else {
+            const isNodeIdLike = result.dataType && (
+                typeof result.dataType !== "string" || 
+                result.dataType.includes("i=") || 
+                result.dataType.includes("ns=")
+            );
+            if (isNodeIdLike) {
+                try {
+                    dtNodeId = coerceNodeId(result.dataType);
+                } catch (e) {
+                    dtNodeId = undefined;
+                }
+            }
+            if (dtNodeId === undefined) {
                 const dv = await session.read({
                     nodeId: nodeId,
                     attributeId: AttributeIds.DataType
