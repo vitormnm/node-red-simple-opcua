@@ -142,7 +142,8 @@ module.exports = function (RED) {
                             name: root.name,
                             nodeID: root.nodeID,
                             status: error.message || String(error),
-                            results: []
+                            results: [],
+                            children: []
                         }));
                     } else if (node.mode === "method") {
                         const items = itemsResolver.ensureMethodItems(node, msg);
@@ -176,17 +177,19 @@ module.exports = function (RED) {
                     };
                 }
 
-                if (node.mode === "browse" || node.mode === "browseRecursive") {
-                    const safeClone = {};
-                    for (const key in msg) {
-                        if (msg.hasOwnProperty(key) && key !== "req" && key !== "res") {
-                            safeClone[key] = msg[key];
-                        }
+                const safeClone = {};
+                for (const key in msg) {
+                    if (msg.hasOwnProperty(key) && key !== "req" && key !== "res" && key !== "payload") {
+                        safeClone[key] = msg[key];
                     }
-                    msg.payload = safeClone;
-                } else {
-                    msg.payload = errorPayload;
                 }
+                safeClone.payload = msg.payload;
+
+                if (errorPayload && (Array.isArray(errorPayload) || typeof errorPayload === "object")) {
+                    errorPayload.msg = safeClone;
+                }
+
+                msg.payload = errorPayload;
 
                 node.error(error.message || String(error), msg);
                 if (done) {
