@@ -15,19 +15,14 @@ class OpcUaAddressSpaceAlarm {
     }
 
     emitTagAccess(operation, details) {
-        this.registry.emitTagAccess({
+        this.registry.emitTagAccess(Object.assign({
             operation,
             serverId: this.node.id,
             serverNodeName: this.node.name || "",
             serverName: this.serverName,
             timestamp: new Date().toISOString(),
-            path: details.path,
-            nodeID: details.nodeID,
-            browseName: details.browseName,
-            dataType: details.dataType,
-            value: details.value,
             users: []
-        });
+        }, details));
     }
 
     createAlarm(namespace, browseName, parentNode, inputNode, conditionName, nodeId, sourceName, alarmConfig) {
