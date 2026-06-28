@@ -123,6 +123,9 @@ function upsertEvent(map, event) {
     } else {
         // Variable already seen — update value and merge any new users
         existing.value = event.value;
+        if (event.message !== undefined) existing.message = event.message;
+        if (event.severity !== undefined) existing.severity = event.severity;
+        if (event.retain !== undefined) existing.retain = event.retain;
         const existingNames = new Set((existing.users || []).map(u => u.name));
         for (const user of (event.users || [])) {
             if (!existingNames.has(user.name)) {

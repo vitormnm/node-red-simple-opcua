@@ -260,6 +260,9 @@ class OpcUaAddressSpaceAlarm {
         const sendValue = alarmConfig.sendValue !== false;
 
         this.emitTagAccess("alarm", {
+            path: alarmNode.path || alarmNode.browseName.name,
+            nodeID: alarmNode.nodeId.toString(),
+            browseName: alarmNode.browseName.name,
             message: message,
             severity: severity,
             retain: retain,

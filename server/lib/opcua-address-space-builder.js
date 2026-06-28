@@ -1109,6 +1109,7 @@ class OpcUaAddressSpaceBuilder {
                 if (alarmRolePermissions) {
                     existingNode.setRolePermissions(alarmRolePermissions);
                 }
+                existingNode.path = nextPath;
 
                 variableToMonitor.alarm = {
                     node: existingNode,
@@ -1122,6 +1123,9 @@ class OpcUaAddressSpaceBuilder {
             const alarmRolePermissions = this.buildRolePermissions("alarm", alarmConfig);
             if (alarmNode && alarmRolePermissions) {
                 alarmNode.setRolePermissions(alarmRolePermissions);
+            }
+            if (alarmNode) {
+                alarmNode.path = nextPath;
             }
 
 
