@@ -735,7 +735,7 @@
                 var valueText = (payload.valueEnumeration !== undefined && payload.valueEnumeration !== null)
                     ? payload.valueEnumeration + " (" + payload.value + ")"
                     : (payload.value !== undefined ? String(payload.value) : "undefined");
-                RED.notify("Valor da variável: " + valueText, "success");
+                RED.notify("Variable value: " + valueText, "success");
             } else {
                 RED.notify("No value returned from the server.", "warning");
             }
