@@ -303,15 +303,20 @@ The `events` mode of `opcua-server-io` now includes a `users` array in every rea
 
 **Alarm events** — `server/lib/opcua-address-space-alarm.js`
 
-Alarm events (server-internal, no client session) always carry `users: []`.
+Alarm events triggered by user actions (like client writes triggering limit checks, or acknowledge/confirm method calls) carry the caller's user and group context:
+- For method calls (`acknowledge`/`confirm`): context is captured from the method execution parameter.
+- For write-triggered alarm transitions: context is captured via `registry.activeWriteContext` set in the variable `writeValue` wrapper.
+- Internal/system-triggered alarm events with no client session default to `{ name: "anonymous", groups: [] }`.
+
+The alarm event payload is fully enriched to match the structure of the **Active Alarms** node payload.
 
 ### Event deduplication and merging — `server/lib/opcua-server-events-child.js`
 
 `upsertEvent(map, event)` keys the flush-interval Map by `nodeID` only:
 - **First access** in the interval → stores a shallow copy of the event with a fresh `users` array.
-- **Subsequent accesses** (same variable, same interval, different users) → updates `value` to the latest and merges any new users not yet in the list (deduplication by `user.name` using a `Set`).
+- **Subsequent accesses** (same variable/alarm, same interval, different users) → updates the value, message, severity, retain, activeState, ackedState, ConfirmedState, and alarmNode properties to the latest, and merges any new users not yet in the list (deduplication by `user.name` using a `Set`).
 
-This means one variable always appears **once** per interval in the output, with all concurrent users listed in its `users` array.
+This means one variable/alarm always appears **once** per interval in the output, with all concurrent users listed in its `users` array.
 
 ### Output shape
 
@@ -331,7 +336,39 @@ This means one variable always appears **once** per interval in the output, with
     }
   ],
   "write": [ ... ],
-  "alarm": [ ... ]
+  "alarm": [
+    {
+      "operation": "alarm",
+      "serverId": "bb500ac217e4128e",
+      "serverNodeName": "",
+      "serverName": "MyServer",
+      "timestamp": "2026-06-28T13:46:59.595Z",
+      "path": "server1.newAlarm",
+      "nodeID": "ns=2;s=server1.newAlarm",
+      "browseName": "newAlarm",
+      "dataType": "alarm",
+      "value": "highHighSp",
+      "activeState": true,
+      "message": "High High alarm: 95",
+      "severity": 500,
+      "retain": true,
+      "sourceName": "varalarme",
+      "conditionName": "newAlarm",
+      "ConfirmedState": true,
+      "ackedState": false,
+      "users": [
+        { "name": "vitor", "groups": ["engineer", "admin"] }
+      ],
+      "alarmNode": {
+        "nodeId": "ns=2;s=server1.newAlarm",
+        "browseName": { "namespaceIndex": 2, "name": "newAlarm" },
+        "displayName": [{ "text": "newAlarm" }],
+        "description": { "text": "" },
+        "nodeClass": 1,
+        "typeDefinition": "ns=2;i=1001"
+      }
+    }
+  ]
 }
 ```
 
