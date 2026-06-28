@@ -1,5 +1,3 @@
-# @vitormnm/node-red-simple-opcua
-
 OPC UA client and server with a simple graphical interface for Node-RED.
 
 This package provides a simplified, highly parameterized set of nodes to establish OPC UA Servers and Clients in Node-RED without complex coding.
