@@ -8,7 +8,10 @@ const {
     getMethodArgumentDefinition,
     resolveMethodObjectId,
     resolveSecurityMode,
-    resolveSecurityPolicy
+    resolveSecurityPolicy,
+    AttributeIds,
+    dataValueToItemResult,
+    enrichItemResultWithEnumeration
 } = require("./opcua-client-utils");
 
 const {
@@ -210,6 +213,40 @@ module.exports = function (RED) {
 
             const payload = await browseForEditor(configNode, req.query.nodeId);
             res.json(payload);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    RED.httpAdmin.get("/opcua-client-config/:id/read", RED.auth.needsPermission("flows.read"), async function (req, res) {
+        try {
+            const configNode = RED.nodes.getNode(req.params.id);
+
+            if (!configNode) {
+                res.status(404).json({ error: "OPC UA client configuration not found" });
+                return;
+            }
+
+            const nodeId = req.query.nodeId;
+            if (!nodeId) {
+                throw new Error("Missing nodeId parameter");
+            }
+
+            const session = await configNode.getSession();
+            const dataValue = await session.read({
+                nodeId: nodeId,
+                attributeId: AttributeIds.Value
+            });
+
+            if (dataValue.statusCode && !dataValue.statusCode.isGood()) {
+                throw new Error("Read failed: " + dataValue.statusCode.toString());
+            }
+
+            const cache = new Map();
+            let result = dataValueToItemResult({ nodeID: nodeId }, dataValue);
+            result = await enrichItemResultWithEnumeration(result, session, cache, nodeId);
+
+            res.json({ value: result.value, valueEnumeration: result.valueEnumeration });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

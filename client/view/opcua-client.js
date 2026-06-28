@@ -675,6 +675,7 @@
         contextMenuPath = path || "";
         $("#node-input-browse-context-refresh").toggle(!!item && !isVariable(item));
         $("#node-input-browse-context-copy-nodeid").toggle(!!nodeIdOf(item));
+        $("#node-input-browse-context-read-value").toggle(!!item && isVariable(item) && !!nodeIdOf(item));
         menu.css({ left: x + "px", top: y + "px" }).show();
     }
 
@@ -709,6 +710,41 @@
             RED.notify("Failed to copy NodeID.", "error");
         }
         input.remove();
+    }
+
+    function readValueFromPath(path) {
+        var item = getItemAtPath(path);
+        var nodeId = nodeIdOf(item);
+        if (!nodeId) {
+            RED.notify("NodeID not found for the selected item.", "warning");
+            return;
+        }
+
+        var connectionId = $("#node-input-connection").val();
+        if (!connectionId) {
+            RED.notify("Select an OPC UA connection before reading.", "warning");
+            return;
+        }
+
+        $.getJSON("opcua-client-config/" + encodeURIComponent(connectionId) + "/read", {
+            nodeId: nodeId
+        }).done(function (payload) {
+            if (payload && payload.error) {
+                RED.notify("Read failed: " + payload.error, "error");
+            } else if (payload) {
+                var valueText = (payload.valueEnumeration !== undefined && payload.valueEnumeration !== null)
+                    ? payload.valueEnumeration + " (" + payload.value + ")"
+                    : (payload.value !== undefined ? String(payload.value) : "undefined");
+                RED.notify("Valor da variável: " + valueText, "success");
+            } else {
+                RED.notify("No value returned from the server.", "warning");
+            }
+        }).fail(function (xhr) {
+            var message = xhr && xhr.responseJSON && xhr.responseJSON.error
+                ? xhr.responseJSON.error
+                : "Failed to read variable value.";
+            RED.notify(message, "error");
+        });
     }
 
     function setBrowseSelectedPath(path) {
@@ -1137,6 +1173,14 @@
         var path = contextMenuPath || browseSelectedPath || highlightedPath || "";
         hideTreeContextMenu();
         copyNodeIdFromPath(path);
+    });
+
+    $(document).on("click", "#node-input-browse-context-read-value", function (event) {
+        event.preventDefault();
+        var highlightedPath = $(".opcua-tree-row.is-selected").first().attr("data-path") || "";
+        var path = contextMenuPath || browseSelectedPath || highlightedPath || "";
+        hideTreeContextMenu();
+        readValueFromPath(path);
     });
 
     $(document).on("click", function (event) {
