@@ -1593,6 +1593,7 @@
                 contextMenu.find('[data-action="add-folder"]').show();
                 contextMenu.find('[data-action="add-object"]').show();
                 contextMenu.find('[data-action="add-variable"]').show();
+                contextMenu.find('[data-action="add-objecttype"]').show();
                 contextMenu.find('[data-action="add-enum-variable"]').show();
                 contextMenu.find('[data-action="add-alarm"]').show();
                 contextMenu.find('[data-action="add-method"]').show();

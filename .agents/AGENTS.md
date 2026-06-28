@@ -233,3 +233,14 @@ When writing or modifying Node-RED nodes in this repository, follow these rules 
 2. **Route via Catch Node Only**: To route the error exclusively to the **Catch** node, call `node.error(errMessage, msg)` where the second argument `msg` is the active Node-RED message context.
 3. **Resolve Done Callback Cleanly**: Always call `done()` with **no arguments** (when `done` is defined). Do not call `done(error)` as the wrapper will automatically log a full stack trace to the console. Emitting the error via `node.error(errMessage, msg)` and then calling `done()` with no arguments ensures the error reaches the Catch block cleanly and silently.
 4. **Errors Sent Only Within Catch Block on Client**: For the Node.js client (`opcua-client.js`), all node errors (`node.error`) must be emitted exclusively within the `catch` block of the input handler. Asynchronous background event listeners (like subscription error handlers) must not call `node.error(error)` directly to avoid cluttering the system logs without a message context; instead, they should update the node status badge to reflect the error state.
+
+---
+
+## Duplicate NodeId Detection and Resolution during Address Space Sync
+
+To prevent `already registered` NodeId conflicts when starting the server or dynamically syncing the address space tree:
+1. **Existing Node Detection**: Before creating any `Folder`, `Object`, `ObjectTypeInstance`, `Variable`, `Method`, or `Alarm` node in the address space builder, the builder calls `addressSpace.findNode(nodeId)` to verify if the node already exists.
+2. **Node Reuse**: If the node already exists (for example, child nodes created automatically by `node-opcua`'s built-in `ObjectType` instantiation process), the builder registers it in the internal lookup tables (e.g. `nodeEntries`, `variableStore`, `variableNodeIdStore`) and configures/updates its properties (such as values, alarm limits, and role permissions) instead of attempting to recreate the node.
+3. **Automatic Child Node Cleanup**: When creating a custom `ObjectType` instance, any default child nodes automatically instantiated by `node-opcua`'s `addObject` are deleted using `addressSpace.deleteNode` immediately after creation. This ensures that the builder's subsequent explicit instantiation loop can create the children using the correct rewritten custom NodeIds (e.g. `ns=2;s=server1.label1.label` instead of using the template's default child NodeId `ns=2;s=label.label`).
+4. **Fallback Prefix Resolution**: When rewriting inherited child NodeIds, if the definition NodeId or the instance NodeId properties are empty in the JSON config, the builder falls back to using the definition name (e.g. `"ns=2;s=" + typeEntry.config.name`) and the actual instantiated node's NodeId string (e.g. `instanceNode.nodeId.toString()`) to perform prefix rewriting correctly.
+

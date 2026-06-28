@@ -758,11 +758,18 @@ class OpcUaAddressSpaceBuilder {
 
         const objectName = objectConfig.name;
         const nextPath = pathOverride || this.buildPath(parentPath, objectName);
+        const nodeId = this.resolveNodeId(objectConfig, nextPath, namespace);
+        const existingNode = addressSpace.findNode(nodeId);
+        if (existingNode) {
+            this.registerNodeEntry("object", nextPath, parentPath, relationship, objectConfig, existingNode, namespace);
+            return;
+        }
+
         const options = {
             browseName: objectConfig.displayName || objectName,
             displayName: objectConfig.displayName || objectName,
             description: objectConfig.description || "",
-            nodeId: this.resolveNodeId(objectConfig, nextPath, namespace),
+            nodeId: nodeId,
             rolePermissions: this.buildRolePermissions("object", objectConfig),
             eventNotifier: 1, //enabled_events,
             eventSourceOf: serverNode
@@ -784,47 +791,78 @@ class OpcUaAddressSpaceBuilder {
 
     addObjectTypeDefinition(objectTypeConfig) {
         const namespace = this.getNamespaceForConfig(objectTypeConfig);
+        const path = this.buildObjectTypePath(objectTypeConfig.name);
+        const nodeId = this.resolveNodeId(objectTypeConfig, path, namespace);
+        const addressSpace = this.server.engine.addressSpace;
+        const existingNode = addressSpace.findNode(nodeId);
+        if (existingNode) {
+            this.registerNodeEntry("objectTypeDefinition", path, "", "typeDefinition", objectTypeConfig, existingNode, namespace);
+            this.objectTypeStore.set(objectTypeConfig.name, {
+                node: existingNode,
+                config: objectTypeConfig,
+                path: path,
+                namespace: namespace
+            });
+            return;
+        }
+
         const objectTypeNode = namespace.addObjectType({
             browseName: objectTypeConfig.name,
             displayName: objectTypeConfig.displayName || objectTypeConfig.name,
             description: objectTypeConfig.description || "",
-            nodeId: this.resolveNodeId(objectTypeConfig, this.buildObjectTypePath(objectTypeConfig.name), namespace),
+            nodeId: nodeId,
             rolePermissions: this.buildRolePermissions("objectTypeDefinition", objectTypeConfig),
             subtypeOf: "BaseObjectType"
         });
 
 
-        const path = this.buildObjectTypePath(objectTypeConfig.name);
+        const path2 = this.buildObjectTypePath(objectTypeConfig.name);
 
 
 
-        this.registerNodeEntry("objectTypeDefinition", path, "", "typeDefinition", objectTypeConfig, objectTypeNode, namespace);
+        this.registerNodeEntry("objectTypeDefinition", path2, "", "typeDefinition", objectTypeConfig, objectTypeNode, namespace);
         this.objectTypeStore.set(objectTypeConfig.name, {
             node: objectTypeNode,
             config: objectTypeConfig,
-            path: path,
+            path: path2,
             namespace: namespace
         });
     }
 
     addEnumerationTypeDefinition(config) {
         const namespace = this.getNamespaceForConfig(config);
+        const path = this.buildEnumerationPath(config.name);
+        const nodeId = this.resolveNodeId(config, path, namespace);
+        const addressSpace = this.server.engine.addressSpace;
+        const existingNode = addressSpace.findNode(nodeId);
+        if (existingNode) {
+            this.registerNodeEntry("enumeration", path, "", "typeDefinition", config, existingNode, namespace);
+            if (!this.enumerationStore) this.enumerationStore = new Map();
+            this.enumerationStore.set(config.name, {
+                node: existingNode,
+                config: config,
+                path: path,
+                namespace: namespace
+            });
+            return;
+        }
+
         const enumTypeNode = namespace.addEnumerationType({
             browseName: config.displayName || config.name,
             displayName: config.displayName || config.name,
             description: config.description || "",
-            nodeId: this.resolveNodeId(config, this.buildEnumerationPath(config.name), namespace),
+            nodeId: nodeId,
             enumeration: config.enumeration
         });
 
-        const path = this.buildEnumerationPath(config.name);
+        const path2 = this.buildEnumerationPath(config.name);
 
-        this.registerNodeEntry("enumeration", path, "", "typeDefinition", config, enumTypeNode, namespace);
+        this.registerNodeEntry("enumeration", path2, "", "typeDefinition", config, enumTypeNode, namespace);
         if (!this.enumerationStore) this.enumerationStore = new Map();
         this.enumerationStore.set(config.name, {
             node: enumTypeNode,
             config: config,
-            path: path,
+            path: path2,
             namespace: namespace
         });
     }
@@ -841,12 +879,20 @@ class OpcUaAddressSpaceBuilder {
         const objectName = instanceConfig.name;
         const nextPath = pathOverride || this.buildPath(parentPath, objectName);
         const namespace = this.getNamespaceForConfig(instanceConfig);
+        const nodeId = this.resolveNodeId(instanceConfig, nextPath, namespace);
+
+        const existingNode = addressSpace.findNode(nodeId);
+        if (existingNode) {
+            this.registerNodeEntry("objectTypeInstance", nextPath, parentPath, relationship, instanceConfig, existingNode, namespace);
+            this.createInheritedChildren(existingNode, nextPath, instanceConfig, namespace);
+            return;
+        }
 
         const options = {
             browseName: instanceConfig.displayName || objectName,
             displayName: instanceConfig.displayName || objectName,
             description: instanceConfig.description || "",
-            nodeId: this.resolveNodeId(instanceConfig, nextPath, namespace),
+            nodeId: nodeId,
             rolePermissions: this.buildRolePermissions("objectTypeInstance", instanceConfig),
             typeDefinition: objectTypeEntry.node.nodeId,
             eventNotifier: 1,
@@ -860,6 +906,21 @@ class OpcUaAddressSpaceBuilder {
         }
 
         const objectNode = namespace.addObject(options);
+
+        // Remove automatically instantiated children to let createInheritedChildren 
+        // create them with the correct rewritten NodeIds.
+        const autoChildren = [];
+        if (typeof objectNode.getComponents === "function") autoChildren.push(...objectNode.getComponents());
+        if (typeof objectNode.getProperties === "function") autoChildren.push(...objectNode.getProperties());
+        if (typeof objectNode.getMethods === "function") autoChildren.push(...objectNode.getMethods());
+        for (const child of autoChildren) {
+            try {
+                addressSpace.deleteNode(child.nodeId);
+            } catch (err) {
+                // Ignore
+            }
+        }
+
         this.registerNodeEntry("objectTypeInstance", nextPath, parentPath, relationship, instanceConfig, objectNode, namespace);
 
         // Create the inherited children explicitly using the configs that opcua-config.js
@@ -876,8 +937,8 @@ class OpcUaAddressSpaceBuilder {
         // Extract the type's nodeId value prefix (e.g. "Motor_type2") and the
         // instance's nodeId value prefix (e.g. "server1.newObjectType") so we can
         // rewrite every child nodeId from the type to the instance on-the-fly.
-        const typeNodeId = typeEntry.config.nodeId || "";
-        const instanceNodeId = instanceConfig.nodeId || "";
+        const typeNodeId = typeEntry.config.nodeId || ("ns=2;s=" + typeEntry.config.name);
+        const instanceNodeId = instanceConfig.nodeId || instanceNode.nodeId.toString();
         const typePrefix = this.extractNodeIdStringValue(typeNodeId);
         const instancePrefix = this.extractNodeIdStringValue(instanceNodeId);
 
@@ -1017,13 +1078,41 @@ class OpcUaAddressSpaceBuilder {
 
             const sourceName = variableToMonitor.node.displayName[0].text
 
-            const browseName = alarmConfig.displayName || objectName
-            const inputNode = variableToMonitor.node
-
-
+            const browseName = alarmConfig.displayName || objectName;
+            const inputNode = variableToMonitor.node;
 
             const conditionName = alarmConfig.displayName || objectName
             const nodeId = this.resolveNodeId(alarmConfig, nextPath, namespace)
+
+            const existingNode = addressSpace.findNode(nodeId);
+            if (existingNode) {
+                if (alarmConfig.type === "levelAlarm") {
+                    const lowLow = existingNode.getPropertyByName("lowLowLimit");
+                    if (lowLow) lowLow.setValueFromSource({ dataType: DataType.Int32, value: alarmConfig.lowLowLimit });
+                    const low = existingNode.getPropertyByName("lowLimit");
+                    if (low) low.setValueFromSource({ dataType: DataType.Int32, value: alarmConfig.lowLimit });
+                    const highHigh = existingNode.getPropertyByName("highHighLimit");
+                    if (highHigh) highHigh.setValueFromSource({ dataType: DataType.Int32, value: alarmConfig.highHighLimit });
+                    const high = existingNode.getPropertyByName("highLimit");
+                    if (high) high.setValueFromSource({ dataType: DataType.Int32, value: alarmConfig.highLimit });
+                }
+                const enabled = existingNode.getPropertyByName("enabled");
+                if (enabled) enabled.setValueFromSource({ dataType: DataType.Boolean, value: alarmConfig.enabled });
+                existingNode.sourceName.setValueFromSource({ dataType: DataType.String, value: sourceName });
+                existingNode.alarmConfig = alarmConfig;
+
+                const alarmRolePermissions = this.buildRolePermissions("alarm", alarmConfig);
+                if (alarmRolePermissions) {
+                    existingNode.setRolePermissions(alarmRolePermissions);
+                }
+
+                variableToMonitor.alarm = {
+                    node: existingNode,
+                    alarmConfig: alarmConfig,
+                };
+                this.registerNodeEntry("alarm", nextPath, parentPath, relationship, alarmConfig, existingNode, namespace);
+                return;
+            }
 
             const alarmNode = this.addressSpaceAlarm.createAlarm(namespace, browseName, parentNode, inputNode, conditionName, nodeId, sourceName, alarmConfig)
             const alarmRolePermissions = this.buildRolePermissions("alarm", alarmConfig);
@@ -1108,11 +1197,18 @@ class OpcUaAddressSpaceBuilder {
 
         const folderName = folderConfig.name;
         const nextPath = pathOverride || this.buildPath(parentPath, folderName);
+        const nodeId = this.resolveNodeId(folderConfig, nextPath, namespace);
+        const existingNode = addressSpace.findNode(nodeId);
+        if (existingNode) {
+            this.registerNodeEntry("folder", nextPath, parentPath, relationship, folderConfig, existingNode, namespace);
+            return;
+        }
+
         const options = {
             browseName: folderConfig.displayName || folderName,
             displayName: folderConfig.displayName || folderName,
             description: folderConfig.description || "",
-            nodeId: this.resolveNodeId(folderConfig, nextPath, namespace),
+            nodeId: nodeId,
             rolePermissions: this.buildRolePermissions("folder", folderConfig),
             typeDefinition: "FolderType",
             eventSourceOf: serverNode,
@@ -1159,6 +1255,43 @@ class OpcUaAddressSpaceBuilder {
             isArray: this.isArrayValue(initialValue),
             currentValue: this.coerceValue(initialValue, type, this.isArrayValue(initialValue))
         };
+
+        const addressSpace = this.server.engine.addressSpace;
+        const existingNode = addressSpace.findNode(nodeId);
+        if (existingNode) {
+            this.registerNodeEntry("variable", path, parentPath, "componentOf", variableConfig, existingNode, namespace);
+            const record = {
+                node: existingNode,
+                path: path,
+                nodeId: nodeId,
+                nodeIdKey: this.normalizeNodeIdKey(nodeId),
+                type: state.type,
+                isArray: state.isArray,
+                getValue: () => state.currentValue,
+                setRuntimeValue: (nextValue) => {
+                    state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                    return state.currentValue;
+                },
+                setValue: (nextValue) => {
+                    if (state.access !== "readwrite") {
+                        throw new Error("Tag is read-only: " + path);
+                    }
+
+                    state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+
+                    const alarm = this.variableStore.get(path).alarm;
+                    if (alarm) this.addressSpaceAlarm.checkAlarm(alarm, state.currentValue);
+
+                    return state.currentValue;
+                }
+            };
+            this.variableStore.set(path, record);
+            this.variableNodeIdStore.set(record.nodeIdKey, record);
+            if (initialValue !== undefined) {
+                record.setRuntimeValue(initialValue);
+            }
+            return;
+        }
 
         const variableNode = namespace.addVariable({
             componentOf: parentNode,
@@ -1297,7 +1430,45 @@ class OpcUaAddressSpaceBuilder {
         const namespace = this.getNamespaceForConfig(methodConfig);
         const methodName = methodConfig.name;
         const path = pathOverride || this.buildPath(parentPath, methodName);
-        const nodeId = this.resolveNodeId(methodConfig, path, namespace)
+        const nodeId = this.resolveNodeId(methodConfig, path, namespace);
+
+        const addressSpace = this.server.engine.addressSpace;
+        const existingNode = addressSpace.findNode(nodeId);
+        if (existingNode) {
+            existingNode.bindMethod((inputArguments, context, callback) => {
+                const callId = Date.now() + "_" + Math.random();
+
+                this.registry.emitMethodCall({
+                    methodName: methodConfig.name,
+                    nodeId: nodeId,
+                    callId,
+                    inputArguments,
+                    outputArguments: methodConfig.outputs.map((arg) => ({
+                        name: arg.name,
+                        description: { text: arg.description || "" },
+                        dataType: DATA_TYPE_MAP[arg.type]
+                    })),
+                    serverName: this.serverName
+                });
+
+                this.registry.waitForMethodResponse(callId)
+                    .then((outputs) => {
+                        callback(null, {
+                            statusCode: StatusCodes.Good,
+                            outputArguments: outputs.map((output) => new Variant(output))
+                        });
+                    })
+                    .catch(() => {
+                        callback(null, {
+                            statusCode: StatusCodes.BadInternalError
+                        });
+                    });
+            });
+
+            this.registerNodeEntry("method", path, parentPath, "componentOf", methodConfig, existingNode, namespace);
+            return;
+        }
+
         const methodNode = namespace.addMethod(parentNode, {
             browseName: methodConfig.displayName || methodName,
             displayName: methodConfig.displayName || methodName,
