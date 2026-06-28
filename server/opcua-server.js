@@ -193,7 +193,7 @@ module.exports = function (RED) {
         res.sendFile(jsPath);
     });
 
-    RED.httpAdmin.get("/opc-ua-server/certificates", function (req, res) {
+    RED.httpAdmin.get("/opc-ua-server/certificates", RED.auth.needsPermission("flows.read"), function (req, res) {
         const serverName = req.query.serverName || "default";
         const certificatesFolder = getCertificatesFolder(serverName);
 
@@ -233,7 +233,7 @@ module.exports = function (RED) {
         });
     });
 
-    RED.httpAdmin.post("/opc-ua-server/certificates/move", function (req, res) {
+    RED.httpAdmin.post("/opc-ua-server/certificates/move", RED.auth.needsPermission("flows.write"), function (req, res) {
         const { serverName, filename, fromFolder, toFolder } = req.body;
         const certificatesFolder = getCertificatesFolder(serverName);
 
