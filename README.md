@@ -40,6 +40,23 @@ Interacts with an active local server instance. It supports the following modes:
 
 ---
 
+### Supported Variable Data Types, Arrays & Matrices
+
+The server supports the following standard OPC UA data types, including arrays and matrices:
+
+- **Integers**: `Int16`, `UInt16`, `Int32`, `UInt32`, `Int64`
+- **Floats**: `Float`
+- **Others**: `Boolean`, `String`, `ByteString`, `LocalizedText`
+- **Arrays (1D)**: Pass standard JavaScript arrays or JSON arrays as values (e.g., `[1, 2, 3, 4]` or `"[1, 2, 3, 4]"`).
+- **Multi-Dimensional Arrays (Matrices)**: Pass nested arrays. The dimensions are automatically detected based on the shape (e.g., `[[1, 2], [3, 4]]` is registered as a 2x2 matrix with dimensions `[2, 2]`, and `[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]` as a 2x2x2 matrix).
+
+*Note on 64-bit Integers (`Int64`/`UInt64`):*
+- *Scalars are represented as `[high, low]` arrays (e.g., `[0, 100]` for the value 100).*
+- *Arrays of 64-bit integers are represented as arrays of doublets (e.g., `[[0, 100], [0, 200]]`).*
+- *They are handled internally using JavaScript `BigInt`.*
+
+---
+
 ## Client Functionalities
 
 The client implementation consists of `opcua-client-config` (shared connection configuration) and `opcua-client` (the action node).
