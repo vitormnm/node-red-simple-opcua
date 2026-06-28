@@ -885,10 +885,12 @@ class OpcUaServerProcess {
 
     readActiveAlarms(msg, nodeId) {
         try {
-            var result = registry.getActiveAlarms(this.node)
-            const msg2 = {
-                payload: result
-            }
+            const result = registry.getActiveAlarms(this.node);
+            const safeResult = Array.isArray(result) ? result : [];
+
+            const msg2 = Object.assign({}, msg || {}, {
+                payload: safeResult
+            });
 
             process.send({
                 type: "send",
@@ -901,12 +903,16 @@ class OpcUaServerProcess {
                 data: {
                     fill: "green",
                     shape: "dot",
-                    text: result.paths.length > 1 ? "read " + result.paths.length + " tags" : "read " + result.paths[0]
+                    text: safeResult.length + " active alarm" + (safeResult.length !== 1 ? "s" : "")
                 },
                 nodeId: nodeId
             });
-        } catch {
-
+        } catch (error) {
+            process.send({
+                type: "error",
+                data: error.message,
+                nodeId: nodeId
+            });
         }
     }
 

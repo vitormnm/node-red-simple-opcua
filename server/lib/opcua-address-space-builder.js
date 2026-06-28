@@ -1087,6 +1087,7 @@ class OpcUaAddressSpaceBuilder {
             const conditionName = alarmConfig.displayName || objectName
             const nodeId = this.resolveNodeId(alarmConfig, nextPath, namespace)
 
+            const addressSpace = this.server.engine.addressSpace;
             const existingNode = addressSpace.findNode(nodeId);
             if (existingNode) {
                 if (alarmConfig.type === "levelAlarm") {
