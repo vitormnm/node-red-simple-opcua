@@ -217,7 +217,12 @@ function getActiveAlarms(node) {
                 ConfirmedState: ConfirmedState,
                 ackedState: isAcked,
                 alarmNode: {
-                    nodeId: alarmNode.nodeId
+                    nodeId: alarmNode.nodeId,
+                    browseName: alarmNode.browseName,
+                    displayName: alarmNode.displayName,
+                    description: alarmNode.description,
+                    nodeClass: alarmNode.nodeClass,
+                    typeDefinition: alarmNode.typeDefinition
                 }
             })
         });
