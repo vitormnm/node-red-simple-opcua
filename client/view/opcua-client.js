@@ -657,7 +657,7 @@
         }).fail(function (xhr) {
             var message = xhr && xhr.responseJSON && xhr.responseJSON.error
                 ? xhr.responseJSON.error
-                : "Falha ao navegar no servidor OPC UA.";
+                : "Failed to browse the OPC UA server.";
             browseState = null;
             container.html('<div class="opcua-tree-empty">' + escapeHtml(message) + '</div>');
             RED.notify(message, "error");
@@ -682,15 +682,15 @@
         var item = getItemAtPath(path);
         var nodeId = nodeIdOf(item);
         if (!nodeId) {
-            RED.notify("NodeID nao encontrado para o item selecionado.", "warning");
+            RED.notify("NodeID not found for the selected item.", "warning");
             return;
         }
 
         if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
             navigator.clipboard.writeText(nodeId).then(function () {
-                RED.notify("NodeID copiado.", "success");
+                RED.notify("NodeID copied.", "success");
             }).catch(function () {
-                RED.notify("Falha ao copiar NodeID.", "error");
+                RED.notify("Failed to copy NodeID.", "error");
             });
             return;
         }
@@ -704,9 +704,9 @@
         input[0].select();
         try {
             document.execCommand("copy");
-            RED.notify("NodeID copiado.", "success");
+            RED.notify("NodeID copied.", "success");
         } catch (error) {
-            RED.notify("Falha ao copiar NodeID.", "error");
+            RED.notify("Failed to copy NodeID.", "error");
         }
         input.remove();
     }
@@ -773,6 +773,7 @@
                 }
                 saveBrowseSession();
                 renderBrowseTree();
+                triggerChildrenExpansion(item.browse, path);
             } catch (err) {
                 console.error("Error handling browse payload for node " + browseNodeId + ":", err);
                 RED.notify("Error handling browse response: " + err.message, "error");
@@ -786,9 +787,23 @@
             renderBrowseTree();
             var message = xhr && xhr.responseJSON && xhr.responseJSON.error
                 ? xhr.responseJSON.error
-                : "Falha ao expandir o node.";
+                : "Failed to expand the node.";
             RED.notify(message, "error");
             console.error("Browse request failed for node " + browseNodeId + ":", xhr);
+        });
+    }
+
+    function triggerChildrenExpansion(children, parentPath) {
+        if (!Array.isArray(children)) return;
+        children.forEach(function (child, index) {
+            var childPath = parentPath + ".browse." + index;
+            if (isExpanded(childPath, false)) {
+                if (!Array.isArray(child.browse)) {
+                    expandNode(childPath);
+                } else {
+                    triggerChildrenExpansion(child.browse, childPath);
+                }
+            }
         });
     }
 
