@@ -584,11 +584,11 @@ async function browseRecursiveNode(session, root) {
         }
 
         const methods = allItems.filter(item => item.nodeClass === "Method");
-        for (const method of methods) {
+        await Promise.all(methods.map(async (method) => {
             const definition = await readMethodArguments(session, method.nodeID);
             method.inputArguments = definition.inputArguments;
             method.outputArguments = definition.outputArguments;
-        }
+        }));
     }
 
     return {
