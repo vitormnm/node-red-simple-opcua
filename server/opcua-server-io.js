@@ -255,7 +255,8 @@ module.exports = function (RED) {
                     opcua: {
                         server: msg.data.serverName,
                         method: msg.data.methodName,
-                        data: msg.data
+                        data: msg.data,
+                        users: Array.isArray(msg.data.users) ? msg.data.users : []
                     },
                     _callId: msg.data.callId
                 });
@@ -286,7 +287,8 @@ module.exports = function (RED) {
                     opcua: {
                         server: msg.data.serverName,
                         method: msg.data.methodName,
-                        data: msg.data
+                        data: msg.data,
+                        users: Array.isArray(msg.data.users) ? msg.data.users : []
                     },
                     _callId: msg.data.callId
                 });

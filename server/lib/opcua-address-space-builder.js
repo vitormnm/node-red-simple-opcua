@@ -1428,6 +1428,9 @@ class OpcUaAddressSpaceBuilder {
         if (existingNode) {
             existingNode.bindMethod((inputArguments, context, callback) => {
                 const callId = Date.now() + "_" + Math.random();
+                const username = (context && context.session && context.session.userIdentityToken && context.session.userIdentityToken.userName)
+                    ? context.session.userIdentityToken.userName
+                    : "anonymous";
 
                 this.registry.emitMethodCall({
                     methodName: methodConfig.name,
@@ -1439,7 +1442,8 @@ class OpcUaAddressSpaceBuilder {
                         description: { text: arg.description || "" },
                         dataType: DATA_TYPE_MAP[arg.type]
                     })),
-                    serverName: this.serverName
+                    serverName: this.serverName,
+                    users: [{ name: username, groups: this.getUserGroups(username) }]
                 });
 
                 this.registry.waitForMethodResponse(callId)
@@ -1481,6 +1485,9 @@ class OpcUaAddressSpaceBuilder {
 
         methodNode.bindMethod((inputArguments, context, callback) => {
             const callId = Date.now() + "_" + Math.random();
+            const username = (context && context.session && context.session.userIdentityToken && context.session.userIdentityToken.userName)
+                ? context.session.userIdentityToken.userName
+                : "anonymous";
 
             this.registry.emitMethodCall({
                 methodName: methodConfig.name,
@@ -1492,7 +1499,8 @@ class OpcUaAddressSpaceBuilder {
                     description: { text: arg.description || "" },
                     dataType: DATA_TYPE_MAP[arg.type]
                 })),
-                serverName: this.serverName
+                serverName: this.serverName,
+                users: [{ name: username, groups: this.getUserGroups(username) }]
             });
 
             this.registry.waitForMethodResponse(callId)
