@@ -180,9 +180,9 @@ class OpcUaAddressSpaceAlarm {
                     retain: false
                 });
 
-                this.raiseNewConditionAlarm(alarm, message, severity, false);
+                this.raiseNewConditionAlarm(alarm, message, severity, false, context);
             } else {
-                this.raiseNewConditionAlarm(alarm, message, severity, true);
+                this.raiseNewConditionAlarm(alarm, message, severity, true, context);
             }
 
             callback(null, {
@@ -198,7 +198,7 @@ class OpcUaAddressSpaceAlarm {
             alarm.ackedState.setValue(true);
             alarm.confirmedState.setValue(false);
 
-            this.raiseNewConditionAlarm(alarm, message, severity, true);
+            this.raiseNewConditionAlarm(alarm, message, severity, true, context);
 
             callback(null, {
                 statusCode: StatusCodes.Good,
@@ -246,7 +246,24 @@ class OpcUaAddressSpaceAlarm {
         this.raiseNewConditionAlarm(alarmNode, message, severity, retain);
     }
 
-    raiseNewConditionAlarm(alarmNode, message, severity, retain) {
+    getUserGroups(username) {
+        const normalized = String(username || "").trim();
+        if (!normalized || normalized.toLowerCase() === "anonymous") {
+            return [];
+        }
+        const users = (this.node && this.node.runtime && this.node.runtime.users) || [];
+        const user = users.find(u => u && u.username === normalized);
+        if (!user) {
+            return [];
+        }
+        return typeof user.group === "string"
+            ? user.group.split(",").map(g => g.trim()).filter(Boolean)
+            : Array.isArray(user.group)
+                ? user.group
+                : [];
+    }
+
+    raiseNewConditionAlarm(alarmNode, message, severity, retain, context = null) {
         alarmNode.raiseNewCondition({ message, severity, retain });
 
         this.registry.registerActiveAlarms(alarmNode, message, severity, retain, this.node);
@@ -259,6 +276,24 @@ class OpcUaAddressSpaceAlarm {
         const isActive = alarmNode.activeState.id.readValue().value.value;
         const isAcked = alarmNode.ackedState.id.readValue().value.value;
         const ConfirmedState = alarmNode.confirmedState.id.readValue().value.value;
+
+        const users = [];
+        if (context && context.session) {
+            const session = context.session;
+            const username = (session.userIdentityToken && session.userIdentityToken.userName)
+                ? session.userIdentityToken.userName
+                : "anonymous";
+            const groups = this.getUserGroups(username);
+            users.push({
+                name: username,
+                groups: groups
+            });
+        } else {
+            users.push({
+                name: "anonymous",
+                groups: []
+            });
+        }
 
         this.emitTagAccess("alarm", {
             path: alarmNode.path || alarmNode.browseName.name,
@@ -274,6 +309,7 @@ class OpcUaAddressSpaceAlarm {
             conditionName: ConditionName,
             ConfirmedState: ConfirmedState,
             ackedState: isAcked,
+            users: users,
             alarmNode: {
                 nodeId: alarmNode.nodeId,
                 browseName: alarmNode.browseName,
