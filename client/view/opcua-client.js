@@ -1088,7 +1088,24 @@
         if ($(event.target).closest(".opcua-client-toggle-tree, .opcua-client-toggle-tag, .opcua-tree-actions, #node-input-browse-context-menu").length) {
             return;
         }
-        setBrowseSelectedPath($(this).attr("data-path"));
+        var path = $(this).attr("data-path");
+        setBrowseSelectedPath(path);
+
+        if (event.ctrlKey || event.metaKey) {
+            event.preventDefault();
+            if ($("#node-input-mode").val() === "method") {
+                var item = getItemAtPath(path);
+                if (item && item.nodeClass === "Method") {
+                    var parentPath = path.split(".");
+                    parentPath.splice(parentPath.length - 2, 2);
+                    parentPath = parentPath.join(".");
+                    var parentItem = getItemAtPath(parentPath);
+                    addMethodFromTree(item, parentItem);
+                    return;
+                }
+            }
+            toggleSelectedNode(path);
+        }
     });
 
     $(document).on("contextmenu", ".opcua-tree-row", function (event) {
