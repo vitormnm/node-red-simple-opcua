@@ -1359,7 +1359,7 @@ class OpcUaAddressSpaceBuilder {
 
                     return new Variant(variantOptions);
                 },
-                set: (variant) => {
+                set: (variant, context) => {
                     if (state.access !== "readwrite") {
                         return StatusCodes.BadNotWritable;
                     }
@@ -1374,7 +1374,7 @@ class OpcUaAddressSpaceBuilder {
                         }
 
                         const alarm = this.variableStore.get(path).alarm
-                        this.addressSpaceAlarm.checkAlarm(alarm, variant.value)
+                        this.addressSpaceAlarm.checkAlarm(alarm, variant.value, context)
 
                         return StatusCodes.Good;
                     } catch (error) {

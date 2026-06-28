@@ -98,21 +98,21 @@ class OpcUaAddressSpaceAlarm {
         }
     }
 
-    checkAlarm(alarm, variableValue) {
+    checkAlarm(alarm, variableValue, context = null) {
         if (alarm) {
             const alarmConfig = alarm.alarmConfig;
             const type = alarmConfig.type;
 
             if (type === "levelAlarm") {
-                this.levelAlarm(alarm, variableValue);
+                this.levelAlarm(alarm, variableValue, context);
             }
             if (type === "digitalAlarm") {
-                this.digitalAlarm(alarm, variableValue);
+                this.digitalAlarm(alarm, variableValue, context);
             }
         }
     }
 
-    levelAlarm(alarm, variableValue) {
+    levelAlarm(alarm, variableValue, context = null) {
         const alarmNode = alarm.node;
         const alarmConfig = alarm.alarmConfig;
 
@@ -129,36 +129,37 @@ class OpcUaAddressSpaceAlarm {
 
         if (variableValue >= highHighSp && enabled) {
             message = sendValue ? (alarmConfig.highHighMessage + ": " + variableValue) : alarmConfig.highHighMessage;
-            this.raiseAlarm(alarmNode, message, alarmConfig.severity);
+            this.raiseAlarm(alarmNode, message, alarmConfig.severity, true, context);
             lastMessage = message;
         } else if (variableValue >= highSp && enabled) {
             message = sendValue ? (alarmConfig.highMessage + ": " + variableValue) : alarmConfig.highMessage;
-            this.raiseAlarm(alarmNode, message, alarmConfig.severity);
+            this.raiseAlarm(alarmNode, message, alarmConfig.severity, true, context);
             lastMessage = message;
         } else if (variableValue <= lowLowSp && enabled) {
             message = sendValue ? (alarmConfig.lowLowMessage + ": " + variableValue) : alarmConfig.lowLowMessage;
-            this.raiseAlarm(alarmNode, message, alarmConfig.severity);
+            this.raiseAlarm(alarmNode, message, alarmConfig.severity, true, context);
             lastMessage = message;
         } else if (variableValue <= lowSp && enabled) {
             message = sendValue ? (alarmConfig.lowMessage + ": " + variableValue) : alarmConfig.lowMessage;
-            this.raiseAlarm(alarmNode, message, alarmConfig.severity);
+            this.raiseAlarm(alarmNode, message, alarmConfig.severity, true, context);
             lastMessage = message;
         } else if (isActive) {
-            this.clearAlarm(alarmNode, lastMessage, alarmConfig.severity);
+            message = sendValue ? (alarmConfig.normalMessage + ": " + variableValue) : alarmConfig.normalMessage;
+            this.clearAlarm(alarmNode, lastMessage || message, alarmConfig.severity, context);
         }
 
         this.alarmMethods(alarmNode);
     }
 
-    digitalAlarm(alarm, variableValue) {
+    digitalAlarm(alarm, variableValue, context = null) {
         const alarmNode = alarm.node;
         const alarmConfig = alarm.alarmConfig;
         const enabled = alarmNode.getPropertyByName("enabled").readValue().value.value;
 
         if (variableValue && enabled) {
-            this.raiseAlarm(alarmNode, alarmConfig.digitalMessage, alarmConfig.severity);
+            this.raiseAlarm(alarmNode, alarmConfig.digitalMessage, alarmConfig.severity, true, context);
         } else {
-            this.clearAlarm(alarmNode, alarmConfig.digitalMessage, alarmConfig.severity);
+            this.clearAlarm(alarmNode, alarmConfig.digitalMessage, alarmConfig.severity, context);
         }
 
         this.alarmMethods(alarmNode);
@@ -221,16 +222,16 @@ class OpcUaAddressSpaceAlarm {
         });
     }
 
-    clearAlarm(alarmNode, message, severity) {
+    clearAlarm(alarmNode, message, severity, context = null) {
         const isAcked = !alarmNode.ackedState.id.readValue().value.value;
 
         alarmNode.activeState.setValue(false);
         alarmNode.raiseNewCondition({ message, severity: severity, isAcked });
 
-        this.raiseNewConditionAlarm(alarmNode, message, severity, isAcked);
+        this.raiseNewConditionAlarm(alarmNode, message, severity, isAcked, context);
     }
 
-    raiseAlarm(alarmNode, message, severity, retain = true) {
+    raiseAlarm(alarmNode, message, severity, retain = true, context = null) {
         const isActive = alarmNode.activeState.id.readValue().value.value;
         const isAcked = alarmNode.ackedState.id.readValue().value.value;
         if (isActive && isAcked) {
@@ -243,7 +244,7 @@ class OpcUaAddressSpaceAlarm {
         }
 
         alarmNode.activeState.setValue(true);
-        this.raiseNewConditionAlarm(alarmNode, message, severity, retain);
+        this.raiseNewConditionAlarm(alarmNode, message, severity, retain, context);
     }
 
     getUserGroups(username) {
