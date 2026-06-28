@@ -216,7 +216,9 @@ function getActiveAlarms(node) {
                 conditionName: ConditionName,
                 ConfirmedState: ConfirmedState,
                 ackedState: isAcked,
-                alarmNode: alarmNode.nodeId.toString()
+                alarmNode: {
+                    nodeId: alarmNode.nodeId
+                }
             })
         });
 
