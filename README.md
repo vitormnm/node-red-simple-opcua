@@ -9,7 +9,6 @@ This package provides a simplified, highly parameterized set of nodes to establi
 ## Features Overview
 
 - **Dynamic OPC UA Address Space**: Build hierarchical folders, objects, variables, and alarms dynamically from a visual tree editor or JSON.
-- **Low Footprint**: Fully-featured client and server implementation using only 4 nodes.
 - **IPC Process Separation**: Server runtime runs in a child process, preventing heavy OPC UA operations from blocking the main Node-RED event loop.
 - **Rich Node-RED Integration**: Support for reading, writing, subscribing, calling methods, and managing sessions directly in Node-RED flows.
 
@@ -74,10 +73,8 @@ Performs actions on the configured OPC UA server. It operates in the following m
 
 ---
 
-## Disclaimer
-This package was designed for simulation, testing, and development environments.
 
----
+
 
 ### Support the Project
 If you find this project useful, please support its development:
@@ -85,8 +82,8 @@ If you find this project useful, please support its development:
 <a href="https://buymeacoffee.com/vitormnm">
     <img src="./resources/bmc-button.svg" alt="Buy Me A Coffee" width="200">
 </a>
-## author
 
-- [@vitormnm](https://vitormiao.com/)
+
+[@vitormnm](https://vitormiao.com/)
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)

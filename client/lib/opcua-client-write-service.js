@@ -84,7 +84,7 @@ async function writeBatches(session, items, variants) {
                 allStatusCodes[start + i] = sc;
             });
         } catch (batchError) {
-            // Se o batch falhar por completo, marca todos com erro
+            
             for (let i = start; i < end; i++) {
                 allStatusCodes[i] = { name: batchError.message, value: -1 };
             }
