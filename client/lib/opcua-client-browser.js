@@ -6,10 +6,11 @@ const {
     DataType,
     NodeClass,
     coerceNodeId,
-    makeNodeId
+    makeNodeId,
+    VariantArrayType
 } = require("node-opcua");
 
-const { enrichItemResultWithEnumeration } = require("../opcua-client-utils");
+const { enrichItemResultWithEnumeration, reshapeArray } = require("../opcua-client-utils");
 
 async function browseNode(session, root) {
     const nodeID = normalizeNodeId(root.nodeID || root.nodeId || ROOT_NODE_ID);
@@ -123,7 +124,14 @@ async function browseNode(session, root) {
         if (nodeClass === "Variable") {
             const dataTypeValue = dataValues[i * 3 + 1]?.value?.value;
             const rawValueVariant = dataValues[i * 3 + 2]?.value;
-            const rawValue = rawValueVariant?.value;
+            let rawValue = rawValueVariant?.value;
+
+            if (rawValueVariant && rawValueVariant.arrayType === VariantArrayType.Matrix && rawValueVariant.dimensions && (Array.isArray(rawValue) || ArrayBuffer.isView(rawValue))) {
+                if (ArrayBuffer.isView(rawValue)) {
+                    rawValue = Array.from(rawValue);
+                }
+                rawValue = reshapeArray(rawValue, rawValueVariant.dimensions);
+            }
 
             item.dataType = dataTypeValue?.namespace === 0 && typeof dataTypeValue?.value === "number"
                 ? (DataType[dataTypeValue.value] || dataTypeValue.toString())
@@ -525,7 +533,14 @@ async function browseRecursiveNode(session, root) {
                     if (item.nodeClass === "Variable") {
                         const dataTypeValue = dataValues[index * 3 + 1]?.value?.value;
                         const rawValueVariant = dataValues[index * 3 + 2]?.value;
-                        const rawValue = rawValueVariant?.value;
+                        let rawValue = rawValueVariant?.value;
+
+                        if (rawValueVariant && rawValueVariant.arrayType === VariantArrayType.Matrix && rawValueVariant.dimensions && (Array.isArray(rawValue) || ArrayBuffer.isView(rawValue))) {
+                            if (ArrayBuffer.isView(rawValue)) {
+                                rawValue = Array.from(rawValue);
+                            }
+                            rawValue = reshapeArray(rawValue, rawValueVariant.dimensions);
+                        }
 
                         item.dataType = dataTypeValue?.namespace === 0 && typeof dataTypeValue?.value === "number"
                             ? (DataType[dataTypeValue.value] || dataTypeValue.toString())

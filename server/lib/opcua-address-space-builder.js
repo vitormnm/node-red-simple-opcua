@@ -147,7 +147,7 @@ class OpcUaAddressSpaceBuilder {
                 return Number.isFinite(num) ? num : v;
             };
             if (record.isArray) {
-                val = Array.isArray(val) ? val.map(convertToNumber) : convertToNumber(val);
+                val = this.recursiveMap(val, convertToNumber, record.type);
             } else {
                 val = convertToNumber(val);
             }
@@ -1257,10 +1257,14 @@ class OpcUaAddressSpaceBuilder {
         if (browseName === "AcceptAllCertificates" && this.server && this.server.serverCertificateManager) {
             initialValue = this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate;
         }
+        
+        const dimensions = this.getArrayDimensions(initialValue, type);
         const state = {
             type,
             access,
             isArray: this.isArrayValue(initialValue),
+            isMatrix: !!dimensions,
+            dimensions: dimensions,
             currentValue: this.coerceValue(initialValue, type, this.isArrayValue(initialValue))
         };
 
@@ -1275,9 +1279,29 @@ class OpcUaAddressSpaceBuilder {
                 nodeIdKey: this.normalizeNodeIdKey(nodeId),
                 type: state.type,
                 isArray: state.isArray,
+                isMatrix: state.isMatrix,
+                dimensions: state.dimensions,
                 getValue: () => state.currentValue,
                 setRuntimeValue: (nextValue) => {
-                    state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                    if (state.isMatrix) {
+                        let parsedVal = nextValue;
+                        if (typeof nextValue === "string") {
+                            const trimmed = nextValue.trim();
+                            if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                                parsedVal = JSON.parse(trimmed);
+                            }
+                        }
+                        const dims = this.getArrayDimensions(parsedVal, state.type);
+                        if (dims) {
+                            state.dimensions = dims;
+                            state.currentValue = this.coerceValue(parsedVal, state.type, true);
+                        } else {
+                            const coercedFlat = this.coerceValue(parsedVal, state.type, true);
+                            state.currentValue = this.reshapeArray(coercedFlat, state.dimensions);
+                        }
+                    } else {
+                        state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                    }
                     return state.currentValue;
                 },
                 setValue: (nextValue) => {
@@ -1285,7 +1309,25 @@ class OpcUaAddressSpaceBuilder {
                         throw new Error("Tag is read-only: " + path);
                     }
 
-                    state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                    if (state.isMatrix) {
+                        let parsedVal = nextValue;
+                        if (typeof nextValue === "string") {
+                            const trimmed = nextValue.trim();
+                            if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                                parsedVal = JSON.parse(trimmed);
+                            }
+                        }
+                        const dims = this.getArrayDimensions(parsedVal, state.type);
+                        if (dims) {
+                            state.dimensions = dims;
+                            state.currentValue = this.coerceValue(parsedVal, state.type, true);
+                        } else {
+                            const coercedFlat = this.coerceValue(parsedVal, state.type, true);
+                            state.currentValue = this.reshapeArray(coercedFlat, state.dimensions);
+                        }
+                    } else {
+                        state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                    }
 
                     const alarm = this.variableStore.get(path).alarm;
                     if (alarm) this.addressSpaceAlarm.checkAlarm(alarm, state.currentValue);
@@ -1311,7 +1353,8 @@ class OpcUaAddressSpaceBuilder {
             rolePermissions: this.buildRolePermissions("variable", variableConfig),
             dataType: this.resolveDataType(type),
             modellingRule: this.isObjectTypePath(parentPath) ? "Mandatory" : undefined,
-            valueRank: state.isArray ? 1 : -1,
+            valueRank: state.isMatrix ? state.dimensions.length : (state.isArray ? 1 : -1),
+            arrayDimensions: state.isMatrix ? state.dimensions : undefined,
             accessLevel: access === "readwrite" ? "CurrentRead | CurrentWrite" : "CurrentRead",
             userAccessLevel: access === "readwrite" ? "CurrentRead | CurrentWrite" : "CurrentRead",
             minimumSamplingInterval: 500,
@@ -1339,7 +1382,7 @@ class OpcUaAddressSpaceBuilder {
                         };
 
                         if (state.isArray) {
-                            val = Array.isArray(val) ? val.map(bigIntToInt64Array) : [bigIntToInt64Array(val)];
+                            val = this.recursiveMap(val, bigIntToInt64Array, state.type);
                         } else {
                             val = bigIntToInt64Array(val);
                         }
@@ -1350,8 +1393,11 @@ class OpcUaAddressSpaceBuilder {
                         value: val
                     };
 
-                    // ByteString nunca e array - Buffer nao deve ser VariantArrayType.Array
-                    if (state.type !== "ByteString" && this.isArrayValue(state.currentValue)) {
+                    if (state.isMatrix) {
+                        variantOptions.arrayType = VariantArrayType.Matrix;
+                        variantOptions.dimensions = state.dimensions;
+                        variantOptions.value = this.flattenMatrix(val, state.type);
+                    } else if (state.type !== "ByteString" && this.isArrayValue(state.currentValue)) {
                         variantOptions.arrayType = VariantArrayType.Array;
                     } else if (state.type === "Int64" || state.type === "UInt64") {
                         variantOptions.arrayType = VariantArrayType.Scalar;
@@ -1365,7 +1411,15 @@ class OpcUaAddressSpaceBuilder {
                     }
 
                     try {
-                        state.currentValue = this.coerceValue(variant.value, state.type, state.isArray);
+                        let nextValue = variant.value;
+                        if (state.isMatrix) {
+                            const dims = variant.dimensions || state.dimensions;
+                            state.dimensions = dims;
+                            const coercedFlat = this.coerceValue(nextValue, state.type, true);
+                            state.currentValue = this.reshapeArray(coercedFlat, dims);
+                        } else {
+                            state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                        }
 
                         if (browseName === "AcceptAllCertificates" && this.server && this.server.serverCertificateManager) {
                             this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate = !!state.currentValue;
@@ -1383,7 +1437,6 @@ class OpcUaAddressSpaceBuilder {
                     } catch (error) {
                         console.error("addVariable")
                         console.error(error)
-                        // this.node.warn("Rejected OPC UA write for " + path + ": " + error.message);
                         return StatusCodes.BadTypeMismatch;
                     }
                 }
@@ -1398,9 +1451,29 @@ class OpcUaAddressSpaceBuilder {
             nodeIdKey: this.normalizeNodeIdKey(nodeId),
             type: state.type,
             isArray: state.isArray,
+            isMatrix: state.isMatrix,
+            dimensions: state.dimensions,
             getValue: () => state.currentValue,
             setRuntimeValue: (nextValue) => {
-                state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                if (state.isMatrix) {
+                    let parsedVal = nextValue;
+                    if (typeof nextValue === "string") {
+                        const trimmed = nextValue.trim();
+                        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                            parsedVal = JSON.parse(trimmed);
+                        }
+                    }
+                    const dims = this.getArrayDimensions(parsedVal, state.type);
+                    if (dims) {
+                        state.dimensions = dims;
+                        state.currentValue = this.coerceValue(parsedVal, state.type, true);
+                    } else {
+                        const coercedFlat = this.coerceValue(parsedVal, state.type, true);
+                        state.currentValue = this.reshapeArray(coercedFlat, state.dimensions);
+                    }
+                } else {
+                    state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                }
                 return state.currentValue;
             },
             setValue: (nextValue) => {
@@ -1408,7 +1481,25 @@ class OpcUaAddressSpaceBuilder {
                     throw new Error("Tag is read-only: " + path);
                 }
 
-                state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                if (state.isMatrix) {
+                    let parsedVal = nextValue;
+                    if (typeof nextValue === "string") {
+                        const trimmed = nextValue.trim();
+                        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                            parsedVal = JSON.parse(trimmed);
+                        }
+                    }
+                    const dims = this.getArrayDimensions(parsedVal, state.type);
+                    if (dims) {
+                        state.dimensions = dims;
+                        state.currentValue = this.coerceValue(parsedVal, state.type, true);
+                    } else {
+                        const coercedFlat = this.coerceValue(parsedVal, state.type, true);
+                        state.currentValue = this.reshapeArray(coercedFlat, state.dimensions);
+                    }
+                } else {
+                    state.currentValue = this.coerceValue(nextValue, state.type, state.isArray);
+                }
 
                 const alarm = this.variableStore.get(path).alarm
                 this.addressSpaceAlarm.checkAlarm(alarm, state.currentValue)
@@ -1991,7 +2082,7 @@ class OpcUaAddressSpaceBuilder {
                 throw new Error("Expected array value for type " + type);
             }
 
-            return items.map((item) => this.coerceScalarValue(item, type));
+            return this.recursiveMap(items, (item) => this.coerceScalarValue(item, type), type);
         }
 
         if (typeof value === "string") {
@@ -2186,6 +2277,113 @@ class OpcUaAddressSpaceBuilder {
         }
 
         return null;
+    }
+
+    getArrayDimensions(value, type) {
+        const arr = this.extractArrayItems(value);
+        if (!arr) {
+            return null;
+        }
+
+        // Standard check: is it an Int64/UInt64 scalar represented as [high, low]?
+        if ((type === "Int64" || type === "UInt64") && arr.length === 2 && typeof arr[0] === "number" && typeof arr[1] === "number") {
+            return null;
+        }
+
+        const hasNestedArray = arr.some(item => {
+            if (Array.isArray(item)) {
+                if ((type === "Int64" || type === "UInt64") && item.length === 2 && typeof item[0] === "number" && typeof item[1] === "number") {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        });
+
+        if (!hasNestedArray) {
+            return null;
+        }
+
+        const dimensions = [];
+        let current = arr;
+        while (Array.isArray(current)) {
+            if ((type === "Int64" || type === "UInt64") && current.length === 2 && typeof current[0] === "number" && typeof current[1] === "number") {
+                break;
+            }
+            dimensions.push(current.length);
+            if (current.length === 0) {
+                break;
+            }
+            current = current[0];
+        }
+        return dimensions;
+    }
+
+    flattenMatrix(value, type) {
+        const arr = this.extractArrayItems(value);
+        if (!arr) {
+            return value;
+        }
+        if ((type === "Int64" || type === "UInt64") && arr.length === 2 && typeof arr[0] === "number" && typeof arr[1] === "number") {
+            return [arr];
+        }
+
+        const flat = [];
+        const recurse = (a) => {
+            for (const item of a) {
+                if (Array.isArray(item)) {
+                    if ((type === "Int64" || type === "UInt64") && item.length === 2 && typeof item[0] === "number" && typeof item[1] === "number") {
+                        flat.push(item);
+                    } else {
+                        recurse(item);
+                    }
+                } else {
+                    flat.push(item);
+                }
+            }
+        };
+        recurse(arr);
+        return flat;
+    }
+
+    reshapeArray(flatArray, dimensions) {
+        if (!dimensions || dimensions.length <= 1) {
+            return flatArray;
+        }
+
+        const reshape = (arr, dims, offset) => {
+            const size = dims[0];
+            if (dims.length === 1) {
+                return {
+                    result: arr.slice(offset, offset + size),
+                    nextOffset: offset + size
+                };
+            }
+
+            const result = [];
+            let currentOffset = offset;
+            for (let i = 0; i < size; i++) {
+                const step = reshape(arr, dims.slice(1), currentOffset);
+                result.push(step.result);
+                currentOffset = step.nextOffset;
+            }
+            return {
+                result: result,
+                nextOffset: currentOffset
+            };
+        };
+
+        return reshape(flatArray, dimensions, 0).result;
+    }
+
+    recursiveMap(val, fn, type) {
+        if (Array.isArray(val)) {
+            if ((type === "Int64" || type === "UInt64") && val.length === 2 && typeof val[0] === "number" && typeof val[1] === "number") {
+                return fn(val);
+            }
+            return val.map(item => this.recursiveMap(item, fn, type));
+        }
+        return fn(val);
     }
 }
 

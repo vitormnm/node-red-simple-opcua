@@ -1,11 +1,12 @@
 "use strict";
 
-const { AttributeIds, DataType, coerceNodeId } = require("node-opcua");
+const { AttributeIds, DataType, coerceNodeId, VariantArrayType } = require("node-opcua");
 const {
     buildVariantFromItem,
     normalizeTypeName,
     resolveNodeId,
-    statusCodeToString
+    statusCodeToString,
+    reshapeArray
 } = require("../opcua-client-utils");
 
 // Máximo de tags por chamada session.write (ajuste conforme limite do servidor)
@@ -109,10 +110,19 @@ function buildResults(items, variants, statusCodes) {
         const scName = sc && sc.name ? sc.name : "Good";
         const typeName = DataType[variants[index].dataType] || null;
 
+        let val = variants[index].value;
+        const variant = variants[index];
+        if (variant && variant.arrayType === VariantArrayType.Matrix && variant.dimensions && (Array.isArray(val) || ArrayBuffer.isView(val))) {
+            if (ArrayBuffer.isView(val)) {
+                val = Array.from(val);
+            }
+            val = reshapeArray(val, variant.dimensions);
+        }
+
         return {
             name: item.name || nodeId,
             nodeID: nodeId,
-            value: variants[index].value,
+            value: val,
             type: typeName,
             status: scName,
             sourceTimestamp: null,

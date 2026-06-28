@@ -398,6 +398,14 @@ class OpcUaServerProcess {
             const target = msg && msg.opcuaServerIo ? msg.opcuaServerIo : {};
             const identifierType = this.resolveIdentifierType(target);
 
+            let isSingleTag = false;
+            try {
+                this.resolveIdentifier(target);
+                isSingleTag = true;
+            } catch (e) {
+                // not a single tag
+            }
+
             // Buffer serializado pelo IPC
             if (
                 payload &&
@@ -464,7 +472,7 @@ class OpcUaServerProcess {
             }
 
             // Array de objetos
-            else if (Array.isArray(payload)) {
+            else if (Array.isArray(payload) && (!isSingleTag || this.isBatchWritePayload(payload))) {
 
                 if (!payload.length) {
                     throw new Error("msg.payload array does not contain any items");
@@ -615,6 +623,18 @@ class OpcUaServerProcess {
                 nodeId
             });
         }
+    }
+
+    isBatchWritePayload(payload) {
+        if (!Array.isArray(payload) || payload.length === 0) {
+            return false;
+        }
+        return payload.every(item => 
+            item && 
+            typeof item === "object" && 
+            !Array.isArray(item) && 
+            (item.path !== undefined || item.nodeId !== undefined || item.identifier !== undefined)
+        );
     }
 
     resolveIdentifierType(target) {

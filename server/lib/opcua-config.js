@@ -737,22 +737,39 @@ class OpcUaServerConfigParser {
     }
 
     coerceValue(value, type) {
-        if (Array.isArray(value)) {
-            return value.map((item) => this.coerceScalarValue(item, type));
-        }
+        const recursiveMap = (val, fn) => {
+            if (Array.isArray(val)) {
+                if ((type === "Int64" || type === "UInt64") && val.length === 2 && typeof val[0] === "number" && typeof val[1] === "number") {
+                    return fn(val);
+                }
+                return val.map(item => recursiveMap(item, fn));
+            }
+            return fn(val);
+        };
 
-        if (typeof value === "string") {
-            const trimmed = value.trim();
-            if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-                try {
-                    const parsed = JSON.parse(trimmed);
-                    if (Array.isArray(parsed)) {
-                        return parsed.map((item) => this.coerceScalarValue(item, type));
+        const extractArray = (val) => {
+            if (Array.isArray(val)) {
+                return val;
+            }
+            if (typeof val === "string") {
+                const trimmed = val.trim();
+                if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                    try {
+                        const parsed = JSON.parse(trimmed);
+                        if (Array.isArray(parsed)) {
+                            return parsed;
+                        }
+                    } catch (error) {
+                        throw new Error("Invalid array value for type " + type + ": " + error.message);
                     }
-                } catch (error) {
-                    throw new Error("Invalid array value for type " + type + ": " + error.message);
                 }
             }
+            return null;
+        };
+
+        const items = extractArray(value);
+        if (items) {
+            return recursiveMap(items, (item) => this.coerceScalarValue(item, type));
         }
 
         return this.coerceScalarValue(value, type);

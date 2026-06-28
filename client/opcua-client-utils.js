@@ -204,12 +204,93 @@ function coerceValue(value, typeName) {
     }
 }
 
+function getArrayDimensions(value, typeName) {
+    if (!Array.isArray(value)) {
+        return null;
+    }
+    // Check if it is a 64-bit scalar represented as [high, low]
+    if ((typeName === "Int64" || typeName === "UInt64") && value.length === 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+        return null;
+    }
+
+    const hasNestedArray = value.some(item => {
+        if (Array.isArray(item)) {
+            if ((typeName === "Int64" || typeName === "UInt64") && item.length === 2 && typeof item[0] === "number" && typeof item[1] === "number") {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    });
+
+    if (!hasNestedArray) {
+        return null;
+    }
+
+    const dimensions = [];
+    let current = value;
+    while (Array.isArray(current)) {
+        if ((typeName === "Int64" || typeName === "UInt64") && current.length === 2 && typeof current[0] === "number" && typeof current[1] === "number") {
+            break;
+        }
+        dimensions.push(current.length);
+        if (current.length === 0) {
+            break;
+        }
+        current = current[0];
+    }
+    return dimensions;
+}
+
+function flattenMatrix(value, typeName) {
+    if (!Array.isArray(value)) {
+        return value;
+    }
+    if ((typeName === "Int64" || typeName === "UInt64") && value.length === 2 && typeof value[0] === "number" && typeof value[1] === "number") {
+        return [value];
+    }
+
+    const flat = [];
+    const recurse = (a) => {
+        for (const item of a) {
+            if (Array.isArray(item)) {
+                if ((typeName === "Int64" || typeName === "UInt64") && item.length === 2 && typeof item[0] === "number" && typeof item[1] === "number") {
+                    flat.push(item);
+                } else {
+                    recurse(item);
+                }
+            } else {
+                flat.push(item);
+            }
+        }
+    };
+    recurse(value);
+    return flat;
+}
+
 function buildVariantFromItem(item, fallbackTypeName) {
     const typeName = normalizeTypeName(item.type || fallbackTypeName || inferTypeName(item.value));
     const dataType = DataType[typeName];
 
     if (dataType === undefined) {
         throw new Error("Unsupported OPC UA data type: " + typeName);
+    }
+
+    const dimensions = getArrayDimensions(item.value, typeName);
+    if (dimensions) {
+        // Multi-dimensional array (Matrix)
+        const flatVal = flattenMatrix(item.value, typeName);
+        const coercedArray = coerceValue(flatVal, typeName);
+        const TypedArrayCtor = TYPED_ARRAY_MAP[dataType];
+
+        return new Variant({
+            dataType,
+            arrayType: VariantArrayType.Matrix,
+            dimensions,
+            value: TypedArrayCtor
+                ? TypedArrayCtor.from(coercedArray)
+                : coercedArray
+        });
     }
 
     const isArray = Array.isArray(item.value);
@@ -311,11 +392,47 @@ function resolve64BitValue(value, isUnsigned) {
     return value;
 }
 
+function reshapeArray(flatArray, dimensions) {
+    if (!dimensions || dimensions.length <= 1) {
+        return flatArray;
+    }
+
+    const reshape = (arr, dims, offset) => {
+        const size = dims[0];
+        if (dims.length === 1) {
+            return {
+                result: arr.slice(offset, offset + size),
+                nextOffset: offset + size
+            };
+        }
+
+        const result = [];
+        let currentOffset = offset;
+        for (let i = 0; i < size; i++) {
+            const step = reshape(arr, dims.slice(1), currentOffset);
+            result.push(step.result);
+            currentOffset = step.nextOffset;
+        }
+        return {
+            result: result,
+            nextOffset: currentOffset
+        };
+    };
+
+    return reshape(flatArray, dimensions, 0).result;
+}
+
 function dataValueToItemResult(item, dataValue) {
     const variant = dataValue && dataValue.value ? dataValue.value : null;
     let val = variant ? variant.value : null;
     if (variant && (variant.dataType === DataType.Int64 || variant.dataType === DataType.UInt64)) {
         val = resolve64BitValue(val, variant.dataType === DataType.UInt64);
+    }
+    if (variant && variant.arrayType === VariantArrayType.Matrix && variant.dimensions && (Array.isArray(val) || ArrayBuffer.isView(val))) {
+        if (ArrayBuffer.isView(val)) {
+            val = Array.from(val);
+        }
+        val = reshapeArray(val, variant.dimensions);
     }
     return {
         name: resolveName(item, resolveNodeId(item)),
@@ -373,6 +490,12 @@ function callResultToItemResult(item, callResult, argumentDefinition) {
             let val = variant ? variant.value : null;
             if (variant && (variant.dataType === DataType.Int64 || variant.dataType === DataType.UInt64)) {
                 val = resolve64BitValue(val, variant.dataType === DataType.UInt64);
+            }
+            if (variant && variant.arrayType === VariantArrayType.Matrix && variant.dimensions && (Array.isArray(val) || ArrayBuffer.isView(val))) {
+                if (ArrayBuffer.isView(val)) {
+                    val = Array.from(val);
+                }
+                val = reshapeArray(val, variant.dimensions);
             }
             return {
                 name: outputDefinitions[index] && outputDefinitions[index].name
@@ -601,5 +724,6 @@ module.exports = {
     resolveNodeId,
     resolveSecurityMode,
     resolveSecurityPolicy,
+    reshapeArray,
     statusCodeToString
 };
