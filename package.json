@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "description": "Custom Node-RED OPC UA server and client nodes with a graphical interface, powered by node-opcua",
+  "description": "OPC UA server and client nodes with a graphical interface, powered by node-opcua",
   "main": "server/opcua-server.js",
   "node-red": {
     "version": ">=3.0.0",
