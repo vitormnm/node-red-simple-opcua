@@ -759,12 +759,27 @@
         renderBrowseTree();
         var browseNodeId = item.nodeID || item.nodeId;
         loadBrowse(browseNodeId).done(function (payload) {
-
-            
-
-            item.browse = Array.isArray(payload.browse) ? payload.browse : [];
-            saveBrowseSession();
-            renderBrowseTree();
+            try {
+                if (!payload) {
+                    console.error("Browse returned empty payload for node " + browseNodeId);
+                    RED.notify("Browse returned empty payload.", "error");
+                    item.browse = [];
+                } else if (payload.error) {
+                    console.error("Browse returned error for node " + browseNodeId + ":", payload.error);
+                    RED.notify(payload.error, "error");
+                    item.browse = [];
+                } else {
+                    item.browse = Array.isArray(payload.browse) ? payload.browse : [];
+                }
+                saveBrowseSession();
+                renderBrowseTree();
+            } catch (err) {
+                console.error("Error handling browse payload for node " + browseNodeId + ":", err);
+                RED.notify("Error handling browse response: " + err.message, "error");
+                expansionState[path] = false;
+                saveBrowseSession();
+                renderBrowseTree();
+            }
         }).fail(function (xhr) {
             expansionState[path] = false;
             saveBrowseSession();
@@ -773,6 +788,7 @@
                 ? xhr.responseJSON.error
                 : "Falha ao expandir o node.";
             RED.notify(message, "error");
+            console.error("Browse request failed for node " + browseNodeId + ":", xhr);
         });
     }
 
