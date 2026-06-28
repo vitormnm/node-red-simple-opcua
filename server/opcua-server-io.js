@@ -119,6 +119,13 @@ module.exports = function (RED) {
                         node._pendingDoneCallbacks.delete(msg._msgid);
                     }
                 }
+                else if (node.mode === "validateLogin") {
+                    await handleValidateLogin(node, msg, { waitForServer: true, timeoutMs: 5000 });
+                    done();
+                    if (msg && msg._msgid) {
+                        node._pendingDoneCallbacks.delete(msg._msgid);
+                    }
+                }
 
             } catch (error) {
                 node.status({ fill: "red", shape: "ring", text: node.mode + " failed" });
@@ -342,6 +349,14 @@ module.exports = function (RED) {
     async function handleDeleteSessions(node, msg, options) {
         return sendToChild(node, {
             type: "deleteActiveSessions",
+            msg: msg,
+            nodeId: node.id
+        }, options);
+    }
+
+    async function handleValidateLogin(node, msg, options) {
+        return sendToChild(node, {
+            type: "validateLogin",
             msg: msg,
             nodeId: node.id
         }, options);

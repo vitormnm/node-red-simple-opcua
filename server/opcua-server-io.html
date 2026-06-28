@@ -172,6 +172,7 @@
             <option value="activeAlarms">Active Alarms</option>
             <option value="getSessions">Get Sessions</option>
             <option value="deleteSessions">Delete Sessions</option>
+            <option value="validateLogin">Validate Login</option>
             <option value="method-input">Method Input</option>
             <option value="method-output">Method Output</option>
         </select>
@@ -410,14 +411,29 @@ msg.payload = [
     "error": "cannot find session …"
   }
 ]</code></pre>
-    <p>Possible <code>status</code> values:</p>
     <ul>
         <li><b>deleted</b> — session was found and successfully closed with reason <code>Forcing</code>.</li>
         <li><b>not_found</b> — no active session with that <code>sessionId</code> exists.</li>
-        <li><b>error</b> — the session was found but <code>engine.closeSession()</code> threw; the
-        <code>error</code> field contains the message.</li>
+        <li><b>error</b> — the session was found but <code>engine.closeSession()</code> threw; the <code>error</code> field contains the message.</li>
     </ul>
 
-
-
+    <h3>Validate Login</h3>
+    <p>Validates a user's credentials against the OPC UA server's configured user database.</p>
+    <p><b>Input</b>: <code>msg.payload</code> must be a JSON object containing <code>userName</code> (or <code>username</code>) and <code>password</code>:</p>
+    <pre><code>{
+  "userName": "admin",
+  "password": "123"
+}</code></pre>
+    <p><b>Output</b>: <code>msg.payload</code> contains the status of validation and user groups (excluding password hashes):</p>
+    <pre><code>{
+  "status": "Good",
+  "username": "admin",
+  "group": "admin,operator",
+  "groups": ["admin", "operator"]
+}</code></pre>
+    <p>If authentication fails or the user is not found, the response contains:</p>
+    <pre><code>{
+  "status": "erro",
+  "message": "Invalid username or password"
+}</code></pre>
 </script>

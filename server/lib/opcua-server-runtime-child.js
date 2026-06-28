@@ -1075,6 +1075,105 @@ class OpcUaServerProcess {
         }
     }
 
+    async validateLogin(msg, nodeId) {
+        try {
+            await this.ensureReady();
+            const runtime = this.runtime;
+            if (!runtime) {
+                throw new Error("OPC UA server is not available");
+            }
+
+            const payload = msg && msg.payload ? msg.payload : {};
+            const username = typeof payload.userName === "string" ? payload.userName : (typeof payload.username === "string" ? payload.username : "");
+            const password = typeof payload.password === "string" ? payload.password : "";
+
+            const normalizedUserName = username.trim();
+            const users = Array.isArray(runtime.users) ? runtime.users : [];
+            const user = users.find((entry) => entry && entry.username === normalizedUserName);
+
+            let isValid = false;
+            if (user) {
+                if (user.password && user.password === password) {
+                    isValid = true;
+                } else if (user.passwordHash) {
+                    let bcrypt = null;
+                    try {
+                        bcrypt = require("bcryptjs");
+                    } catch (e) {
+                        bcrypt = null;
+                    }
+                    if (bcrypt) {
+                        try {
+                            isValid = bcrypt.compareSync(password, user.passwordHash);
+                        } catch (err) {
+                            // ignore comparison error
+                        }
+                    }
+                }
+            }
+
+            let result;
+            if (isValid) {
+                const groups = typeof user.group === "string"
+                    ? user.group.split(",").map(g => g.trim()).filter(Boolean)
+                    : Array.isArray(user.group)
+                        ? user.group
+                        : [];
+
+                result = {
+                    status: "Good",
+                    username: user.username,
+                    group: user.group,
+                    groups: groups
+                };
+            } else {
+                result = {
+                    status: "erro",
+                    message: "Invalid username or password"
+                };
+            }
+
+            if (msg) {
+                const outMsg = Object.assign({}, msg);
+                outMsg.payload = result;
+
+                process.send({
+                    type: "send",
+                    data: outMsg,
+                    nodeId: nodeId
+                });
+            }
+
+            process.send({
+                type: "status",
+                data: {
+                    fill: isValid ? "green" : "yellow",
+                    shape: "dot",
+                    text: isValid ? "Login: Good" : "Login: erro"
+                },
+                nodeId: nodeId
+            });
+        } catch (error) {
+            if (msg) {
+                const outMsg = Object.assign({}, msg);
+                outMsg.payload = {
+                    status: "erro",
+                    message: error.message
+                };
+                process.send({
+                    type: "send",
+                    data: outMsg,
+                    nodeId: nodeId
+                });
+            }
+            process.send({
+                type: "status",
+                data: { fill: "red", shape: "ring", text: "Login error: " + error.message },
+                nodeId: nodeId
+            });
+        }
+    }
+
 }
 
 /**
@@ -1231,6 +1330,9 @@ process.on("message", async (msg) => {
             case "deleteActiveSessions":
                 await serverProcess.deleteActiveSessions(msg.msg, msg.nodeId);
                 break;
+            case "validateLogin":
+                await serverProcess.validateLogin(msg.msg, msg.nodeId);
+                break;
 
 
 
@@ -1269,3 +1371,7 @@ process.on("unhandledRejection", (reason) => {
         nodeId: serverProcess.node.id
     });
 });
+
+if (require.main !== module) {
+    module.exports = { OpcUaServerProcess };
+}

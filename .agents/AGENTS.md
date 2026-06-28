@@ -16,6 +16,7 @@ The following entries extend the IPC message contract table in the global AGENTS
 |----------------|-------------------------|-----------------------------|------------------------------------------------|
 | parent → child | `readActiveSessions`    | `msg`, `nodeId`             | Return snapshot of all active sessions         |
 | parent → child | `deleteActiveSessions`  | `msg` (with `payload` array of `{ sessionId }`), `nodeId` | Force-close one or more sessions by `sessionId` |
+| parent → child | `validateLogin`         | `msg` (with `payload` of `{ userName, password }`), `nodeId` | Authenticate credentials against server users  |
 
 > **Rule:** Both `readActiveSessions` and `deleteActiveSessions` are handled in the `process.on("message", ...)` switch block in `opcua-server-runtime-child.js` and wired in `opcua-server-io.js` via `requestSessions` / `handleDeleteSessions`.
 
@@ -29,6 +30,7 @@ The following entries extend the mode table in the global AGENTS.md for `opcua-s
 |------------------|-------------------------------------------------------------|-----------------------|
 | `getSessions`    | Sends `readActiveSessions` to child; outputs session array  | Sends `readActiveSessions` (auto-fetch, same as `status` mode) |
 | `deleteSessions` | Sends `deleteActiveSessions` to child; outputs result array | —                     |
+| `validateLogin`  | Sends `validateLogin` to child; outputs user details & groups | —                     |
 
 ---
 
@@ -118,6 +120,42 @@ The following entries extend the mode table in the global AGENTS.md for `opcua-s
 | Some not found         | yellow    | `"deleted 1, not found 1"`         |
 | Any error              | red       | `"deleted 1, error 1"`             |
 | Empty input (throws)   | red       | `"failed deleteSessions"`          |
+
+---
+
+### `validateLogin` — Child Process Method
+
+**File:** `server/lib/opcua-server-runtime-child.js` — `OpcUaServerProcess.validateLogin(msg, nodeId)`
+
+**Input contract:** `msg.payload` must be an object with credentials fields:
+
+```json
+{
+  "userName": "admin",
+  "password": "123"
+}
+```
+*Note:* Both case variations `userName` and `username` keys are supported.
+
+**Algorithm:**
+1. Validates the username and password against the server's configured user credentials (`runtime.users`).
+2. Checks either plain-text `password` matches or compares the password against `passwordHash` using `bcryptjs`.
+3. If valid, retrieves the user's groups from `user.group` (comma-separated string or array).
+4. Sends `{ type: "send", data: outMsg }` with `outMsg.payload` containing user details and groups:
+   ```json
+   {
+     "status": "Good",
+     "username": "admin",
+     "group": "admin,operator",
+     "groups": ["admin", "operator"]
+   }
+   ```
+5. If invalid or an error occurs, returns `{ status: "erro", message: "..." }`.
+
+**Node status badge logic:**
+- Successful authentication: green `"Login: Good"`
+- Failed authentication: yellow `"Login: erro"`
+- Unexpected error: red `"Login error: <message>"`
 
 ---
 
