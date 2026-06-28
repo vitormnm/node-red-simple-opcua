@@ -99,8 +99,39 @@ function buildServerSnapshot(serverNode) {
         },
         endpoints: Array.isArray(server.endpoints)
             ? server.endpoints.map((endpoint) => buildEndpointSnapshot(endpoint))
-            : []
+            : [],
+        users: buildUsersSnapshot(serverNode),
+        groups: buildGroupsSnapshot(serverNode)
     };
+}
+
+function buildUsersSnapshot(serverNode) {
+    const rawUsers = Array.isArray(serverNode.users) ? serverNode.users : [];
+    const allowAnonymous = Boolean(serverNode.allowAnonymous);
+
+    const result = rawUsers.map((user) => ({
+        name: extractText(user && user.username),
+        groups: resolveUserGroups(user, serverNode.groups)
+    }));
+
+    if (allowAnonymous) {
+        result.unshift({ name: "anonymous", groups: [] });
+    }
+
+    return result;
+}
+
+function buildGroupsSnapshot(serverNode) {
+    const rawGroups = Array.isArray(serverNode.groups) ? serverNode.groups : [];
+    return rawGroups.map((g) => extractText(g && (g.name || g))).filter(Boolean);
+}
+
+function resolveUserGroups(user, rawGroups) {
+    if (!user) return [];
+    // normalizeUser stores groups as user.group (comma-separated string)
+    const groupsStr = extractText(user.group);
+    if (!groupsStr) return [];
+    return groupsStr.split(",").map((g) => g.trim()).filter(Boolean);
 }
 
 function buildEndpointSnapshot(endpoint) {

@@ -474,6 +474,10 @@ module.exports = function (RED) {
             registerMethodInput(node);
         }
 
+        if (node.mode === "events") {
+            registerEvents(node, { throwOnError: false, silentOnError: true });
+        }
+
         return true;
     }
 

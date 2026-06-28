@@ -160,6 +160,9 @@ class OpcUaServerRuntime {
         this.ensureReady();
         this.syncNamespaces(treeConfig);
         this.treeConfig = treeConfig;
+        // Refresh the user list in the builder so newly added/removed users are
+        // recognised in access events without requiring a full server restart.
+        this.addressSpaceBuilder.updateUsers(this.users);
         this.addressSpaceBuilder.sync(treeConfig);
     }
 

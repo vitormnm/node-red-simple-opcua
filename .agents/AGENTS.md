@@ -278,6 +278,95 @@ To allow reading variable values directly from the frontend browse tree:
 2. **Backend Read Route**: Exposes a GET route `/opcua-client-config/:id/read` which uses `session.read` with `AttributeIds.Value` to read the node's current value. It then calls `dataValueToItemResult` and `enrichItemResultWithEnumeration` to resolve custom data types and enumerations.
 3. **Frontend Value Notification**: Displays the read value (including resolved enumeration string if applicable) using `RED.notify(valueText, "success")`. If the read operation fails, it displays an error notification using `RED.notify(message, "error")`.
 
+---
 
+## User & Group Tracking in Variable Access Events — `events` mode
+
+The `events` mode of `opcua-server-io` now includes a `users` array in every read and write event entry, identifying which OPC UA client sessions performed the operation and which groups they belong to.
+
+### Architecture
+
+**Interception layer** — `server/lib/opcua-address-space-builder.js`
+
+- A module-level `activeReads = new WeakMap()` tracks which `SessionContext` objects have an async read in flight. This prevents duplicate events when `readValueAsync` internally calls `readValue`.
+- `wrapVariableNode(variableNode, path, nodeId, browseName, state)` hooks into each variable node's `readValue`, `readValueAsync`, and `writeValue` methods **once** (guarded by `variableNode._opcuaWrapped = true`). Subsequent calls from re-syncs (`updateTree` / deploy) are no-ops.
+  - `readValue` (synchronous) — used by OPC UA subscription monitored-items. Emits the event unless a matching `readValueAsync` call for the same context is already active (`activeReads.has(context)`).
+  - `readValueAsync` (async) — used by standard client read requests. Sets `activeReads.set(context, true)` before delegating, deletes it and emits the event in the callback/Promise resolution.
+  - `writeValue` — intercepts the callback at the end of the argument list using rest parameters (`...args`) to correctly handle the optional `indexRange` argument shifting.
+- `getUserGroups(username)` — looks up the user in `this.users` (set from `options.users` at construction) and splits `user.group` (comma-separated string stored by `normalizeUser`) into an array.
+- `emitTagAccessWithContext(operation, details, context)` — resolves the username from `context.session.userIdentityToken.userName` (falls back to `"anonymous"` if null/absent), calls `getUserGroups`, and emits a registry access event with a `users: [{ name, groups }]` array.
+- `updateUsers(users)` — called by `OpcUaServerRuntime.updateTree()` before each sync so new/removed users are reflected immediately in events without a full server restart.
+
+**User field naming** — `server/lib/opcua-config.js`
+
+`normalizeUser` stores groups in `user.group` (singular, comma-separated string, not `user.groups`). All code that reads user groups must use `user.group`.
+
+**Alarm events** — `server/lib/opcua-address-space-alarm.js`
+
+Alarm events (server-internal, no client session) always carry `users: []`.
+
+### Event deduplication and merging — `server/lib/opcua-server-events-child.js`
+
+`upsertEvent(map, event)` keys the flush-interval Map by `nodeID` only:
+- **First access** in the interval → stores a shallow copy of the event with a fresh `users` array.
+- **Subsequent accesses** (same variable, same interval, different users) → updates `value` to the latest and merges any new users not yet in the list (deduplication by `user.name` using a `Set`).
+
+This means one variable always appears **once** per interval in the output, with all concurrent users listed in its `users` array.
+
+### Output shape
+
+```json
+{
+  "read": [
+    {
+      "nodeID": "ns=2;s=Motor.Speed",
+      "path": "Motor.Speed",
+      "dataType": "Float",
+      "value": 1500,
+      "users": [
+        { "name": "vitor",     "groups": ["engineer", "admin"] },
+        { "name": "john",      "groups": ["operator"] },
+        { "name": "anonymous", "groups": [] }
+      ]
+    }
+  ],
+  "write": [ ... ],
+  "alarm": [ ... ]
+}
+```
+
+### `status` mode — `server/lib/opcua-server-status-child.js`
+
+`buildServerSnapshot` now includes two additional top-level keys:
+
+```json
+{
+  "users": [
+    { "name": "anonymous", "groups": [] },
+    { "name": "vitor",     "groups": ["engineer", "admin"] }
+  ],
+  "groups": ["engineer", "admin", "operator"]
+}
+```
+
+- `users` is built by `buildUsersSnapshot(serverNode)`: maps `serverNode.users`, resolves each user's groups via `resolveUserGroups` (reads `user.group`), and prepends `{ name: "anonymous", groups: [] }` when `serverNode.allowAnonymous` is `true`.
+- `groups` is built by `buildGroupsSnapshot(serverNode)`: returns the flat list of all configured group names from `serverNode.groups`.
+
+---
+
+## Events Mode Reconnection After Deploy — `opcua-server-io`
+
+**Problem:** After a Node-RED deploy, the child process is killed and a new one is forked. The new child's in-process `registry` (in `opcua-server-registry.js`) starts empty — no `accessListeners` are registered. If the `events`-mode `opcua-server-io` node does not re-send `eventsServer` to the new child, no access events are ever emitted.
+
+**Rule:** `attachChildListener` in `server/opcua-server-io.js` must re-register **all stateful modes** whenever it successfully connects to a new child process:
+
+| Mode           | Re-registration action on new child attach            |
+|----------------|-------------------------------------------------------|
+| `method-input` | `registerMethodInput(node)` — always was done         |
+| `events`       | `registerEvents(node, { throwOnError: false, silentOnError: true })` — **newly required** |
+
+Any future stateful mode that registers state in the child process (e.g. subscriptions, alarms) must likewise be re-registered inside `attachChildListener` when a fresh child is detected.
+
+**No-double-wrap rule:** `wrapVariableNode` in the builder guards against re-wrapping the same `UAVariable` instance on every `sync` call by checking `variableNode._opcuaWrapped`. A second call to `wrapVariableNode` on an already-wrapped node is a **no-op**. This is critical because `sync` is called on every `updateServer` IPC message (which fires on every deploy), and without this guard, each deploy adds another wrapper layer, eventually breaking the event pipeline.
 
 

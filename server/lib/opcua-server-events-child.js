@@ -110,10 +110,27 @@ function flushQueue(node, nodeId) {
 
 
 function upsertEvent(map, event) {
-    const key = String(event.nodeID || "").trim();
-    if (!key) return;
+    const nodeKey = String(event.nodeID || "").trim();
+    if (!nodeKey) return;
 
-    map.set(key, event); // sobrescreve automaticamente
+    // Key by nodeID only so the same variable is merged into one entry
+    const key = nodeKey;
+    const existing = map.get(key);
+
+    if (!existing) {
+        // First access for this variable in this interval — store a copy
+        map.set(key, Object.assign({}, event, { users: Array.isArray(event.users) ? [...event.users] : [] }));
+    } else {
+        // Variable already seen — update value and merge any new users
+        existing.value = event.value;
+        const existingNames = new Set((existing.users || []).map(u => u.name));
+        for (const user of (event.users || [])) {
+            if (!existingNames.has(user.name)) {
+                existing.users.push(user);
+                existingNames.add(user.name);
+            }
+        }
+    }
 }
 
 function matchesServer(serverRef, event) {

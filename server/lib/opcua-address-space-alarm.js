@@ -25,7 +25,8 @@ class OpcUaAddressSpaceAlarm {
             nodeID: details.nodeID,
             browseName: details.browseName,
             dataType: details.dataType,
-            value: details.value
+            value: details.value,
+            users: []
         });
     }
 

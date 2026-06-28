@@ -14,6 +14,8 @@ const {
 
 const { OpcUaAddressSpaceAlarm } = require("./opcua-address-space-alarm")
 
+const activeReads = new WeakMap();
+
 class OpcUaAddressSpaceBuilder {
     constructor(options) {
         this.namespace = options.namespace;
@@ -24,6 +26,7 @@ class OpcUaAddressSpaceBuilder {
         this.serverName = options.serverName;
         const hasUsers = Array.isArray(options.users) && options.users.length > 0;
         this.authorizationDisabled = !hasUsers;
+        this.users = options.users || [];
         this.nodeEntries = new Map();
         this.variableStore = new Map();
         this.variableNodeIdStore = new Map();
@@ -1290,6 +1293,7 @@ class OpcUaAddressSpaceBuilder {
             if (initialValue !== undefined) {
                 record.setRuntimeValue(initialValue);
             }
+            this.wrapVariableNode(existingNode, path, nodeId, browseName, state);
             return;
         }
 
@@ -1311,13 +1315,6 @@ class OpcUaAddressSpaceBuilder {
                     if (browseName === "AcceptAllCertificates" && this.server && this.server.serverCertificateManager) {
                         state.currentValue = this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate;
                     }
-                    this.emitTagAccess("read", {
-                        path,
-                        nodeID: nodeId,
-                        browseName,
-                        dataType: state.type,
-                        value: state.currentValue
-                    });
 
                     let val = state.currentValue;
                     if (state.type === "Int64" || state.type === "UInt64") {
@@ -1364,13 +1361,6 @@ class OpcUaAddressSpaceBuilder {
 
                     try {
                         state.currentValue = this.coerceValue(variant.value, state.type, state.isArray);
-                        this.emitTagAccess("write", {
-                            path,
-                            nodeID: nodeId,
-                            browseName,
-                            dataType: state.type,
-                            value: state.currentValue
-                        });
 
                         if (browseName === "AcceptAllCertificates" && this.server && this.server.serverCertificateManager) {
                             this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate = !!state.currentValue;
@@ -1420,6 +1410,7 @@ class OpcUaAddressSpaceBuilder {
         };
         this.variableStore.set(path, record);
         this.variableNodeIdStore.set(record.nodeIdKey, record);
+        this.wrapVariableNode(variableNode, path, nodeId, browseName, state);
     }
 
 
@@ -1614,6 +1605,220 @@ class OpcUaAddressSpaceBuilder {
             dataType: details.dataType,
             value: val
         });
+    }
+
+    getUserGroups(username) {
+        const normalized = String(username || "").trim();
+        if (!normalized || normalized.toLowerCase() === "anonymous") {
+            return [];
+        }
+        const user = this.users.find(u => u && u.username === normalized);
+        if (!user) {
+            return [];
+        }
+        return typeof user.group === "string"
+            ? user.group.split(",").map(g => g.trim()).filter(Boolean)
+            : Array.isArray(user.group)
+                ? user.group
+                : [];
+    }
+
+    emitTagAccessWithContext(operation, details, context) {
+        let val = details.value;
+        if (details.dataType === "Int64" || details.dataType === "UInt64") {
+            const convertToNumber = (v) => {
+                const num = Number(v);
+                return Number.isFinite(num) ? num : v;
+            };
+            const isArray = this.isArrayValue(val);
+            if (isArray) {
+                const items = this.extractArrayItems(val);
+                val = Array.isArray(items) ? items.map(convertToNumber) : convertToNumber(val);
+            } else {
+                val = convertToNumber(val);
+            }
+        }
+
+        const users = [];
+        if (context && context.session) {
+            const session = context.session;
+            const username = (session.userIdentityToken && session.userIdentityToken.userName)
+                ? session.userIdentityToken.userName
+                : "anonymous";
+            const groups = this.getUserGroups(username);
+            users.push({
+                name: username,
+                groups: groups
+            });
+        } else {
+            users.push({
+                name: "anonymous",
+                groups: []
+            });
+        }
+
+        this.registry.emitTagAccess({
+            operation,
+            serverId: this.node.id,
+            serverNodeName: this.node.name || "",
+            serverName: this.serverName,
+            timestamp: new Date().toISOString(),
+            path: details.path,
+            nodeID: details.nodeID,
+            browseName: details.browseName,
+            dataType: details.dataType,
+            value: val,
+            users: users
+        });
+    }
+
+    updateUsers(users) {
+        this.users = Array.isArray(users) ? users : [];
+    }
+
+    wrapVariableNode(variableNode, path, nodeId, browseName, state) {
+        // Guard: only wrap once per node instance — re-sync must not double-wrap
+        if (variableNode._opcuaWrapped) {
+            return;
+        }
+        variableNode._opcuaWrapped = true;
+        const self = this;
+
+        const originalReadValue = variableNode.readValue;
+        variableNode.readValue = function(...args) {
+            const context = args[0];
+            const hasActiveAsync = context && typeof context === "object" && activeReads.has(context);
+            try {
+                const dataValue = originalReadValue.apply(this, args);
+                if (!hasActiveAsync && dataValue && dataValue.statusCode.isGoodish()) {
+                    self.emitTagAccessWithContext("read", {
+                        path,
+                        nodeID: nodeId,
+                        browseName,
+                        dataType: state.type,
+                        value: (dataValue.value) ? dataValue.value.value : null
+                    }, context);
+                }
+                return dataValue;
+            } finally {
+                // no-op
+            }
+        };
+
+        const originalReadValueAsync = variableNode.readValueAsync;
+        variableNode.readValueAsync = function(...args) {
+            let callback = null;
+            if (args.length > 0 && typeof args[args.length - 1] === "function") {
+                callback = args[args.length - 1];
+            }
+
+            const context = args[0];
+
+            if (context && typeof context === "object") {
+                activeReads.set(context, true);
+            }
+
+            if (callback) {
+                args[args.length - 1] = function(err, dataValue) {
+                    if (context && typeof context === "object") {
+                        activeReads.delete(context);
+                    }
+                    if (!err && dataValue && dataValue.statusCode.isGoodish()) {
+                        self.emitTagAccessWithContext("read", {
+                            path,
+                            nodeID: nodeId,
+                            browseName,
+                            dataType: state.type,
+                            value: (dataValue.value) ? dataValue.value.value : null
+                        }, context);
+                    }
+                    callback(err, dataValue);
+                };
+                try {
+                    return originalReadValueAsync.apply(this, args);
+                } catch (e) {
+                    if (context && typeof context === "object") {
+                        activeReads.delete(context);
+                    }
+                    throw e;
+                }
+            } else {
+                try {
+                    const promise = originalReadValueAsync.apply(this, args);
+                    if (promise && typeof promise.then === "function") {
+                        return promise.then((dataValue) => {
+                            if (context && typeof context === "object") {
+                                activeReads.delete(context);
+                            }
+                            if (dataValue && dataValue.statusCode.isGoodish()) {
+                                self.emitTagAccessWithContext("read", {
+                                    path,
+                                    nodeID: nodeId,
+                                    browseName,
+                                    dataType: state.type,
+                                    value: (dataValue.value) ? dataValue.value.value : null
+                                }, context);
+                            }
+                            return dataValue;
+                        }, (err) => {
+                            if (context && typeof context === "object") {
+                                activeReads.delete(context);
+                            }
+                            throw err;
+                        });
+                    }
+                    if (context && typeof context === "object") {
+                        activeReads.delete(context);
+                    }
+                    return promise;
+                } catch (e) {
+                    if (context && typeof context === "object") {
+                        activeReads.delete(context);
+                    }
+                    throw e;
+                }
+            }
+        };
+
+        const originalWriteValue = variableNode.writeValue;
+        variableNode.writeValue = function(...args) {
+            let callback = null;
+            if (args.length > 0 && typeof args[args.length - 1] === "function") {
+                callback = args[args.length - 1];
+            }
+
+            const context = args[0];
+            const dataValue = args[1];
+
+            if (callback) {
+                args[args.length - 1] = function(err, statusCode) {
+                    if (!err && statusCode && statusCode.isGoodish()) {
+                        self.emitTagAccessWithContext("write", {
+                            path,
+                            nodeID: nodeId,
+                            browseName,
+                            dataType: state.type,
+                            value: (dataValue && dataValue.value) ? dataValue.value.value : null
+                        }, context);
+                    }
+                    callback(err, statusCode);
+                };
+                return originalWriteValue.apply(this, args);
+            } else {
+                return originalWriteValue.apply(this, args).then((statusCode) => {
+                    if (statusCode && statusCode.isGoodish()) {
+                        self.emitTagAccessWithContext("write", {
+                            path,
+                            nodeID: nodeId,
+                            browseName,
+                            dataType: state.type,
+                            value: (dataValue && dataValue.value) ? dataValue.value.value : null
+                        }, context);
+                    }
+                    return statusCode;
+                });
+            }
+        };
     }
 
     getVariableRecord(identifierType, identifier) {
