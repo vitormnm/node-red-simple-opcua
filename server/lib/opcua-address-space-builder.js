@@ -1359,7 +1359,7 @@ class OpcUaAddressSpaceBuilder {
 
                     return new Variant(variantOptions);
                 },
-                set: (variant, context) => {
+                set: (variant) => {
                     if (state.access !== "readwrite") {
                         return StatusCodes.BadNotWritable;
                     }
@@ -1373,8 +1373,11 @@ class OpcUaAddressSpaceBuilder {
                             console.log(`Server Certificate Manager automaticallyAcceptUnknownCertificate is now: ${this.server.serverCertificateManager.automaticallyAcceptUnknownCertificate}`);
                         }
 
-                        const alarm = this.variableStore.get(path).alarm
-                        this.addressSpaceAlarm.checkAlarm(alarm, variant.value, context)
+                        const record = this.variableStore.get(path);
+                        const alarm = record ? record.alarm : null;
+                        if (alarm) {
+                            this.addressSpaceAlarm.checkAlarm(alarm, variant.value);
+                        }
 
                         return StatusCodes.Good;
                     } catch (error) {
@@ -1803,8 +1806,12 @@ class OpcUaAddressSpaceBuilder {
             const context = args[0];
             const dataValue = args[1];
 
+            const prevContext = self.registry.activeWriteContext;
+            self.registry.activeWriteContext = context;
+
             if (callback) {
                 args[args.length - 1] = function(err, statusCode) {
+                    self.registry.activeWriteContext = prevContext;
                     if (!err && statusCode && statusCode.isGoodish()) {
                         self.emitTagAccessWithContext("write", {
                             path,
@@ -1816,20 +1823,34 @@ class OpcUaAddressSpaceBuilder {
                     }
                     callback(err, statusCode);
                 };
-                return originalWriteValue.apply(this, args);
+                try {
+                    return originalWriteValue.apply(this, args);
+                } catch (err) {
+                    self.registry.activeWriteContext = prevContext;
+                    throw err;
+                }
             } else {
-                return originalWriteValue.apply(this, args).then((statusCode) => {
-                    if (statusCode && statusCode.isGoodish()) {
-                        self.emitTagAccessWithContext("write", {
-                            path,
-                            nodeID: nodeId,
-                            browseName,
-                            dataType: state.type,
-                            value: (dataValue && dataValue.value) ? dataValue.value.value : null
-                        }, context);
-                    }
-                    return statusCode;
-                });
+                try {
+                    return originalWriteValue.apply(this, args).then((statusCode) => {
+                        self.registry.activeWriteContext = prevContext;
+                        if (statusCode && statusCode.isGoodish()) {
+                            self.emitTagAccessWithContext("write", {
+                                path,
+                                nodeID: nodeId,
+                                browseName,
+                                dataType: state.type,
+                                value: (dataValue && dataValue.value) ? dataValue.value.value : null
+                            }, context);
+                        }
+                        return statusCode;
+                    }).catch((err) => {
+                        self.registry.activeWriteContext = prevContext;
+                        throw err;
+                    });
+                } catch (err) {
+                    self.registry.activeWriteContext = prevContext;
+                    throw err;
+                }
             }
         };
     }

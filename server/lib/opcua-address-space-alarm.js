@@ -278,9 +278,11 @@ class OpcUaAddressSpaceAlarm {
         const isAcked = alarmNode.ackedState.id.readValue().value.value;
         const ConfirmedState = alarmNode.confirmedState.id.readValue().value.value;
 
+        const activeContext = context || this.registry.activeWriteContext;
+
         const users = [];
-        if (context && context.session) {
-            const session = context.session;
+        if (activeContext && activeContext.session) {
+            const session = activeContext.session;
             const username = (session.userIdentityToken && session.userIdentityToken.userName)
                 ? session.userIdentityToken.userName
                 : "anonymous";
