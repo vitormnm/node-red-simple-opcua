@@ -253,4 +253,21 @@ To allow full flexibility in NodeId naming (supporting both String `s` and Numer
 2. **ObjectType Template Exclusion**: ObjectType definitions (nodes defined under `Types/ObjectTypes`) and their children in the template are restricted to String-only NodeIds. This ensures consistent parameter inheritance and predictable prefix rewriting when instantiating the types.
 3. **Editor State Synchronization**: The `saveCreateForm`, `renderDetails`, and `saveDetailNodeId` functions in `server/view/opcua-server.js` handle parsing, populating, and persisting the selected NodeId type (`s` or `i`) and value for all supported node classes.
 
+---
+
+## Recursive Node Refreshing in Browse Tree
+
+To prevent children of refreshed tree nodes from getting stuck on `"Searching for items..."`:
+1. **Recursive Expansion Cascade**: When a node is expanded or refreshed via the frontend (`client/view/opcua-client.js`), the `.done()` handler invokes `triggerChildrenExpansion(children, parentPath)`.
+2. **Expansion State Checking**: For each child node returned in the payload, the helper checks if it was previously marked as expanded in `expansionState`. If so, and the child's own sub-items are not yet loaded, it calls `expandNode(childPath)` automatically. This cascades down the tree, restoring the expanded state of all sub-nodes recursively.
+
+---
+
+## Selection Shortcut via Ctrl+Click in Browse Tree
+
+To improve selection efficiency in the client browse tree dialog:
+1. **Shortcut Listener**: Clicking on any `.opcua-tree-row` while holding down the `Ctrl` key (or `Cmd` key on macOS) bypasses the need to manually click the "+ Add" button.
+2. **Auto-Selection Routing**: The click handler automatically intercepts the keyboard modifier (`event.ctrlKey || event.metaKey`) and routes the node to `toggleSelectedNode(path)` (or `addMethodFromTree` if in method mode). This toggles the selection state of the clicked node immediately.
+
+
 
