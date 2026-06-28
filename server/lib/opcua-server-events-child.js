@@ -126,6 +126,12 @@ function upsertEvent(map, event) {
         if (event.message !== undefined) existing.message = event.message;
         if (event.severity !== undefined) existing.severity = event.severity;
         if (event.retain !== undefined) existing.retain = event.retain;
+        if (event.activeState !== undefined) existing.activeState = event.activeState;
+        if (event.sourceName !== undefined) existing.sourceName = event.sourceName;
+        if (event.conditionName !== undefined) existing.conditionName = event.conditionName;
+        if (event.ConfirmedState !== undefined) existing.ConfirmedState = event.ConfirmedState;
+        if (event.ackedState !== undefined) existing.ackedState = event.ackedState;
+        if (event.alarmNode !== undefined) existing.alarmNode = event.alarmNode;
         const existingNames = new Set((existing.users || []).map(u => u.name));
         for (const user of (event.users || [])) {
             if (!existingNames.has(user.name)) {

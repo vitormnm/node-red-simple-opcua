@@ -259,6 +259,12 @@ class OpcUaAddressSpaceAlarm {
         const alarmConfig = alarmNode.alarmConfig || {};
         const sendValue = alarmConfig.sendValue !== false;
 
+        const ConditionName = alarmNode.getPropertyByName("ConditionName").readValue().value.value;
+        const SourceName = alarmNode.getPropertyByName("SourceName").readValue().value.value;
+        const isActive = alarmNode.activeState.id.readValue().value.value;
+        const isAcked = alarmNode.ackedState.id.readValue().value.value;
+        const ConfirmedState = alarmNode.confirmedState.id.readValue().value.value;
+
         this.emitTagAccess("alarm", {
             path: alarmNode.path || alarmNode.browseName.name,
             nodeID: alarmNode.nodeId.toString(),
@@ -267,7 +273,20 @@ class OpcUaAddressSpaceAlarm {
             severity: severity,
             retain: retain,
             dataType: "alarm",
-            value: sendValue ? "highHighSp" : null
+            value: sendValue ? "highHighSp" : null,
+            activeState: isActive,
+            sourceName: SourceName,
+            conditionName: ConditionName,
+            ConfirmedState: ConfirmedState,
+            ackedState: isAcked,
+            alarmNode: {
+                nodeId: alarmNode.nodeId,
+                browseName: alarmNode.browseName,
+                displayName: alarmNode.displayName,
+                description: alarmNode.description,
+                nodeClass: alarmNode.nodeClass,
+                typeDefinition: alarmNode.typeDefinition
+            }
         });
     }
 
