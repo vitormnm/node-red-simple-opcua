@@ -244,3 +244,13 @@ To prevent `already registered` NodeId conflicts when starting the server or dyn
 3. **Automatic Child Node Cleanup**: When creating a custom `ObjectType` instance, any default child nodes automatically instantiated by `node-opcua`'s `addObject` are deleted using `addressSpace.deleteNode` immediately after creation. This ensures that the builder's subsequent explicit instantiation loop can create the children using the correct rewritten custom NodeIds (e.g. `ns=2;s=server1.label1.label` instead of using the template's default child NodeId `ns=2;s=label.label`).
 4. **Fallback Prefix Resolution**: When rewriting inherited child NodeIds, if the definition NodeId or the instance NodeId properties are empty in the JSON config, the builder falls back to using the definition name (e.g. `"ns=2;s=" + typeEntry.config.name`) and the actual instantiated node's NodeId string (e.g. `instanceNode.nodeId.toString()`) to perform prefix rewriting correctly.
 
+---
+
+## NodeId Type Selection in Editor UI
+
+To allow full flexibility in NodeId naming (supporting both String `s` and Numeric `i` types) for all structural components on the server:
+1. **Extended Editor Support**: The editor UI Details panel and Add Node modal allow selecting/editing NodeId types (String `s` / Numeric `i`) and specifying custom values for `Folder`, `Object`, `ObjectTypeInstance`, `Variable`, `Alarm`, and `Method` nodes.
+2. **ObjectType Template Exclusion**: ObjectType definitions (nodes defined under `Types/ObjectTypes`) and their children in the template are restricted to String-only NodeIds. This ensures consistent parameter inheritance and predictable prefix rewriting when instantiating the types.
+3. **Editor State Synchronization**: The `saveCreateForm`, `renderDetails`, and `saveDetailNodeId` functions in `server/view/opcua-server.js` handle parsing, populating, and persisting the selected NodeId type (`s` or `i`) and value for all supported node classes.
+
+

@@ -3,6 +3,7 @@
     var editorState = { objects: [], folders: [], objectsTypes: [], enumerations: [], nameSpaces: [] };
     var expansionState = {};
     var selectedPath = "";
+    var draggedPath = null;
     var pendingCreate = null;
     var pendingPasswordHashes = 0;
     var authGroups = [];
@@ -443,6 +444,71 @@
 
     function normalizeSearchTerm(value) { return String(value || "").trim().toLowerCase(); }
     function isExpanded(path, defaultValue) { if (expansionState[path] === undefined) expansionState[path] = !!defaultValue; return expansionState[path]; }
+    function isAncestorPath(ancestorPath, descendantPath) {
+        if (ancestorPath === descendantPath) return true;
+        return descendantPath.indexOf(ancestorPath + ".") === 0;
+    }
+
+    function isValidDropTarget(srcPath, destPath) {
+        if (srcPath === destPath) return false;
+        if (isAncestorPath(srcPath, destPath)) return false;
+        if (srcPath.indexOf("virtual:") === 0 || srcPath.indexOf("nameSpaces.") === 0) return false;
+
+        var srcClass = nodeClassFromPath(srcPath);
+
+        if (destPath === "virtual:Objects") {
+            return srcClass === "Folder" || srcClass === "Object";
+        }
+        if (destPath === "virtual:Types.ObjectTypes") {
+            var srcTokens = pathToTokens(srcPath);
+            return srcClass === "ObjectType" && srcTokens.length === 2 && srcTokens[0] === "objectsTypes";
+        }
+        if (destPath === "virtual:Types.DataTypes") {
+            var srcTokens = pathToTokens(srcPath);
+            return srcClass === "Enumeration" && srcTokens.length === 2 && srcTokens[0] === "enumerations";
+        }
+
+        if (destPath.indexOf("virtual:") === 0 || destPath.indexOf("nameSpaces.") === 0) {
+            return false;
+        }
+
+        // Both are real paths. Make sure they are in the same scope (Objects vs Types/ObjectTypes)
+        var srcIsTemplate = isObjectTypeModelPath(srcPath);
+        var destIsTemplate = isObjectTypeModelPath(destPath);
+        if (srcIsTemplate !== destIsTemplate) {
+            return false;
+        }
+
+        var destClass = nodeClassFromPath(destPath);
+        if (destClass === "Folder" || destClass === "Object" || destClass === "ObjectType") {
+            return srcClass !== "Enumeration" && srcClass !== "Namespace";
+        }
+
+        return false;
+    }
+
+    function findObjectPath(obj, targetObj, currentPath) {
+        if (obj === targetObj) return currentPath;
+        if (typeof obj !== "object" || obj === null) return null;
+
+        if (Array.isArray(obj)) {
+            for (var i = 0; i < obj.length; i++) {
+                var path = findObjectPath(obj[i], targetObj, currentPath ? currentPath + "." + i : String(i));
+                if (path) return path;
+            }
+        } else {
+            var keys = Object.keys(obj);
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                if (k === "folders" || k === "objects" || k === "variables" || k === "methods" || k === "alarms" || k === "objectsTypes" || k === "enumerations") {
+                    var path = findObjectPath(obj[k], targetObj, currentPath ? currentPath + "." + k : k);
+                    if (path) return path;
+                }
+            }
+        }
+        return null;
+    }
+
     function nodeClassFromPath(path) {
         if (path && path.indexOf("virtual:") === 0) return "VisualFolder";
         var tokens = pathToTokens(path);
@@ -822,6 +888,9 @@
         var row = document.createElement("div");
         row.className = "opcua-tree-row" + (path === selectedPath ? " is-selected" : "");
         row.setAttribute("data-path", path);
+        if (path && path.indexOf("virtual:") !== 0 && path.indexOf("nameSpaces.") !== 0) {
+            row.setAttribute("draggable", "true");
+        }
         var label = (path && path.indexOf("virtual:") === 0) ? getVirtualNodeName(path) : (item.name || "(unnamed)");
         var displayClass = (path && path.indexOf("virtual:") === 0) ? "Folder" : nodeClass;
         row.innerHTML = indents
@@ -933,7 +1002,7 @@
             return;
         }
         var parentSuffix = path.indexOf("virtual:") === 0 ? "" : buildDefaultNodeIdSuffixFromEditorPath(path);
-        var defaultName = kind === "variable" ? "newVariable" : kind === "enum-variable" ? "newEnumVariable" : "newObject";
+        var defaultName = kind === "variable" ? "newVariable" : kind === "enum-variable" ? "newEnumVariable" : kind === "folder" ? "newFolder" : kind === "method" ? "newMethod" : kind === "alarm" ? "newAlarm" : "newObject";
         var defaultSuffix = parentSuffix ? parentSuffix + "." + defaultName : defaultName;
 
         pendingCreate = {
@@ -961,7 +1030,7 @@
             normalStateValue: 0,
             digitalMessage: "Digital alarm",
             nodeIdType: "s",
-            nodeIdValue: (kind === "variable" || kind === "enum-variable") ? defaultSuffix : ""
+            nodeIdValue: defaultSuffix
         };
         renderDetails();
     }
@@ -994,19 +1063,22 @@
         }
         var target = getAtPath(editorState, branchTargetPath);
         if (!Array.isArray(target)) return;
-        if (kind === "variable" || kind === "enum-variable") {
-            var customNodeId = "";
+
+        var customNodeId = "";
+        var parentIsObjectTypeModel = isObjectTypeModelPath(parentPath);
+        if (!parentIsObjectTypeModel && pendingCreate.nodeIdValue) {
             var nsId = getNodeNamespaceId(parentPath);
-            if (pendingCreate.nodeIdValue) {
-                if (pendingCreate.nodeIdType === "i") {
-                    var numVal = parseInt(pendingCreate.nodeIdValue, 10);
-                    if (!isNaN(numVal)) {
-                        customNodeId = "ns=" + nsId + ";i=" + numVal;
-                    }
-                } else {
-                    customNodeId = "ns=" + nsId + ";s=" + pendingCreate.nodeIdValue.trim();
+            if (pendingCreate.nodeIdType === "i") {
+                var numVal = parseInt(pendingCreate.nodeIdValue, 10);
+                if (!isNaN(numVal)) {
+                    customNodeId = "ns=" + nsId + ";i=" + numVal;
                 }
+            } else {
+                customNodeId = "ns=" + nsId + ";s=" + pendingCreate.nodeIdValue.trim();
             }
+        }
+
+        if (kind === "variable" || kind === "enum-variable") {
             target.push(normalizeVariable({
                 name: pendingCreate.name,
                 displayName: pendingCreate.displayName || "",
@@ -1017,10 +1089,12 @@
                 nodeId: customNodeId
             }));
         } else if (kind === "folder") {
-            target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", accessPermission: pendingCreate.accessPermission }));
+            target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", accessPermission: pendingCreate.accessPermission, nodeId: customNodeId }));
         } else if (kind === "objecttype") {
-            target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", objectsType: pendingCreate.objectsType || "", accessPermission: pendingCreate.accessPermission }));
-            target[target.length - 1].nodeId = buildGeneratedNodeIdForPath(branchTargetPath + "." + (target.length - 1));
+            target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", objectsType: pendingCreate.objectsType || "", accessPermission: pendingCreate.accessPermission, nodeId: customNodeId }));
+            if (!customNodeId) {
+                target[target.length - 1].nodeId = buildGeneratedNodeIdForPath(branchTargetPath + "." + (target.length - 1));
+            }
         } else if (kind === "alarm") {
             target.push(normalizeAlarm({
                 displayName: pendingCreate.displayName || "",
@@ -1039,12 +1113,13 @@
                 lowLowLimit: pendingCreate.lowLowLimit,
                 lowLowMessage: pendingCreate.lowLowMessage,
                 normalStateValue: pendingCreate.normalStateValue,
-                digitalMessage: pendingCreate.digitalMessage
+                digitalMessage: pendingCreate.digitalMessage,
+                nodeId: customNodeId
             }));
         } else if (kind === "method") {
-            target.push(normalizeMethod({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", accessPermission: pendingCreate.accessPermission }));
+            target.push(normalizeMethod({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", accessPermission: pendingCreate.accessPermission, nodeId: customNodeId }));
         } else {
-            target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", accessPermission: pendingCreate.accessPermission }));
+            target.push(normalizeBranch({ name: pendingCreate.name, displayName: pendingCreate.displayName || "", accessPermission: pendingCreate.accessPermission, nodeId: customNodeId }));
         }
         expansionState[parentPath] = true;
         pendingCreate = null;
@@ -1066,14 +1141,17 @@
             panel.append('<div class="form-row"><label>Name</label><input type="text" id="opcua-create-name"></div>');
             panel.append('<div class="form-row"><label>displayName</label><input type="text" id="opcua-create-displayname" placeholder="Leave blank to use browseName"></div>');
             panel.append('<div class="form-row"><label>accessPermission</label>' + buildAccessPermissionSelect("opcua-create-accesspermission", pendingCreate.accessPermission || ["public"]) + '</div>');
+            var parentIsObjectTypeModel = isObjectTypeModelPath(pendingCreate.parentPath);
+            if (!parentIsObjectTypeModel) {
+                panel.append('<div class="form-row"><label>nodeId Type</label><select id="opcua-create-nodeid-type"><option value="s">s (String)</option><option value="i">i (Numeric)</option></select></div>');
+                panel.append('<div class="form-row" id="opcua-create-nodeid-value-row"><label id="opcua-create-nodeid-value-label">nodeId Value</label><input type="text" id="opcua-create-nodeid-value" placeholder="Leave blank for default (s)"></div>');
+            }
             if (pendingCreate.kind === "variable" || pendingCreate.kind === "enum-variable") {
                 var isEnum = pendingCreate.kind === "enum-variable";
                 var typeHtml = isEnum ? buildEnumerationSelect("opcua-create-type", pendingCreate.dataType) : '<select id="opcua-create-type"><option value="Int16">Int16</option><option value="Int32">Int32</option><option value="Int64">Int64</option><option value="Float">Float</option><option value="Boolean">Boolean</option><option value="String">String</option></select>';
                 panel.append('<div class="form-row"><label>dataType</label>' + typeHtml + '</div>');
                 panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-create-value"></div>');
                 panel.append('<div class="form-row"><label>Access</label><select id="opcua-create-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
-                panel.append('<div class="form-row"><label>nodeId Type</label><select id="opcua-create-nodeid-type"><option value="s">s (String)</option><option value="i">i (Numeric)</option></select></div>');
-                panel.append('<div class="form-row" id="opcua-create-nodeid-value-row"><label id="opcua-create-nodeid-value-label">nodeId Value</label><input type="text" id="opcua-create-nodeid-value" placeholder="Leave blank for default (s)"></div>');
             }
             if (pendingCreate.kind === "objecttype") {
                 panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-create-objectstype", pendingCreate.objectsType || "") + '</div>');
@@ -1103,7 +1181,7 @@
             $("#opcua-create-name").val(pendingCreate.name);
             $("#opcua-create-displayname").val(pendingCreate.displayName || "");
             $("#opcua-create-accesspermission").val(normalizeAccessPermissionValues(pendingCreate.accessPermission));
-            if (pendingCreate.kind === "variable" || pendingCreate.kind === "enum-variable") {
+            if (!parentIsObjectTypeModel) {
                 $("#opcua-create-nodeid-type").val(pendingCreate.nodeIdType || "s");
                 $("#opcua-create-nodeid-value").val(pendingCreate.nodeIdValue || "");
                 updateNodeIdValueInputState("create", pendingCreate.nodeIdType || "s");
@@ -1185,7 +1263,7 @@
         panel.append('<div class="form-row"><label>browseName</label><input type="text" id="opcua-detail-name"></div>');
         panel.append('<div class="form-row"><label>nodeClass</label><input type="text" id="opcua-detail-class" readonly></div>');
         panel.append('<div class="form-row"><label>namespace</label><select id="opcua-detail-namespace"></select></div>');
-        if (nodeClass === "Variable" && !nodeIdLocked) {
+        if (!nodeIdLocked) {
             panel.append('<div class="form-row"><label>nodeId</label>' +
                 '<div class="opcua-nodeid-field">' +
                 '<span class="opcua-nodeid-prefix">ns=' + namespaceId + ';</span>' +
@@ -1273,7 +1351,7 @@
         panel.append('<div class="form-row"><label style="width:90px;">Actions</label><div><a href="#" id="opcua-detail-edit" class="editor-button editor-button-small"><i class="fa fa-pencil"></i> Edit</a> <a href="#" id="opcua-detail-remove" class="editor-button editor-button-small"><i class="fa fa-trash"></i> Remove</a></div></div>');
         $("#opcua-detail-name").val(item.name || "");
         $("#opcua-detail-class").val(nodeClass);
-        if (nodeClass === "Variable" && !nodeIdLocked) {
+        if (!nodeIdLocked) {
             var parsed = parseNodeId(item.nodeId, buildDefaultNodeIdSuffixFromEditorPath(selectedPath));
             $("#opcua-detail-nodeid-type").val(parsed.type);
             $("#opcua-detail-nodeid-value").val(parsed.value);
@@ -1330,7 +1408,71 @@
         if (selectedPath === path) selectedPath = "";
         syncStateToJson(true);
         renderVisualEditor();
+     }
+
+    function moveNode(srcPath, destPath) {
+        var item = getAtPath(editorState, srcPath);
+        if (!item) return;
+
+        var srcClass = nodeClassFromPath(srcPath);
+        var targetCollection = null;
+
+        if (destPath === "virtual:Objects") {
+            if (srcClass === "Folder") {
+                editorState.folders = editorState.folders || [];
+                targetCollection = editorState.folders;
+            } else if (srcClass === "Object") {
+                editorState.objects = editorState.objects || [];
+                targetCollection = editorState.objects;
+            }
+        } else if (destPath === "virtual:Types.ObjectTypes") {
+            editorState.objectsTypes = editorState.objectsTypes || [];
+            targetCollection = editorState.objectsTypes;
+        } else if (destPath === "virtual:Types.DataTypes") {
+            editorState.enumerations = editorState.enumerations || [];
+            targetCollection = editorState.enumerations;
+        } else {
+            var destParent = getAtPath(editorState, destPath);
+            if (!destParent) return;
+
+            if (srcClass === "Folder") {
+                destParent.folders = destParent.folders || [];
+                targetCollection = destParent.folders;
+            } else if (srcClass === "Object") {
+                destParent.objects = destParent.objects || [];
+                targetCollection = destParent.objects;
+            } else if (srcClass === "Variable") {
+                destParent.variables = destParent.variables || [];
+                targetCollection = destParent.variables;
+            } else if (srcClass === "Method") {
+                destParent.methods = destParent.methods || [];
+                targetCollection = destParent.methods;
+            } else if (srcClass === "Alarm") {
+                destParent.alarms = destParent.alarms || [];
+                targetCollection = destParent.alarms;
+            } else if (srcClass === "ObjectType") {
+                destParent.objectsTypes = destParent.objectsTypes || [];
+                targetCollection = destParent.objectsTypes;
+            }
+        }
+
+        if (targetCollection) {
+            removeAtPath(editorState, srcPath);
+            targetCollection.push(item);
+
+            var newPath = findObjectPath(editorState, item, "");
+            if (newPath) {
+                selectedPath = newPath;
+                expansionState[destPath] = true;
+            } else {
+                selectedPath = "";
+            }
+
+            syncStateToJson(true);
+            renderVisualEditor();
+        }
     }
+
 
     function buildGroupOptions(selectedGroup) {
         var currentGroup = String(selectedGroup || "");
@@ -1560,6 +1702,56 @@
         } catch (error) { RED.notify("Invalid JSON: " + error.message, "error"); }
     });
 
+    $(document).on("dragstart", ".opcua-tree-row", function (event) {
+        var path = $(this).attr("data-path");
+        if (path && path.indexOf("virtual:") !== 0 && path.indexOf("nameSpaces.") !== 0) {
+            draggedPath = path;
+            if (event.originalEvent.dataTransfer) {
+                event.originalEvent.dataTransfer.effectAllowed = "move";
+                event.originalEvent.dataTransfer.setData("text/plain", path);
+            }
+            $(this).addClass("is-dragging");
+        } else {
+            event.preventDefault();
+        }
+    });
+
+    $(document).on("dragend", ".opcua-tree-row", function (event) {
+        $(this).removeClass("is-dragging");
+        draggedPath = null;
+        $(".opcua-tree-row").removeClass("drag-over");
+    });
+
+    $(document).on("dragover", ".opcua-tree-row", function (event) {
+        if (!draggedPath) return;
+        event.preventDefault();
+
+        var row = $(this);
+        var targetPath = row.attr("data-path");
+        if (isValidDropTarget(draggedPath, targetPath)) {
+            if (event.originalEvent.dataTransfer) {
+                event.originalEvent.dataTransfer.dropEffect = "move";
+            }
+            $(".opcua-tree-row").not(row).removeClass("drag-over");
+            row.addClass("drag-over");
+        }
+    });
+
+    $(document).on("dragleave", ".opcua-tree-row", function (event) {
+        $(this).removeClass("drag-over");
+    });
+
+    $(document).on("drop", ".opcua-tree-row", function (event) {
+        event.preventDefault();
+        $(".opcua-tree-row").removeClass("drag-over");
+
+        if (!draggedPath) return;
+        var targetPath = $(this).attr("data-path");
+        if (isValidDropTarget(draggedPath, targetPath)) {
+            moveNode(draggedPath, targetPath);
+        }
+    });
+
     $(document).on("click", ".opcua-tree-row", function (event) {
         var path = $(this).attr("data-path");
         if ($(event.target).closest(".opcua-tree-twisty").length) {
@@ -1582,10 +1774,16 @@
             if (path === "virtual:Objects") {
                 contextMenu.find('[data-action="add-folder"]').show();
                 contextMenu.find('[data-action="add-object"]').show();
+                contextMenu.find('[data-action="expand-all-below"]').show();
+                contextMenu.find('[data-action="collapse-all-below"]').show();
             } else if (path === "virtual:Types.ObjectTypes") {
                 contextMenu.find('[data-action="add-objecttype"]').show();
+                contextMenu.find('[data-action="expand-all-below"]').show();
+                contextMenu.find('[data-action="collapse-all-below"]').show();
             } else if (path === "virtual:Types.DataTypes") {
                 contextMenu.find('[data-action="add-enumeration"]').show();
+                contextMenu.find('[data-action="expand-all-below"]').show();
+                contextMenu.find('[data-action="collapse-all-below"]').show();
             }
         } else {
             var nodeClass = nodeClassFromPath(path);
@@ -1599,6 +1797,8 @@
                 contextMenu.find('[data-action="add-method"]').show();
                 contextMenu.find('[data-action="edit"]').show();
                 contextMenu.find('[data-action="remove"]').show();
+                contextMenu.find('[data-action="expand-all-below"]').show();
+                contextMenu.find('[data-action="collapse-all-below"]').show();
             } else if (nodeClass === "Enumeration") {
                 contextMenu.find('[data-action="edit"]').show();
                 contextMenu.find('[data-action="remove"]').show();
@@ -1632,6 +1832,22 @@
         if (action === "add-method") addNode(selectedPath, "method");
         if (action === "remove") removeNode(selectedPath);
         if (action === "edit") renderDetails();
+        if (action === "expand-all-below") {
+            function walk(p) {
+                expansionState[p] = true;
+                getChildrenByPath(p).forEach(walk);
+            }
+            walk(selectedPath);
+            renderTree();
+        }
+        if (action === "collapse-all-below") {
+            function walk(p) {
+                expansionState[p] = false;
+                getChildrenByPath(p).forEach(walk);
+            }
+            walk(selectedPath);
+            renderTree();
+        }
         $("#opcua-tree-context-menu").hide();
     });
 

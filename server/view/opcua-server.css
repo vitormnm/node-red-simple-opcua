@@ -577,3 +577,14 @@ body.opcua-tree-modal-open {
     width: auto !important;
     display: inline-block;
 }
+
+/* Drag and Drop styling for visual tree rows */
+.opcua-tree-row.is-dragging {
+    opacity: 0.4;
+    border: 1px dashed var(--red-ui-form-input-border-color, #999);
+}
+
+.opcua-tree-row.drag-over {
+    background-color: var(--red-ui-list-item-background-hover, #f3f7fd) !important;
+    box-shadow: inset 0 0 0 2px var(--red-ui-form-input-border-color-selected, #2196F3);
+}
