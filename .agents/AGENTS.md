@@ -269,5 +269,15 @@ To improve selection efficiency in the client browse tree dialog:
 1. **Shortcut Listener**: Clicking on any `.opcua-tree-row` while holding down the `Ctrl` key (or `Cmd` key on macOS) bypasses the need to manually click the "+ Add" button.
 2. **Auto-Selection Routing**: The click handler automatically intercepts the keyboard modifier (`event.ctrlKey || event.metaKey`) and routes the node to `toggleSelectedNode(path)` (or `addMethodFromTree` if in method mode). This toggles the selection state of the clicked node immediately.
 
+---
+
+## Read Value option in Browse Tree Context Menu
+
+To allow reading variable values directly from the frontend browse tree:
+1. **Read Value Context Menu Option**: Right-clicking a Variable node in the browse tree displays a "Read value" option. This option is hidden for Folders, Objects, and Methods.
+2. **Backend Read Route**: Exposes a GET route `/opcua-client-config/:id/read` which uses `session.read` with `AttributeIds.Value` to read the node's current value. It then calls `dataValueToItemResult` and `enrichItemResultWithEnumeration` to resolve custom data types and enumerations.
+3. **Frontend Value Notification**: Displays the read value (including resolved enumeration string if applicable) using `RED.notify(valueText, "success")`. If the read operation fails, it displays an error notification using `RED.notify(message, "error")`.
+
+
 
 
