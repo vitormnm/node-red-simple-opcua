@@ -22,9 +22,17 @@
                 maxDelay: { value: 10000, validate: RED.validators.number() },
                 maxRetry: { value: -1, validate: RED.validators.number() },
                 requestedSessionTimeout: { value: 300000, validate: RED.validators.number() },
+                defaultTransactionTimeout: {
+                    value: 15000,
+                    validate: function(v) {
+                        return v === undefined || v === "" || RED.validators.number()(v);
+                    }
+                },
                 keepSessionAlive: { value: true },
                 autoReconnect: { value: true },
-                endpointMustExist: { value: false }
+                endpointMustExist: { value: false },
+                logErrors: { value: false },
+                emitErrorOnConnectionLoss: { value: true }
             },
             credentials: {
                 username: { type: "text" },
@@ -42,6 +50,12 @@
                 }
                 if (this.endpointMustExist === true) {
                     $("#node-config-input-endpointMustExist").prop("checked", true);
+                }
+                if (this.logErrors === true) {
+                    $("#node-config-input-logErrors").prop("checked", true);
+                }
+                if (this.emitErrorOnConnectionLoss !== false) {
+                    $("#node-config-input-emitErrorOnConnectionLoss").prop("checked", true);
                 }
                 if (this.maxRetry === undefined || Number(this.maxRetry) === 10) {
                     $("#node-config-input-maxRetry").val(-1);
@@ -86,6 +100,57 @@
                 }
                 $("#node-config-input-autoReconnect").on("change", toggleReconnect);
                 toggleReconnect();
+
+                var node = this;
+                $("#node-config-btn-test-connection").on("click", function () {
+                    var btn = $(this);
+                    btn.prop("disabled", true);
+                    var originalHtml = btn.html();
+                    btn.html('<i class="fa fa-spinner fa-spin"></i> Testing...');
+
+                    var payload = {
+                        nodeId: node.id,
+                        endpoint: $("#node-config-input-endpoint").val(),
+                        securityPolicy: $("#node-config-input-securityPolicy").val(),
+                        securityMode: $("#node-config-input-securityMode").val(),
+                        authType: $("#node-config-input-authType").val(),
+                        username: $("#node-config-input-username").val(),
+                        password: $("#node-config-input-password").val(),
+                        endpointMustExist: $("#node-config-input-endpointMustExist").prop("checked"),
+                        defaultTransactionTimeout: $("#node-config-input-defaultTransactionTimeout").val()
+                    };
+
+                    $.ajax({
+                        url: "opcua-client-config/test-connection",
+                        type: "POST",
+                        data: JSON.stringify(payload),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            btn.prop("disabled", false);
+                            btn.html(originalHtml);
+                            if (response.success) {
+                                RED.notify("Connection test successful!", "success");
+                            } else {
+                                RED.notify("Connection test failed: " + response.message, "error");
+                            }
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            btn.prop("disabled", false);
+                            btn.html(originalHtml);
+                            var errorMsg = "Error connecting to server";
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            } else if (xhr.responseText) {
+                                try {
+                                    var res = JSON.parse(xhr.responseText);
+                                    if (res.message) errorMsg = res.message;
+                                } catch (e) {}
+                            }
+                            RED.notify("Connection test failed: " + errorMsg, "error");
+                        }
+                    });
+                });
             }
         });
     })();
@@ -149,6 +214,10 @@
         <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
         <input type="password" id="node-config-input-password">
     </div>
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <button type="button" id="node-config-btn-test-connection" class="red-ui-button" style="width: auto;"><i class="fa fa-plug"></i> Test Connection</button>
+    </div>
 
     <!-- Client Settings Section -->
     <div class="form-row" style="margin-top: 20px; margin-bottom: 10px;">
@@ -158,6 +227,10 @@
     <div class="form-row">
         <label for="node-config-input-requestedSessionTimeout"><i class="fa fa-clock-o"></i> Session Timeout (ms)</label>
         <input type="number" id="node-config-input-requestedSessionTimeout" placeholder="300000">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-defaultTransactionTimeout"><i class="fa fa-clock-o"></i> Transaction Timeout (ms)</label>
+        <input type="number" id="node-config-input-defaultTransactionTimeout" placeholder="15000">
     </div>
     <div class="form-row" style="display: flex; align-items: center;">
         <label for="node-config-input-keepSessionAlive" style="width: auto; margin-right: 10px;"><i class="fa fa-heartbeat"></i> Keep Session Alive</label>
@@ -188,6 +261,20 @@
         <div style="font-size: 0.85em; color: #666; margin-left: 110px; margin-top: 2px;">
             -1: Retry indefinitely. 0: Do not attempt to reconnect.
         </div>
+    </div>
+
+    <!-- Node Settings Section -->
+    <div class="form-row" style="margin-top: 20px; margin-bottom: 10px;">
+        <span style="font-weight: bold;"><i class="fa fa-sliders"></i> Node Settings</span>
+        <hr style="margin-top: 5px; margin-bottom: 10px; border: 0; border-top: 1px solid #ccc;"/>
+    </div>
+    <div class="form-row" style="display: flex; align-items: center; margin-bottom: 5px;">
+        <label for="node-config-input-logErrors" style="width: auto; margin-right: 10px;"><i class="fa fa-list"></i> Log errors to Node-RED system log</label>
+        <input type="checkbox" id="node-config-input-logErrors" style="width: auto; margin: 0;">
+    </div>
+    <div class="form-row" style="display: flex; align-items: center;">
+        <label for="node-config-input-emitErrorOnConnectionLoss" style="width: auto; margin-right: 10px;"><i class="fa fa-exclamation-triangle"></i> Send message on connection loss / timeout</label>
+        <input type="checkbox" id="node-config-input-emitErrorOnConnectionLoss" style="width: auto; margin: 0;">
     </div>
 </script>
 

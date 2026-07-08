@@ -1,67 +1,322 @@
+<style>
+    .opcua-help-container {
+        font-family: var(--red-ui-font-family, sans-serif);
+    }
+    .opcua-help-section {
+        margin-top: 15px;
+    }
+    .opcua-help-section > summary {
+        font-weight: bold;
+        font-size: 1.1em;
+        margin-bottom: 10px;
+        cursor: pointer;
+        outline: none;
+        user-select: none;
+    }
+    .opcua-help-card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        background-color: #fdfdfd;
+        overflow: hidden;
+    }
+    .opcua-help-card[open] {
+        background-color: #fff;
+        border-color: #ccc;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .opcua-help-card > summary {
+        font-weight: bold;
+        padding: 8px 12px;
+        cursor: pointer;
+        outline: none;
+        user-select: none;
+        background-color: #fafafa;
+        border-bottom: 1px solid transparent;
+        list-style: none; /* Hide default marker */
+    }
+    .opcua-help-card > summary::-webkit-details-marker {
+        display: none; /* Hide default marker on Chrome/Safari */
+    }
+    .opcua-help-card[open] > summary {
+        background-color: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+    }
+    .opcua-help-card > summary::before {
+        content: "▶ ";
+        font-size: 0.8em;
+        margin-right: 6px;
+        display: inline-block;
+        transition: transform 0.15s ease;
+    }
+    .opcua-help-card[open] > summary::before {
+        content: "▼ ";
+    }
+    .opcua-help-card > summary i {
+        margin-right: 6px;
+        width: 14px;
+        text-align: center;
+    }
+    .opcua-help-content {
+        padding: 12px;
+        font-size: 0.95em;
+        line-height: 1.4;
+    }
+    .opcua-help-content p {
+        margin: 0 0 8px 0;
+    }
+    .opcua-help-content p:last-child {
+        margin-bottom: 0;
+    }
+    .opcua-help-content strong {
+        color: #333;
+    }
+    .opcua-help-content code {
+        font-family: monospace;
+        background-color: #f5f5f5;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        border: 1px solid #e5e5e5;
+    }
+    .opcua-help-content pre {
+        background-color: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin: 6px 0 12px 0;
+        overflow-x: auto;
+    }
+    .opcua-help-content pre code {
+        background-color: transparent;
+        border: none;
+        padding: 0;
+        border-radius: 0;
+        font-size: 0.85em;
+    }
+</style>
+
 <script type="text/html" data-help-name="opcua-client">
-    <p>Unified OPC UA client node for read, write, browse and subscription using a shared client configuration node.</p>
+    <div class="opcua-help-container">
+        <p>OPC UA client node for read, write, browse, and subscription operations using a shared client configuration node.</p>
 
-    <h3>Modes</h3>
-    <p><b>Read</b>: reads one or more variable values.</p>
-    <p><b>Write</b>: writes one or more variable values.</p>
-    <p><b>Browse</b>: browses one or more OPC UA nodes and returns their children.</p>
-    <p><b>Browse Recursive</b>: perform a recursive search across all nodes starting from the specified node.</p>
-    <p><b>Method</b>: calls one or more OPC UA methods.</p>
-    <p><b>Subscription</b>: subscribes to one or more variable values and emits one message per change.</p>
+        <details class="opcua-help-section" open>
+            <summary>Modes Info</summary>
 
-    <h3>Read</h3>
-    <p><b>Input</b> <code>msg.payload</code>:</p>
-    <pre><code>[
+            <!-- Read Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-book"></i> Read Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Reads one or more variable values from the OPC UA server.</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to read multiple tags. If empty or not an array, reads the nodes configured in the editor list:</p>
+                    <pre><code>[
   {
-    "name": "status",
-    "nodeID": "ns=2;s=Factory.Line1.Motor1.status"
+    "name": "speed",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed"
   }
 ]</code></pre>
-    <p>If <code>msg.payload</code> is not an array and <code>NodeId</code> is configured, the node reads that configured node.</p>
-
-    <h3>Write</h3>
-    <p><b>Input</b> <code>msg.payload</code>:</p>
-    <pre><code>[
+                    <p><strong>Output (msg.payload):</strong> Array of read result objects:</p>
+                    <pre><code>[
   {
     "name": "speed",
     "nodeID": "ns=2;s=Factory.Line1.Motor1.speed",
-    "value": 25.5,
-    "type": "Float"
+    "value": 45.2,
+    "type": "Float",
+    "status": "Good",
+    "sourceTimestamp": "2026-06-30T11:30:00.000Z",
+    "serverTimestamp": "2026-06-30T11:30:00.000Z"
   }
 ]</code></pre>
+                </div>
+            </details>
 
-    <h3>Browse</h3>
-    <p>If <code>msg.payload</code> is not an array and <code>NodeId</code> is configured, the node browses that configured node.</p>
-    <p>If <code>msg.payload = []</code>, the node browses the OPC UA <code>RootFolder</code>.</p>
+            <!-- Write Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-pencil-square-o"></i> Write Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Writes one or more tag values to the server.</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to write multiple tags, a single object to write a single tag, or a raw scalar value (if configured tags are present in the editor):</p>
+                    <pre><code>// Multiple:
+[
+  { 
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed", 
+    "value": 42.0, 
+    "type": "Float" 
+  },
+  { 
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.state", 
+    "value": 1, 
+    "type": "Int32" 
+  }
+]
 
-    <h3>Browse Recursive</h3>
-    <p>Perform a recursive search across all nodes starting from the specified <code>nodeId</code>. It will return the value (if it is a variable), display name, description, and all other item information.</p>
-    <p>If <code>msg.payload</code> is not an array and <code>NodeId</code> is configured, the node browses recursively starting from that configured node.</p>
-    <p>If <code>msg.payload = []</code>, the node browses recursively starting from the OPC UA <code>RootFolder</code>.</p>
+// Single:
+{ 
+  "nodeID": "ns=2;s=Factory.Line1.Motor1.speed", 
+  "value": 42.0 
+}
 
-    <h3>Method</h3>
-    <p><code>nodeID</code> and <code>objectId</code> are accepted explicitly. For backward compatibility, <code>nodeID</code> is also accepted as the method id.</p>
-    <p><b>Input</b> <code>msg.payload</code>:</p>
-    <pre><code>[
-    {
-        "name": "method1",
-        "nodeID": "ns=2;s=motor.method1",
-        "inputs": [
-            {
-                "name": "input1",
-                "type": "Int32",
-                "value": 1
-            },
-            {
-                "name": "input2",
-                "type": "Int32",
-                "value": 1
-            }
-        ]
-    },
-
- 
+// Raw Scalar (requires configured tags):
+42.0</code></pre>
+                    <p><strong>Output (msg.payload):</strong> Array of write results:</p>
+                    <pre><code>[
+  {
+    "name": "speed",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed",
+    "value": 42.0,
+    "type": "Float",
+    "status": "Good"
+  }
 ]</code></pre>
-    <h3>Subscription</h3>
-    <p>In subscription mode the node emits one message per value change.</p>
+                </div>
+            </details>
+
+            <!-- Browse Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-sitemap"></i> Browse Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Browses the children of one or more specified nodes (hierarchical references only).</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to browse multiple nodes. If <code>[]</code> or left empty, browses starting from the <code>RootFolder</code>:</p>
+                    <pre><code>[
+  {
+    "name": "Factory",
+    "nodeID": "ns=2;s=Factory"
+  }
+]</code></pre>
+                    <p><strong>Output (msg.payload):</strong> Array of browse results with their child references:</p>
+                    <pre><code>[
+  {
+    "name": "Factory",
+    "nodeID": "ns=2;s=Factory",
+    "status": "Good",
+    "children": [
+      {
+        "nodeID": "ns=2;s=Factory.Line1",
+        "browseName": "Line1",
+        "displayName": "Line1",
+        "nodeClass": "Object",
+        "typeDefinition": "ns=0;i=58",
+        "hasTypeDefinition": {
+          "nodeID": "ns=0;i=58",
+          "browseName": "FolderType",
+          "displayName": "FolderType"
+        }
+      }
+    ]
+  }
+]</code></pre>
+                </div>
+            </details>
+
+            <!-- Browse Recursive Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-refresh"></i> Browse Recursive Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Performs a recursive, hierarchical search of the address space starting from the given nodeId(s).</p>
+                    <p><strong>Input (msg.payload):</strong> Pass starting node(s) as an array of objects, or <code>[]</code>/empty to start from the <code>RootFolder</code>:</p>
+                    <pre><code>[
+  {
+    "name": "Factory",
+    "nodeID": "ns=2;s=Factory"
+  }
+]</code></pre>
+                    <p><strong>Output (msg.payload):</strong> Array of browse results containing nested children arrays representing the complete sub-tree structure.</p>
+                </div>
+            </details>
+
+            <!-- Method Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-cogs"></i> Method Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Calls one or more OPC UA methods on the server.</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of method call objects. If empty, uses method items configured in the editor:</p>
+                    <pre><code>[
+  {
+    "name": "CalcSum",
+    "nodeID": "ns=2;s=Factory.Line1.CalcSum",
+    "objectID": "ns=2;s=Factory.Line1",
+    "inputs": [
+      { "name": "a", "type": "Float", "value": 10.5 },
+      { "name": "b", "type": "Float", "value": 20.0 }
+    ]
+  }
+]</code></pre>
+                    <p><strong>Output (msg.payload):</strong> Array of call results containing output arguments:</p>
+                    <pre><code>[
+  {
+    "name": "CalcSum",
+    "nodeID": "ns=2;s=Factory.Line1.CalcSum",
+    "status": "Good",
+    "outputs": [
+      {
+        "name": "result",
+        "type": "Float",
+        "value": 30.5
+      }
+    ]
+  }
+]</code></pre>
+                </div>
+            </details>
+
+            <!-- Subscription Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-bell"></i> Subscription Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Subscribes to one or more variable values and emits downstream messages on value changes.</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to subscribe to. If not an array, falls back to configured items in the editor. <em>Note: Sending a new payload terminates the previous subscription on this node and registers the new set of tags.</em></p>
+                    <pre><code>[
+  {
+    "name": "speed",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed"
+  }
+]</code></pre>
+                    <p><strong>Output:</strong> Emits a message downstream whenever a monitored variable's value changes:</p>
+                    <pre><code>{
+  "topic": "speed",
+  "payload": {
+    "name": "speed",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed",
+    "value": 45.2,
+    "type": "Float",
+    "status": "Good",
+    "sourceTimestamp": "2026-06-30T11:30:00.000Z",
+    "serverTimestamp": "2026-06-30T11:30:00.000Z"
+  },
+  "opcua": {
+    "mode": "subscription",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed",
+    "status": "Good"
+  }
+}</code></pre>
+                </div>
+            </details>
+
+            <!-- Events Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-envelope-o"></i> Events Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Subscribes to event notifications on one or more nodes.</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of node objects to monitor for events. <em>Note: Sending a new payload terminates the previous event subscription and starts the new one.</em></p>
+                    <pre><code>[
+  {
+    "name": "Server",
+    "nodeID": "i=2253"
+  }
+]</code></pre>
+                    <p><strong>Output:</strong> Emits a message downstream when an event is received on the monitored node.</p>
+                </div>
+            </details>
+
+            <!-- Get Subscription ID Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-hashtag"></i> Get Subscription ID Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Returns the internal OPC UA subscription ID for debugging or advanced integration.</p>
+                    <p><strong>Output (msg.payload):</strong> Returns the internal subscription ID.</p>
+                </div>
+            </details>
+
+        </details>
+    </div>
 </script>

@@ -444,4 +444,26 @@ Any future stateful mode that registers state in the child process (e.g. subscri
 
 **No-double-wrap rule:** `wrapVariableNode` in the builder guards against re-wrapping the same `UAVariable` instance on every `sync` call by checking `variableNode._opcuaWrapped`. A second call to `wrapVariableNode` on an already-wrapped node is a **no-op**. This is critical because `sync` is called on every `updateServer` IPC message (which fires on every deploy), and without this guard, each deploy adds another wrapper layer, eventually breaking the event pipeline.
 
+---
+
+## Client Error Handling, Timeout, and Logging — `opcua-client`
+
+The OPC UA client error-handling flow has been enhanced to support unconditional Catch node routing, configurable console error logging, configurable downstream message output, and enforced connection timeouts.
+
+### 1. Connection and Session Retrieval Timeouts
+In `OpcUaClientConfigNode.prototype.getSession`, connection attempts are raced against a timeout equal to the config's `defaultTransactionTimeout` (default 15,000ms) using `Promise.race`. If a connection attempt hangs (e.g. due to infinite backoff retries when a server is offline):
+- The pending connection is cancelled via `client.disconnect()`.
+- A connection timeout error is thrown.
+- The client node's input handler catches this error, sets the node status to red (`"failed"`), and routes the error message to the Catch node.
+
+### 2. Client Config Node Error Settings
+The `opcua-client-config` node now exposes two settings in the editor UI:
+- **`logErrors`** (defaults to `false`): When checked, connection loss and read/write/browse errors are printed to the Node-RED system log and Debug panel using standard `node.error(err)` (without `msg` context).
+- **`emitErrorOnConnectionLoss`** (defaults to `true`): When checked, connection-related timeout/loss errors are sent downstream to subsequent nodes in the flow using `send(msg)`. If unchecked, no standard messages are sent downstream on connection failure.
+
+### 3. Consistent Catch Node and Downstream Error Payloads
+- **Catch Node Routing (Unconditional)**: Every transaction or connection error is **always** sent to the Catch node using `node.error(errMsg, msg)` (with the message context), regardless of UI settings.
+- **Payload Alignment**: Write mode errors caught in the client node's input `catch` block are formatted to match read mode success structures, containing `"value": null`, `"type": null`, `"sourceTimestamp": null`, and `"serverTimestamp": null` properties, enabling consistent message formats at Catch and downstream output nodes.
+
+
 

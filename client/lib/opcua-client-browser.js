@@ -84,8 +84,15 @@ async function browseNode(session, root) {
         ...uniqueTypeIds.map(nodeId => ({ nodeId, attributeId: AttributeIds.BrowseName }))
     ];
 
-    // UMA única chamada para todos os nós e atributos
-    const dataValues = await session.read(attributesToRead);
+    // UMA única chamada para todos os nós e atributos, mas paginada/loteada para evitar BadTooManyOperations
+    const BATCH_SIZE = 100;
+    const readPromises = [];
+    for (let i = 0; i < attributesToRead.length; i += BATCH_SIZE) {
+        const batch = attributesToRead.slice(i, i + BATCH_SIZE);
+        readPromises.push(session.read(batch));
+    }
+    const dataValuesChunks = await Promise.all(readPromises);
+    const dataValues = [].concat(...dataValuesChunks);
 
     const typeNamesMap = new Map();
     const typeStartIdx = nodeIds.length * 3;
@@ -502,7 +509,14 @@ async function browseRecursiveNode(session, root) {
         if (uniqueTypeIds.length > 0) {
             try {
                 const typeAttributes = uniqueTypeIds.map(nodeId => ({ nodeId, attributeId: AttributeIds.BrowseName }));
-                const typeDataValues = await session.read(typeAttributes);
+                const BATCH_SIZE = 100;
+                const readPromises = [];
+                for (let i = 0; i < typeAttributes.length; i += BATCH_SIZE) {
+                    const batch = typeAttributes.slice(i, i + BATCH_SIZE);
+                    readPromises.push(session.read(batch));
+                }
+                const typeDataValuesChunks = await Promise.all(readPromises);
+                const typeDataValues = [].concat(...typeDataValuesChunks);
                 uniqueTypeIds.forEach((typeId, index) => {
                     const browseNameVal = typeDataValues[index]?.value?.value;
                     const name = browseNameVal?.name || typeId;

@@ -9,6 +9,14 @@
     var browseSelectedPath = "";
     var renderPending = false;
 
+    function isActiveNodeOpcua() {
+        if (typeof RED !== "undefined" && RED.editor && typeof RED.editor.getSelectedNode === "function") {
+            var node = RED.editor.getSelectedNode();
+            return node && node.type === "opcua-client";
+        }
+        return false;
+    }
+
     function debounce(fn, delay) {
         var timer;
         return function () {
@@ -1073,6 +1081,7 @@
     });
 
     $(document).on("change", "#node-input-selectedItems", function () {
+        if (!isActiveNodeOpcua()) return;
         selectedItemsState = parseSelectedItems($(this).val());
         renderSelectedItems();
         renderBrowseTree();

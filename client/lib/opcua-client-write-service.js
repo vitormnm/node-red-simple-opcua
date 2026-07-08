@@ -85,10 +85,7 @@ async function writeBatches(session, items, variants) {
                 allStatusCodes[start + i] = sc;
             });
         } catch (batchError) {
-            
-            for (let i = start; i < end; i++) {
-                allStatusCodes[i] = { name: batchError.message, value: -1 };
-            }
+            throw batchError;
         }
 
         // Cede o event loop a cada YIELD_EVERY itens para não travar o Node-RED

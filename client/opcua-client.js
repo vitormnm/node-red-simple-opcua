@@ -47,6 +47,36 @@ module.exports = function (RED) {
         node.subscription = null;
         node.monitoredItems = [];
 
+        let onConnectionLost;
+        let onConnectionReestablished;
+        if (node.connection) {
+            onConnectionLost = (err) => {
+                const errMsg = err?.message || err || "OPC UA connection lost";
+                node.status({ fill: "red", shape: "ring", text: "connection lost" });
+                
+                const msg = {
+                    topic: "connection_lost",
+                    payload: {
+                        status: "connection_lost",
+                        error: errMsg
+                    }
+                };
+                
+                // Always send to Catch node
+                node.error(errMsg, msg);
+
+                // Log to Node-RED debug/system log only if logErrors is checked
+                if (node.connection && node.connection.logErrors) {
+                    node.error("OPC UA Error: " + errMsg);
+                }
+            };
+            onConnectionReestablished = () => {
+                node.status({ fill: "green", shape: "dot", text: "reconnected" });
+            };
+            node.connection.on("connection_lost", onConnectionLost);
+            node.connection.on("connection_reestablished", onConnectionReestablished);
+        }
+
         const itemsResolver = createItemsResolver(RED);
         const readService = new OpcUaClientReadService();
         const writeService = new OpcUaClientWriteService();
@@ -130,11 +160,13 @@ module.exports = function (RED) {
                     } else if (node.mode === "write") {
                         const items = itemsResolver.ensureWriteItems(node, msg);
                         errorPayload = items.map(item => ({
-                            name: item.name,
-                            nodeID: item.nodeID,
-                            value: item.value,
-                            type: item.type,
-                            status: error.message || String(error)
+                            name: item.name || resolveNodeId(item),
+                            nodeID: resolveNodeId(item),
+                            value: null,
+                            type: null,
+                            status: error.message || String(error),
+                            sourceTimestamp: null,
+                            serverTimestamp: null
                         }));
                     } else if (node.mode === "browse" || node.mode === "browseRecursive") {
                         const roots = normalizeBrowseRoots(node, msg ? msg.payload : undefined);
@@ -191,7 +223,22 @@ module.exports = function (RED) {
 
                 msg.payload = errorPayload;
 
+                // Always send to Catch node
                 node.error(error.message || String(error), msg);
+
+                // Log to Node-RED debug/system log only if logErrors is checked
+                if (node.connection && node.connection.logErrors) {
+                    node.error("OPC UA Error: " + (error.message || String(error)));
+                }
+
+                // Send standard message downstream (only if not a connection error OR emitErrorOnConnectionLoss is true)
+                const isConnErr = isConnectionError(error);
+                const shouldSendDownstream = !isConnErr || !node.connection || node.connection.emitErrorOnConnectionLoss;
+
+                if (shouldSendDownstream) {
+                    send(msg);
+                }
+
                 if (done) {
                     done();
                 }
@@ -199,6 +246,14 @@ module.exports = function (RED) {
         });
 
         node.on("close", async function (done) {
+            if (node.connection) {
+                if (onConnectionLost) {
+                    node.connection.removeListener("connection_lost", onConnectionLost);
+                }
+                if (onConnectionReestablished) {
+                    node.connection.removeListener("connection_reestablished", onConnectionReestablished);
+                }
+            }
             try {
                 await subscriptionService.stop(node);
                 done();
@@ -523,3 +578,16 @@ module.exports = function (RED) {
 
     RED.nodes.registerType("opcua-client", OpcUaClientNode);
 };
+
+function isConnectionError(error) {
+    if (!error) return false;
+    const msg = String(error.message || error).toLowerCase();
+    return msg.includes("connection") || 
+           msg.includes("timeout") || 
+           msg.includes("channel") || 
+           msg.includes("session") || 
+           msg.includes("closed") || 
+           msg.includes("disconnected") || 
+           msg.includes("socket") || 
+           msg.includes("backoff");
+}
