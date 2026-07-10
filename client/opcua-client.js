@@ -24,6 +24,7 @@ const { OpcUaClientWriteService } = require("./lib/opcua-client-write-service");
 const { OpcUaClientMethodService } = require("./lib/opcua-client-method-service");
 const { OpcUaClientSubscriptionService } = require("./lib/opcua-client-subscription-service");
 const { OpcUaClientSubscriptionIdService } = require("./lib/opcua-client-subscription-id-service");
+const { OpcUaClientHistoryService } = require("./lib/opcua-client-history-service");
 const path = require("path");
 
 
@@ -44,6 +45,11 @@ module.exports = function (RED) {
         node.valuePropertyType = config.valuePropertyType || "msg";
         node.samplingInterval = Math.max(Number(config.samplingInterval) || 250, 50);
         node.publishingInterval = Math.max(Number(config.publishingInterval) || 250, 50);
+        node.subscriptionMode = config.subscriptionMode || "replace";
+        node.historyStartTime = config.historyStartTime || "startTime";
+        node.historyStartTimeType = config.historyStartTimeType || "msg";
+        node.historyEndTime = config.historyEndTime || "endTime";
+        node.historyEndTimeType = config.historyEndTimeType || "msg";
         node.subscription = null;
         node.monitoredItems = [];
 
@@ -83,6 +89,7 @@ module.exports = function (RED) {
         const methodService = new OpcUaClientMethodService();
         const subscriptionService = new OpcUaClientSubscriptionService();
         const subscriptionIdService = new OpcUaClientSubscriptionIdService();
+        const historyService = new OpcUaClientHistoryService(RED);
 
         node.on("input", async function (msg, send, done) {
             send = send || function () {
@@ -95,6 +102,13 @@ module.exports = function (RED) {
                 }
 
                 if (node.mode === "subscription") {
+                    const opcuaMode = msg.opcua && (msg.opcua.subscriptionMode || msg.opcua.mode);
+                    if (msg.payload === null || (Array.isArray(msg.payload) && msg.payload.length === 0) || opcuaMode === "clear") {
+                        await subscriptionService.stop(node);
+                        node.status({ fill: "grey", shape: "ring", text: "subscription stopped" });
+                        done();
+                        return;
+                    }
                     const subscriptionItems = await subscriptionService.startDataSubscription(node, msg, itemsResolver);
                     node.status({ fill: "green", shape: "dot", text: "subscribed " + subscriptionItems.length + " nodes" });
                     done();
@@ -102,6 +116,13 @@ module.exports = function (RED) {
                 }
 
                 if (node.mode === "events") {
+                    const opcuaMode = msg.opcua && (msg.opcua.subscriptionMode || msg.opcua.mode);
+                    if (msg.payload === null || (Array.isArray(msg.payload) && msg.payload.length === 0) || opcuaMode === "clear") {
+                        await subscriptionService.stop(node);
+                        node.status({ fill: "grey", shape: "ring", text: "events stopped" });
+                        done();
+                        return;
+                    }
                     const eventsItems = await subscriptionService.startEventSubscription(node, msg, itemsResolver);
                     node.status({ fill: "green", shape: "dot", text: "events " + eventsItems.length + " nodes" });
                     done();
@@ -134,6 +155,9 @@ module.exports = function (RED) {
                 } else if (node.mode === "getSubscriptionId") {
                     payload = await subscriptionIdService.execute(node);
                     node.status({ fill: "green", shape: "dot", text: "called getSubscriptionId" });
+                } else if (node.mode === "readHistory") {
+                    payload = await historyService.execute(node, msg, session);
+                    node.status({ fill: "green", shape: "dot", text: "read history " + payload.length + " nodes" });
                 } else {
                     throw new Error("Unsupported OPC UA client mode: " + node.mode);
                 }
@@ -195,6 +219,28 @@ module.exports = function (RED) {
                             status: error.message || String(error),
                             sourceTimestamp: null,
                             serverTimestamp: null
+                        }));
+                    } else if (node.mode === "readHistory") {
+                        let items = [];
+                        const payload = msg ? msg.payload : undefined;
+                        if (Array.isArray(payload) && payload.length > 0) {
+                            items = payload;
+                        } else if (payload && typeof payload === "object") {
+                            if (Array.isArray(payload.items) && payload.items.length > 0) {
+                                items = payload.items;
+                            } else if (payload.nodeID || payload.nodeId) {
+                                items = [payload];
+                            }
+                        }
+                        if (items.length === 0 && node.selectedItems && node.selectedItems.length > 0) {
+                            items = node.selectedItems;
+                        }
+                        errorPayload = items.map(item => ({
+                            name: resolveName(item, resolveNodeId(item)),
+                            nodeID: resolveNodeId(item),
+                            status: error.message || String(error),
+                            continuationPoint: null,
+                            history: []
                         }));
                     } else {
                         errorPayload = {

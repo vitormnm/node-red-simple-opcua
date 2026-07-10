@@ -15,6 +15,7 @@
         <label for="node-input-mode"><i class="fa fa-exchange"></i> Mode</label>
         <select id="node-input-mode">
             <option value="read">Read</option>
+            <option value="readHistory">Read History</option>
             <option value="write">Write</option>
             <option value="browse">Browse</option>
             <option value="browseRecursive">Browse Recursive</option>
@@ -68,6 +69,23 @@
     <div class="form-row opcua-client-subscription-row">
         <label for="node-input-publishingInterval"><i class="fa fa-clock-o"></i> Publishing</label>
         <input type="text" id="node-input-publishingInterval" placeholder="250">
+    </div>
+    <div class="form-row opcua-client-subscription-row">
+        <label for="node-input-subscriptionMode"><i class="fa fa-sliders"></i> Sub. Mode</label>
+        <select id="node-input-subscriptionMode" style="width:70%;">
+            <option value="replace">Replace tags (keep only current)</option>
+            <option value="append">Append tags (add to list)</option>
+        </select>
+    </div>
+    <div class="form-row opcua-client-history-row" style="display:none;">
+        <label for="node-input-historyStartTime"><i class="fa fa-clock-o"></i> Start Time</label>
+        <input type="text" id="node-input-historyStartTime" style="width:70%;">
+        <input type="hidden" id="node-input-historyStartTimeType">
+    </div>
+    <div class="form-row opcua-client-history-row" style="display:none;">
+        <label for="node-input-historyEndTime"><i class="fa fa-clock-o"></i> End Time</label>
+        <input type="text" id="node-input-historyEndTime" style="width:70%;">
+        <input type="hidden" id="node-input-historyEndTimeType">
     </div>
 
     <div class="form-row opcua-client-selection-row" style="margin-bottom:0;">
@@ -211,6 +229,46 @@
 ]</code></pre>
                 </div>
             </details>
+            
+            <!-- Read History Mode -->
+            <details class="opcua-help-card">
+                <summary><i class="fa fa-history"></i> Read History Mode</summary>
+                <div class="opcua-help-content">
+                    <p>Reads historical variable values from the OPC UA server (HDA).</p>
+                    <p><strong>Input Parameters:</strong> Specify the time range and parameters (optionally on <code>msg</code> or <code>msg.payload</code>):</p>
+                    <ul>
+                        <li><code>startTime</code>: Start timestamp (ISO string/Date, default 1 hour ago)</li>
+                        <li><code>endTime</code>: End timestamp (ISO string/Date, default now)</li>
+                        <li><code>numValuesPerNode</code>: Limit number of values (optional)</li>
+                        <li><code>returnBounds</code>: Include boundaries values (optional)</li>
+                    </ul>
+                    <p><strong>Input (msg.payload):</strong> List of nodes to read history for. You can also specify an optional base64 <code>continuationPoint</code> per node to resume a previous query:</p>
+                    <pre><code>[
+  {
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed",
+    "continuationPoint": "opaqueBase64String" // optional
+  }
+]</code></pre>
+                    <p><strong>Output (msg.payload):</strong> Array of history result objects containing data points and any continuation points:</p>
+                    <pre><code>[
+  {
+    "name": "speed",
+    "nodeID": "ns=2;s=Factory.Line1.Motor1.speed",
+    "status": "Good",
+    "continuationPoint": "opaqueBase64String", // present if there are more values on server
+    "history": [
+      {
+        "value": 42.0,
+        "type": "Float",
+        "status": "Good",
+        "sourceTimestamp": "2026-07-10T10:00:00.000Z",
+        "serverTimestamp": "2026-07-10T10:00:00.000Z"
+      }
+    ]
+  }
+]</code></pre>
+                </div>
+            </details>
 
             <!-- Write Mode -->
             <details class="opcua-help-card">
@@ -346,7 +404,18 @@
                 <summary><i class="fa fa-bell"></i> Subscription Mode</summary>
                 <div class="opcua-help-content">
                     <p>Subscribes to one or more variable values and emits downstream messages on value changes.</p>
-                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to subscribe to. If not an array, falls back to configured items in the editor. <em>Note: Sending a new payload terminates the previous subscription on this node and registers the new set of tags.</em></p>
+                    <p><strong>Sub. Mode Options:</strong></p>
+                    <ul>
+                        <li><code>Append tags (add to list)</code>: Appends new tags to the active subscription. Recreates subscription only if <code>updateRate</code> changes.</li>
+                        <li><code>Replace tags (keep only current)</code>: Default. Stops the active subscription and starts a new one with the newly supplied tags.</li>
+                    </ul>
+                    <p><strong>Overriding via message:</strong> You can dynamically override subscription mode and rates by passing the <code>msg.opcua</code> object:</p>
+                    <pre><code>msg.opcua = {
+  "subscriptionMode": "append" | "replace" | "clear",
+  "updateRate": 500
+}</code></pre>
+                    <p><em>Note: Passing <code>"clear"</code> in <code>msg.opcua</code>, or sending <code>msg.payload = []</code> or <code>msg.payload = null</code> stops and cancels the active subscription.</em></p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to subscribe to. If not an array, falls back to configured items in the editor.</p>
                     <pre><code>[
   {
     "name": "speed",
@@ -379,7 +448,8 @@
                 <summary><i class="fa fa-envelope-o"></i> Events Mode</summary>
                 <div class="opcua-help-content">
                     <p>Subscribes to event notifications on one or more nodes.</p>
-                    <p><strong>Input (msg.payload):</strong> Pass an array of node objects to monitor for events. <em>Note: Sending a new payload terminates the previous event subscription and starts the new one.</em></p>
+                    <p><strong>Sub. Mode Options & Dynamic Overrides:</strong> Supports the same <code>Sub. Mode</code> options, <code>msg.opcua</code> settings, and subscription cancellation logic (sending <code>msg.payload = []</code> or <code>null</code> stops the active event subscription) as Subscription Mode.</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of node objects to monitor for events.</p>
                     <pre><code>[
   {
     "name": "Server",

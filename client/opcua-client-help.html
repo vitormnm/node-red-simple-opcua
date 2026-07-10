@@ -264,7 +264,18 @@
                 <summary><i class="fa fa-bell"></i> Subscription Mode</summary>
                 <div class="opcua-help-content">
                     <p>Subscribes to one or more variable values and emits downstream messages on value changes.</p>
-                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to subscribe to. If not an array, falls back to configured items in the editor. <em>Note: Sending a new payload terminates the previous subscription on this node and registers the new set of tags.</em></p>
+                    <p><strong>Sub. Mode Options:</strong></p>
+                    <ul>
+                        <li><code>Append tags (add to list)</code>: Appends new tags to the active subscription. Recreates subscription only if <code>updateRate</code> changes.</li>
+                        <li><code>Replace tags (keep only current)</code>: Default. Stops the active subscription and starts a new one with the newly supplied tags.</li>
+                    </ul>
+                    <p><strong>Overriding via message:</strong> You can dynamically override subscription mode and rates by passing the <code>msg.opcua</code> object:</p>
+                    <pre><code>msg.opcua = {
+  "subscriptionMode": "append" | "replace" | "clear",
+  "updateRate": 500
+}</code></pre>
+                    <p><em>Note: Passing <code>"clear"</code> in <code>msg.opcua</code>, or sending <code>msg.payload = []</code> or <code>msg.payload = null</code> stops and cancels the active subscription.</em></p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of objects to subscribe to. If not an array, falls back to configured items in the editor.</p>
                     <pre><code>[
   {
     "name": "speed",
@@ -297,7 +308,8 @@
                 <summary><i class="fa fa-envelope-o"></i> Events Mode</summary>
                 <div class="opcua-help-content">
                     <p>Subscribes to event notifications on one or more nodes.</p>
-                    <p><strong>Input (msg.payload):</strong> Pass an array of node objects to monitor for events. <em>Note: Sending a new payload terminates the previous event subscription and starts the new one.</em></p>
+                    <p><strong>Sub. Mode Options & Dynamic Overrides:</strong> Supports the same <code>Sub. Mode</code> options, <code>msg.opcua</code> settings, and subscription cancellation logic (sending <code>msg.payload = []</code> or <code>null</code> stops the active event subscription) as Subscription Mode.</p>
+                    <p><strong>Input (msg.payload):</strong> Pass an array of node objects to monitor for events.</p>
                     <pre><code>[
   {
     "name": "Server",

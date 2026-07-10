@@ -465,5 +465,80 @@ The `opcua-client-config` node now exposes two settings in the editor UI:
 - **Catch Node Routing (Unconditional)**: Every transaction or connection error is **always** sent to the Catch node using `node.error(errMsg, msg)` (with the message context), regardless of UI settings.
 - **Payload Alignment**: Write mode errors caught in the client node's input `catch` block are formatted to match read mode success structures, containing `"value": null`, `"type": null`, `"sourceTimestamp": null`, and `"serverTimestamp": null` properties, enabling consistent message formats at Catch and downstream output nodes.
 
+---
+
+## Historical Data Access (HDA) — `opcua-client`
+
+A new mode `readHistory` was added to `opcua-client` for querying historical variable data from an OPC UA server.
+
+### 1. Mode Configuration
+The mode select dropdown in `opcua-client.html` supports:
+- `readHistory`: Reads historical values for selected variables or variables passed in `msg.payload`.
+
+### 2. Time Limits Configuration
+- **Node-level / fallback settings**: Configurable via `historyStartTime` and `historyEndTime` in the Editor UI (rendered below the browse tree). These are evaluated via `RED.util.evaluateNodeProperty` (supporting `msg`, `flow`, `global`, `str`, and `date`).
+- **Payload-level override**: If items in the dynamic `msg.payload` array have their own `item.startTime` or `item.endTime` (as Date objects or parseable date strings), they override the node-level fallback dates specifically for that tag.
+
+### 3. Smart Batching & Grouping Algorithm
+Because the underlying `ClientSession.readHistoryValue(nodesToRead, startTime, endTime, options)` requires a single start/end time range for all nodes in the call:
+- The `OpcUaClientHistoryService` groups variables sharing the *exact same* resolved `startTime` and `endTime` values.
+- It executes exactly one batch `readHistoryValue` query per unique time range group, optimizing performance.
+- The results from all group queries are mapped and merged back into a single output array, maintaining the exact original order of the input array.
+
+### 4. Payload Shape
+- **Input (`msg.payload`)**: Can be a single node query object, or an array of node query objects:
+  ```json
+  [
+    {
+      "nodeID": "ns=1;s=History1",
+      "startTime": "2026/07/10 09:00:00",
+      "endTime": "2026/07/10 09:01:30"
+    }
+  ]
+  ```
+- **Output (`msg.payload`)**: An array of history results in the original order:
+  ```json
+  [
+    {
+      "name": "History1",
+      "nodeID": "ns=1;s=History1",
+      "status": "Good",
+      "continuationPoint": "base64StringOrNull",
+      "history": [
+        {
+          "value": 12.34,
+          "valueEnumeration": null,
+          "type": "Float",
+          "status": "Good",
+          "sourceTimestamp": "2026-07-10T12:00:05.000Z",
+          "serverTimestamp": "2026-07-10T12:00:05.000Z"
+        }
+      ]
+    }
+  ]
+  ```
+
+---
+
+## Subscription Modes and Dynamic Overrides — `opcua-client`
+
+The `subscription` and `events` modes of the client node support appending new tags without stopping the active subscription, and dynamically overriding the modes and publishing intervals via messages.
+
+### 1. Subscription Mode Configuration
+In the editor UI, when `Subscription` or `Events` mode is selected:
+- **`Sub. Mode`** dropdown selector provides:
+  - `Append tags (add to list)` (value `"append"`): Appends newly sent tags to the active subscription. Recreates subscription only if `updateRate` changes.
+  - `Replace tags (keep only current)` (value `"replace"`): Stops the active subscription and starts a new one with the newly supplied tags.
+
+### 2. Message-Level Overrides
+You can dynamically override the subscription mode or interval rates by passing the `msg.opcua` object with these keys:
+- **`subscriptionMode`** (or **`mode`**): `"append"` | `"replace"` | `"clear"`
+  - `"append"`: Merges new tags with currently active tags.
+  - `"replace"`: Replaces the current subscription tags.
+  - `"clear"`: Stops and terminates all active subscriptions on this node.
+- **`updateRate`**: Negotiates a new publishing interval (in ms) for the subscription.
+
+If `updateRate` changes during an `append` action, the subscription is gracefully restarted, merging all active tags and applying the new rate.
+
 
 

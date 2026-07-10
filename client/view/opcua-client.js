@@ -268,6 +268,7 @@
                         + '<input type="hidden" class="opcua-client-item-value-type" id="opcua-client-item-value-type-' + index + '" data-index="' + index + '" value="' + escapeHtml(type) + '">'
                         + "</div>");
                 }
+
                 row.append('<div class="opcua-client-tag-right">'
                     + '<div class="opcua-client-nodeid-label">' + escapeHtml(item.nodeID) + '</div>'
                     + '<div class="opcua-tree-actions"><a href="#" class="editor-button editor-button-small opcua-client-remove-tag" data-index="' + index + '"><i class="fa fa-trash"></i></a></div>'
@@ -310,6 +311,7 @@
             });
             input.data("typedInputInitialized", true);
         });
+
     }
 
     function syncSelectedItems() {
@@ -960,9 +962,11 @@
         var mode = $("#node-input-mode").val();
 
         var isSubscription = mode === "subscription" || mode === "events";
+        var isHistory = mode === "readHistory";
         var supportsSelection = mode !== "getSubscriptionId";
 
         $(".opcua-client-subscription-row").toggle(isSubscription);
+        $(".opcua-client-history-row").toggle(isHistory);
         $(".opcua-client-selection-row").toggle(supportsSelection);
 
         // Esconde permanentemente a linha de métodos antiga caso ainda exista no DOM
@@ -995,21 +999,68 @@
             publishingInterval: {
                 value: 250,
                 validate: RED.validators.number()
-            }
+            },
+            subscriptionMode: { value: "replace" },
+            historyStartTime: { value: "startTime" },
+            historyStartTimeType: { value: "msg" },
+            historyEndTime: { value: "endTime" },
+            historyEndTimeType: { value: "msg" }
         },
         inputs: 1,
         outputs: 1,
         icon: "opcua.svg",
         label: function () {
-            return this.name || "opcua-client";
+            if (this.name) {
+                return this.name;
+            }
+            var modeLabels = {
+                "read": "Read",
+                "write": "Write",
+                "browse": "Browse",
+                "browseRecursive": "Browse Recursive",
+                "method": "Method",
+                "getSubscriptionId": "getSubscriptionId",
+                "subscription": "Subscription",
+                "events": "Events",
+                "readHistory": "Read History"
+            };
+            var modeName = modeLabels[this.mode] || this.mode || "Read";
+            return "client(" + modeName + ")";
         },
         oneditprepare: function () {
+            $("#node-input-subscriptionMode").val(this.subscriptionMode || "replace");
+
+            // Ensure history times have default values pre-populated on DOM inputs if empty
+            if (!$("#node-input-historyStartTime").val()) {
+                $("#node-input-historyStartTime").val(this.historyStartTime || "startTime");
+            }
+            if (!$("#node-input-historyStartTimeType").val()) {
+                $("#node-input-historyStartTimeType").val(this.historyStartTimeType || "msg");
+            }
+            if (!$("#node-input-historyEndTime").val()) {
+                $("#node-input-historyEndTime").val(this.historyEndTime || "endTime");
+            }
+            if (!$("#node-input-historyEndTimeType").val()) {
+                $("#node-input-historyEndTimeType").val(this.historyEndTimeType || "msg");
+            }
+
             $("#node-input-selectedItems").typedInput({
                 type: "json",
                 types: ["json"]
             });
 
             selectedItemsState = parseSelectedItems(this.selectedItems);
+
+            $("#node-input-historyStartTime").typedInput({
+                default: "msg",
+                types: ["msg", "flow", "global", "str", "date"],
+                typeField: $("#node-input-historyStartTimeType")
+            });
+            $("#node-input-historyEndTime").typedInput({
+                default: "msg",
+                types: ["msg", "flow", "global", "str", "date"],
+                typeField: $("#node-input-historyEndTimeType")
+            });
             rebuildNodeIdIndex();
 
             browseState = null;
@@ -1128,6 +1179,8 @@
         selectedItemsState[index].valuePropertyType = (typeField.val() || "msg");
         updateSelectedItemsField();
     });
+
+
 
     $(document).on("click", ".opcua-tree-row", function (event) {
         if ($(event.target).closest(".opcua-client-toggle-tree, .opcua-client-toggle-tag, .opcua-tree-actions, #node-input-browse-context-menu").length) {
