@@ -398,7 +398,7 @@ async function browseForEditor(configNode, nodeId) {
     const session = await configNode.getSession();
     const result = await browseNode(session, {
         nodeID: nodeId || ROOT_NODE_ID
-    });
+    }, { readValuesRecursive: false });
     if (result && result.children) {
         result.browse = result.children;
         delete result.children;

@@ -50,6 +50,7 @@ module.exports = function (RED) {
         node.historyStartTimeType = config.historyStartTimeType || "msg";
         node.historyEndTime = config.historyEndTime || "endTime";
         node.historyEndTimeType = config.historyEndTimeType || "msg";
+        node.readValuesRecursive = config.readValuesRecursive !== false;
         node.subscription = null;
         node.monitoredItems = [];
 
@@ -313,8 +314,13 @@ module.exports = function (RED) {
         const roots = normalizeBrowseRoots(node, msg ? msg.payload : undefined);
         const payload = [];
 
+        let readValuesRecursive = node.readValuesRecursive;
+        if (msg && msg.opcua && msg.opcua.readValuesRecursive !== undefined) {
+            readValuesRecursive = msg.opcua.readValuesRecursive !== false;
+        }
+
         for (const root of roots) {
-            payload.push(await browseNodeWithSession(session, root));
+            payload.push(await browseNodeWithSession(session, root, { readValuesRecursive }));
         }
 
         return payload;
@@ -324,8 +330,13 @@ module.exports = function (RED) {
         const roots = normalizeBrowseRoots(node, msg ? msg.payload : undefined);
         const payload = [];
 
+        let readValuesRecursive = node.readValuesRecursive;
+        if (msg && msg.opcua && msg.opcua.readValuesRecursive !== undefined) {
+            readValuesRecursive = msg.opcua.readValuesRecursive !== false;
+        }
+
         for (const root of roots) {
-            payload.push(await browseRecursiveNode(session, root));
+            payload.push(await browseRecursiveNode(session, root, { readValuesRecursive }));
         }
 
         return payload;

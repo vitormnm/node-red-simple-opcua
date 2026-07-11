@@ -26,6 +26,13 @@
         </select>
     </div>
 
+    <div class="form-row opcua-client-recursive-row" style="display:none;">
+        <label for="node-input-readValuesRecursive" style="width: auto; margin-right: 10px;">
+            <i class="fa fa-eye"></i> Read tag values recursively
+        </label>
+        <input type="checkbox" id="node-input-readValuesRecursive" style="width: auto; margin: 0; vertical-align: middle;">
+    </div>
+
     <div class="form-row opcua-client-selection-row">
         <label for="node-input-selectedItems"><i class="fa fa-code"></i> JSON</label>
         <input type="text" id="node-input-selectedItems" class="opcua-client-json" style="width: 70%;">
@@ -345,6 +352,8 @@
     ]
   }
 ]</code></pre>
+                    <p><strong>Read tag values:</strong> When checked (default), variables under the browsed node will have their <code>value</code> attribute read. If unchecked, the <code>value</code> attribute will be returned as <code>null</code>, which improves browse speed.</p>
+                    <p><strong>Overriding via message:</strong> You can dynamically override this option by setting <code>msg.opcua.readValuesRecursive</code> to <code>true</code> or <code>false</code>.</p>
                 </div>
             </details>
 
@@ -361,6 +370,8 @@
   }
 ]</code></pre>
                     <p><strong>Output (msg.payload):</strong> Array of browse results containing nested children arrays representing the complete sub-tree structure.</p>
+                    <p><strong>Read tag values recursively:</strong> When checked (default), variables in the sub-tree will have their <code>value</code> attribute read. If unchecked, the <code>value</code> attribute will be returned as <code>null</code>, which improves browse speed on large address spaces.</p>
+                    <p><strong>Overriding via message:</strong> You can dynamically override this option by setting <code>msg.opcua.readValuesRecursive</code> to <code>true</code> or <code>false</code>.</p>
                 </div>
             </details>
 

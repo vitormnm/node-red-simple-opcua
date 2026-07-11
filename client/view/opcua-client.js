@@ -964,10 +964,12 @@
         var isSubscription = mode === "subscription" || mode === "events";
         var isHistory = mode === "readHistory";
         var supportsSelection = mode !== "getSubscriptionId";
+        var isRecursive = mode === "browse" || mode === "browseRecursive";
 
         $(".opcua-client-subscription-row").toggle(isSubscription);
         $(".opcua-client-history-row").toggle(isHistory);
         $(".opcua-client-selection-row").toggle(supportsSelection);
+        $(".opcua-client-recursive-row").toggle(isRecursive);
 
         // Esconde permanentemente a linha de métodos antiga caso ainda exista no DOM
         $(".opcua-client-method-row").hide();
@@ -1004,7 +1006,8 @@
             historyStartTime: { value: "startTime" },
             historyStartTimeType: { value: "msg" },
             historyEndTime: { value: "endTime" },
-            historyEndTimeType: { value: "msg" }
+            historyEndTimeType: { value: "msg" },
+            readValuesRecursive: { value: true }
         },
         inputs: 1,
         outputs: 1,
@@ -1029,6 +1032,7 @@
         },
         oneditprepare: function () {
             $("#node-input-subscriptionMode").val(this.subscriptionMode || "replace");
+            $("#node-input-readValuesRecursive").prop("checked", this.readValuesRecursive !== false);
 
             // Ensure history times have default values pre-populated on DOM inputs if empty
             if (!$("#node-input-historyStartTime").val()) {

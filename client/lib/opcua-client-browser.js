@@ -12,7 +12,7 @@ const {
 
 const { enrichItemResultWithEnumeration, reshapeArray } = require("../opcua-client-utils");
 
-async function browseNode(session, root) {
+async function browseNode(session, root, options = {}) {
     const nodeID = normalizeNodeId(root.nodeID || root.nodeId || ROOT_NODE_ID);
     const result = {
         name: root.name || await readBrowseName(session, nodeID, "RootFolder"),
@@ -75,12 +75,18 @@ async function browseNode(session, root) {
         .filter(Boolean);
     const uniqueTypeIds = [...new Set(typeIds)];
 
+    const attrsPerItem = options.readValuesRecursive !== false ? 3 : 2;
     const attributesToRead = [
-        ...nodeIds.flatMap(nodeId => [
-            { nodeId, attributeId: AttributeIds.Description },
-            { nodeId, attributeId: AttributeIds.DataType },
-            { nodeId, attributeId: AttributeIds.Value },
-        ]),
+        ...nodeIds.flatMap(nodeId => {
+            const list = [
+                { nodeId, attributeId: AttributeIds.Description },
+                { nodeId, attributeId: AttributeIds.DataType }
+            ];
+            if (options.readValuesRecursive !== false) {
+                list.push({ nodeId, attributeId: AttributeIds.Value });
+            }
+            return list;
+        }),
         ...uniqueTypeIds.map(nodeId => ({ nodeId, attributeId: AttributeIds.BrowseName }))
     ];
 
@@ -95,7 +101,7 @@ async function browseNode(session, root) {
     const dataValues = [].concat(...dataValuesChunks);
 
     const typeNamesMap = new Map();
-    const typeStartIdx = nodeIds.length * 3;
+    const typeStartIdx = nodeIds.length * attrsPerItem;
     uniqueTypeIds.forEach((typeId, index) => {
         const browseNameVal = dataValues[typeStartIdx + index]?.value?.value;
         const name = browseNameVal?.name || typeId;
@@ -103,14 +109,14 @@ async function browseNode(session, root) {
     });
 
     const cache = new Map();
-    // Distribui os resultados por nó (3 atributos por nó)
+    // Distribui os resultados por nó (attrsPerItem atributos por nó)
     result.children = await Promise.all(references.map(async (reference, i) => {
         const childNodeId = nodeIds[i];
         const nodeClass = resolveNodeClassName(reference.nodeClass);
         const browseName = extractBrowseName(reference.browseName, childNodeId);
         const displayName = extractDisplayName(reference.displayName, browseName);
 
-        const descValue = dataValues[i * 3]?.value?.value;
+        const descValue = dataValues[i * attrsPerItem]?.value?.value;
         const description = typeof descValue === "string"
             ? descValue
             : (descValue?.text ?? "");
@@ -129,8 +135,10 @@ async function browseNode(session, root) {
         }
 
         if (nodeClass === "Variable") {
-            const dataTypeValue = dataValues[i * 3 + 1]?.value?.value;
-            const rawValueVariant = dataValues[i * 3 + 2]?.value;
+            const dataTypeValue = dataValues[i * attrsPerItem + 1]?.value?.value;
+            const rawValueVariant = options.readValuesRecursive !== false
+                ? dataValues[i * attrsPerItem + 2]?.value
+                : undefined;
             let rawValue = rawValueVariant?.value;
 
             if (rawValueVariant && rawValueVariant.arrayType === VariantArrayType.Matrix && rawValueVariant.dimensions && (Array.isArray(rawValue) || ArrayBuffer.isView(rawValue))) {
@@ -144,13 +152,15 @@ async function browseNode(session, root) {
                 ? (DataType[dataTypeValue.value] || dataTypeValue.toString())
                 : (dataTypeValue?.toString() ?? "");
 
-            if (rawValueVariant?.dataType === DataType.Enumeration) {
+            if (rawValueVariant && DataType.Enumeration !== undefined && rawValueVariant.dataType === DataType.Enumeration) {
                 item.dataType = "Enumeration";
             }
 
-            item.value = rawValue ?? "";
+            item.value = options.readValuesRecursive !== false ? (rawValue ?? "") : null;
 
-            await enrichItemResultWithEnumeration(item, session, cache, childNodeId);
+            if (options.readValuesRecursive !== false) {
+                await enrichItemResultWithEnumeration(item, session, cache, childNodeId);
+            }
         }
 
         if (nodeClass === "Method") {
@@ -161,6 +171,63 @@ async function browseNode(session, root) {
 
         return item;
     }));
+
+    const customDataTypes = result.children
+        .filter(item => item.nodeClass === "Variable" && item.dataType && (item.dataType.includes("i=") || item.dataType.includes("ns=")))
+        .map(item => item.dataType);
+    const uniqueCustomDataTypes = [...new Set(customDataTypes)];
+
+    if (uniqueCustomDataTypes.length > 0) {
+        try {
+            const dataTypeNamesMap = new Map();
+            const isEnumMap = new Map();
+
+            const attributesToReadList = uniqueCustomDataTypes.map(nodeId => ({ nodeId, attributeId: AttributeIds.BrowseName }));
+            const BATCH_SIZE = 100;
+            const readPromisesList = [];
+            for (let i = 0; i < attributesToReadList.length; i += BATCH_SIZE) {
+                const batch = attributesToReadList.slice(i, i + BATCH_SIZE);
+                readPromisesList.push(session.read(batch));
+            }
+            const dataValuesChunks = await Promise.all(readPromisesList);
+            const dataValuesList = [].concat(...dataValuesChunks);
+            uniqueCustomDataTypes.forEach((typeId, index) => {
+                const browseNameVal = dataValuesList[index]?.value?.value;
+                const name = browseNameVal?.name || typeId;
+                dataTypeNamesMap.set(typeId, name);
+            });
+
+            await Promise.all(uniqueCustomDataTypes.map(async (typeId) => {
+                try {
+                    const browseResult = await session.browse({
+                        nodeId: typeId,
+                        referenceTypeId: "HasProperty",
+                        browseDirection: BrowseDirection.Forward,
+                        includeSubtypes: true,
+                        resultMask: 63
+                    });
+                    const hasEnumProps = browseResult.references && browseResult.references.some(r => r.browseName.name === "EnumStrings" || r.browseName.name === "EnumValues");
+                    if (hasEnumProps) {
+                        isEnumMap.set(typeId, true);
+                    }
+                } catch (e) {
+                    // Ignore browse error for this datatype
+                }
+            }));
+
+            result.children.forEach(item => {
+                if (item.nodeClass === "Variable" && dataTypeNamesMap.has(item.dataType)) {
+                    if (isEnumMap.get(item.dataType)) {
+                        item.dataType = "Enumeration";
+                    } else {
+                        item.dataType = dataTypeNamesMap.get(item.dataType);
+                    }
+                }
+            });
+        } catch (err) {
+            // Ignore custom datatype resolution errors
+        }
+    }
 
     return result;
 }
@@ -414,7 +481,7 @@ function resolveArgumentDataType(dataType) {
     return dataType.toString();
 }
 
-async function browseRecursiveNode(session, root) {
+async function browseRecursiveNode(session, root, options = {}) {
     const startNodeId = normalizeNodeId(root.nodeID || root.nodeId || ROOT_NODE_ID);
     const rootName = root.name || await readBrowseName(session, startNodeId, "RootFolder");
 
@@ -528,25 +595,33 @@ async function browseRecursiveNode(session, root) {
         }
 
         const BATCH_SIZE = 100;
+        const attrsPerItem = options.readValuesRecursive !== false ? 3 : 2;
         for (let i = 0; i < allItems.length; i += BATCH_SIZE) {
             const chunk = allItems.slice(i, i + BATCH_SIZE);
-            const attributesToRead = chunk.flatMap(item => [
-                { nodeId: item.nodeID, attributeId: AttributeIds.Description },
-                { nodeId: item.nodeID, attributeId: AttributeIds.DataType },
-                { nodeId: item.nodeID, attributeId: AttributeIds.Value }
-            ]);
+            const attributesToRead = chunk.flatMap(item => {
+                const list = [
+                    { nodeId: item.nodeID, attributeId: AttributeIds.Description },
+                    { nodeId: item.nodeID, attributeId: AttributeIds.DataType }
+                ];
+                if (options.readValuesRecursive !== false) {
+                    list.push({ nodeId: item.nodeID, attributeId: AttributeIds.Value });
+                }
+                return list;
+            });
 
             try {
                 const dataValues = await session.read(attributesToRead);
                 await Promise.all(chunk.map(async (item, index) => {
-                    const descValue = dataValues[index * 3]?.value?.value;
+                    const descValue = dataValues[index * attrsPerItem]?.value?.value;
                     item.description = typeof descValue === "string"
                         ? descValue
                         : (descValue?.text ?? "");
 
                     if (item.nodeClass === "Variable") {
-                        const dataTypeValue = dataValues[index * 3 + 1]?.value?.value;
-                        const rawValueVariant = dataValues[index * 3 + 2]?.value;
+                        const dataTypeValue = dataValues[index * attrsPerItem + 1]?.value?.value;
+                        const rawValueVariant = options.readValuesRecursive !== false
+                            ? dataValues[index * attrsPerItem + 2]?.value
+                            : undefined;
                         let rawValue = rawValueVariant?.value;
 
                         if (rawValueVariant && rawValueVariant.arrayType === VariantArrayType.Matrix && rawValueVariant.dimensions && (Array.isArray(rawValue) || ArrayBuffer.isView(rawValue))) {
@@ -560,13 +635,15 @@ async function browseRecursiveNode(session, root) {
                             ? (DataType[dataTypeValue.value] || dataTypeValue.toString())
                             : (dataTypeValue?.toString() ?? "");
 
-                        if (rawValueVariant?.dataType === DataType.Enumeration) {
+                        if (rawValueVariant && DataType.Enumeration !== undefined && rawValueVariant.dataType === DataType.Enumeration) {
                             item.dataType = "Enumeration";
                         }
 
-                        item.value = rawValue ?? "";
+                        item.value = options.readValuesRecursive !== false ? (rawValue ?? "") : null;
 
-                        await enrichItemResultWithEnumeration(item, session, cache, item.nodeID);
+                        if (options.readValuesRecursive !== false) {
+                            await enrichItemResultWithEnumeration(item, session, cache, item.nodeID);
+                        }
                     }
 
                     if (item.typeDefinition) {
@@ -583,7 +660,7 @@ async function browseRecursiveNode(session, root) {
                     item.description = "";
                     if (item.nodeClass === "Variable") {
                         item.dataType = "";
-                        item.value = "";
+                        item.value = options.readValuesRecursive !== false ? "" : null;
                     }
                     if (item.typeDefinition) {
                         const typeName = typeNamesMap.get(item.typeDefinition) || item.typeDefinition;
@@ -594,6 +671,63 @@ async function browseRecursiveNode(session, root) {
                         };
                     }
                 });
+            }
+        }
+
+        const customDataTypes = allItems
+            .filter(item => item.nodeClass === "Variable" && item.dataType && (item.dataType.includes("i=") || item.dataType.includes("ns=")))
+            .map(item => item.dataType);
+        const uniqueCustomDataTypes = [...new Set(customDataTypes)];
+
+        if (uniqueCustomDataTypes.length > 0) {
+            try {
+                const dataTypeNamesMap = new Map();
+                const isEnumMap = new Map();
+
+                const attributesToRead = uniqueCustomDataTypes.map(nodeId => ({ nodeId, attributeId: AttributeIds.BrowseName }));
+                const BATCH_SIZE = 100;
+                const readPromises = [];
+                for (let i = 0; i < attributesToRead.length; i += BATCH_SIZE) {
+                    const batch = attributesToRead.slice(i, i + BATCH_SIZE);
+                    readPromises.push(session.read(batch));
+                }
+                const dataValuesChunks = await Promise.all(readPromises);
+                const dataValues = [].concat(...dataValuesChunks);
+                uniqueCustomDataTypes.forEach((typeId, index) => {
+                    const browseNameVal = dataValues[index]?.value?.value;
+                    const name = browseNameVal?.name || typeId;
+                    dataTypeNamesMap.set(typeId, name);
+                });
+
+                await Promise.all(uniqueCustomDataTypes.map(async (typeId) => {
+                    try {
+                        const browseResult = await session.browse({
+                            nodeId: typeId,
+                            referenceTypeId: "HasProperty",
+                            browseDirection: BrowseDirection.Forward,
+                            includeSubtypes: true,
+                            resultMask: 63
+                        });
+                        const hasEnumProps = browseResult.references && browseResult.references.some(r => r.browseName.name === "EnumStrings" || r.browseName.name === "EnumValues");
+                        if (hasEnumProps) {
+                            isEnumMap.set(typeId, true);
+                        }
+                    } catch (e) {
+                        // Ignore browse error for this datatype
+                    }
+                }));
+
+                allItems.forEach(item => {
+                    if (item.nodeClass === "Variable" && dataTypeNamesMap.has(item.dataType)) {
+                        if (isEnumMap.get(item.dataType)) {
+                            item.dataType = "Enumeration";
+                        } else {
+                            item.dataType = dataTypeNamesMap.get(item.dataType);
+                        }
+                    }
+                });
+            } catch (err) {
+                // Ignore custom datatype resolution errors
             }
         }
 
