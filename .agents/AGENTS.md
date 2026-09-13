@@ -540,5 +540,118 @@ You can dynamically override the subscription mode or interval rates by passing 
 
 If `updateRate` changes during an `append` action, the subscription is gracefully restarted, merging all active tags and applying the new rate.
 
+---
 
+## Historical Data Tags & Flow Integration (HDA) — `historizing`
 
+Tags (variables) configured on the OPC UA server can be flagged as historical data nodes (`historizing: true`). Historical read requests from OPC UA clients are handled dynamically via a pair of `opcua-server-io` nodes (`Read Historizing Input` and `Read Historizing Output`), following the same request/response pattern as OPC UA Methods.
+
+### 1. Tree Editor & Schema Configuration
+- In the OPC UA Tree Editor, the Node Details panel and Create Node modal for variables include a **Historizing** checkbox (`historizing: true | false`, default `false`).
+- Only variables/tags can be historized.
+- Variable schema:
+  ```json
+  {
+    "name": "Speed",
+    "type": "Float",
+    "value": 0,
+    "access": "readwrite",
+    "historizing": true
+  }
+  ```
+- At server address space construction:
+  - If `historizing: true`, the builder installs `HistoricalDataConfigurationType` ("HA Configuration") and references it using `HasHistoricalConfiguration`.
+  - Sets `node.historizing = true` and enables `AccessLevelFlag.HistoryRead` and `PermissionType.ReadHistory` in `accessLevel` and `userAccessLevel`.
+  - Overrides `node._historyRead` to route incoming client history requests to registered Node-RED handlers via registry.
+
+### 2. New `opcua-server-io` Modes
+
+| Mode                      | Node Role | Inputs | Outputs | Description |
+|---------------------------|-----------|--------|---------|-------------|
+| `read-historizing-input`  | Input     | 0      | 1       | Emits a message when an OPC UA client requests historical data for a historized tag. |
+| `read-historizing-output` | Output    | 1      | 0       | Receives an array of historical samples from the flow and returns them to the waiting OPC UA query. |
+
+### 3. New IPC Message Types
+
+| Direction      | `type`                     | Payload fields                                      | Purpose |
+|----------------|----------------------------|-----------------------------------------------------|---------|
+| parent → child | `registerHistorizingInput` | `node` (`{ tagPath, tagNodeId }`), `nodeId`         | Registers `opcua-server-io` node as handler for a tag (or wildcard `*`). |
+| child → parent | `sendHistorizingRead`      | `data` (request details + `callId`), `nodeId`       | Dispatches history query to `read-historizing-input` Node-RED node. |
+| parent → child | `handleHistorizingOutput`  | `msg` (with `_callId` & `payload` array), `nodeId`  | Resolves the pending query promise with historical data. |
+
+### 4. Message Contracts
+
+#### `Read Historizing Input` Output Message:
+Emitted when an OPC UA client executes a `HistoryReadRequest` (e.g. `session.readHistoryValue`):
+```json
+{
+  "topic": "ns=2;s=Maquina1.Sensores.Temperatura",
+  "payload": {
+    "nodeId": "ns=2;s=Maquina1.Sensores.Temperatura",
+    "path": "Maquina1.Sensores.Temperatura",
+    "startTime": "2026-09-13T10:00:00.000Z",
+    "endTime": "2026-09-13T10:05:00.000Z",
+    "numValuesPerNode": 100,
+    "returnBounds": false,
+    "isReadModified": false
+  },
+  "startTime": "2026-09-13T10:00:00.000Z",
+  "endTime": "2026-09-13T10:05:00.000Z",
+  "opcua": {
+    "server": "MeuServidor",
+    "tag": "Maquina1.Sensores.Temperatura",
+    "nodeId": "ns=2;s=Maquina1.Sensores.Temperatura",
+    "tagPath": "Maquina1.Sensores.Temperatura",
+    "historyDetails": {
+      "startTime": "2026-09-13T10:00:00.000Z",
+      "endTime": "2026-09-13T10:05:00.000Z",
+      "numValuesPerNode": 100,
+      "returnBounds": false,
+      "isReadModified": false
+    },
+    "users": [{ "name": "anonymous", "groups": [] }]
+  },
+  "_callId": "1713700000000_0.1234"
+}
+```
+
+#### `Read Historizing Output` Input Message:
+The downstream flow queries its database (e.g. InfluxDB, PostgreSQL, MySQL) using `msg.startTime` / `msg.endTime` and passes the response to `Read Historizing Output`:
+```json
+{
+  "_callId": "1713700000000_0.1234",
+  "payload": [
+    {
+      "timestamp": "2026-09-13T10:00:00.000Z",
+      "value": 25.4,
+      "statusCode": "Good"
+    },
+    {
+      "timestamp": "2026-09-13T10:01:00.000Z",
+      "value": 25.7,
+      "statusCode": "Good"
+    }
+  ]
+}
+```
+- `timestamp`: UTC timestamp (ISO 8601 UTC string e.g. `"2026-09-13T10:00:00.000Z"`, `Date` object, or milliseconds since epoch). Must always be in UTC in accordance with the OPC UA specification.
+- `value`: Coerced to match the variable's configured dataType.
+- `statusCode`: Standard `node-opcua` status code string (e.g. `"Good"`, `"Uncertain"`, `"Bad"`) or numeric code. Defaults to `StatusCodes.Good`.
+
+---
+
+## Historizing Indicator in OPC UA Client Browse Tree
+
+In `opcua-client` and `opcua-client-config`'s editor Browse Tree modal:
+1. **Attribute Resolution**: During browsing (`browseNode`, `browseRecursiveNode`, and editor explore), `AttributeIds.Historizing` is queried alongside `Description` and `DataType`.
+2. **Display Format**: When a tag has `historizing: true`, the browse tree row labels it as `Variable | Historizing | <DataType>` instead of `Variable | <DataType>`.
+3. **Filter & Search**: The browse modal search bar matches `"historizing"`, allowing quick filtering of historical tags in the tree.
+
+---
+
+## Timestamps in Client Read Mode — `sourceTimestamp` & `serverTimestamp`
+
+In `opcua-client` (read mode via `OpcUaClientReadService`):
+- Uses `session.read(nodesToRead)` with `{ nodeId, attributeId: AttributeIds.Value }` (batched in chunks of 100).
+- Unlike `session.readVariableValue` which specifies `TimestampsToReturn.Neither`, `session.read` explicitly requests `TimestampsToReturn.Both`.
+- This ensures both `sourceTimestamp` and `serverTimestamp` are populated with their ISO 8601 UTC string representations instead of returning `null`.

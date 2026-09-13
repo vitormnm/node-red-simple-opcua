@@ -214,6 +214,8 @@
     <p><b>Write</b>: writes values to tags in an active <code>opc-ua-server</code> node.</p>
     <p><b>Method Input</b>: receives method calls coming from OPC UA clients.</p>
     <p><b>Method Output</b>: sends the method response back to the waiting OPC UA call.</p>
+    <p><b>Read Historizing Input</b>: receives historical data read requests from OPC UA clients for historized tags.</p>
+    <p><b>Read Historizing Output</b>: sends historical data values back to the waiting OPC UA history read query.</p>
 
     <h3>Read</h3>
     <p><b>Input</b>:</p>
@@ -440,4 +442,66 @@ msg.payload = [
   "status": "erro",
   "message": "Invalid username or password"
 }</code></pre>
+
+    <h3>Read Historizing Input</h3>
+    <p>Receives history read requests (OPC UA HDA) sent by connected clients for tags marked with <code>historizing: true</code>.</p>
+    <p>Acts like <b>Method Input</b>: outputs a message downstream containing the client's query parameters and a unique <code>_callId</code>.</p>
+    <p><b>Optional Filter</b>: specify a <code>Tag path</code> or <code>Tag nodeId</code> to filter queries for a specific tag, or leave blank to receive history queries for all historized tags on the server.</p>
+    <p><b>Output</b>:</p>
+    <ul>
+        <li><code>msg.topic</code> — the NodeId of the tag being queried.</li>
+        <li><code>msg.startTime</code> / <code>msg.endTime</code> — query time window (ISO Date strings or objects).</li>
+        <li><code>msg.opcua</code> — metadata including server name, tag path, tag NodeId, query parameters and client user details.</li>
+        <li><code>msg._callId</code> — internal identifier required by <b>Read Historizing Output</b> to correlate the response.</li>
+    </ul>
+    <pre><code>{
+  "topic": "ns=2;s=Maquina1.Sensores.Temperatura",
+  "payload": {
+    "nodeId": "ns=2;s=Maquina1.Sensores.Temperatura",
+    "path": "Maquina1.Sensores.Temperatura",
+    "startTime": "2026-09-13T10:00:00.000Z",
+    "endTime": "2026-09-13T10:05:00.000Z",
+    "numValuesPerNode": 100,
+    "returnBounds": false,
+    "isReadModified": false
+  },
+  "startTime": "2026-09-13T10:00:00.000Z",
+  "endTime": "2026-09-13T10:05:00.000Z",
+  "opcua": {
+    "server": "MeuServidor",
+    "tag": "Maquina1.Sensores.Temperatura",
+    "nodeId": "ns=2;s=Maquina1.Sensores.Temperatura",
+    "tagPath": "Maquina1.Sensores.Temperatura",
+    "historyDetails": {
+      "startTime": "2026-09-13T10:00:00.000Z",
+      "endTime": "2026-09-13T10:05:00.000Z",
+      "numValuesPerNode": 100,
+      "returnBounds": false,
+      "isReadModified": false
+    },
+    "users": [{ "name": "anonymous", "groups": [] }]
+  },
+  "_callId": "1713700000000_0.1234"
+}</code></pre>
+
+    <h3>Read Historizing Output</h3>
+    <p>Sends historical records back to the waiting OPC UA client query. Must receive the <code>msg._callId</code> produced by <b>Read Historizing Input</b>.</p>
+    <p><b>Input</b>: <code>msg.payload</code> must be a JSON array of historical data points:</p>
+    <pre><code>[
+  {
+    "timestamp": "2026-09-13T10:00:00.000Z",
+    "value": 25.4,
+    "statusCode": "Good"
+  },
+  {
+    "timestamp": "2026-09-13T10:01:00.000Z",
+    "value": 25.7,
+    "statusCode": "Good"
+  }
+]</code></pre>
+    <ul>
+        <li><code>timestamp</code> — UTC timestamp (ISO 8601 UTC string e.g. <code>"2026-09-13T10:00:00.000Z"</code>, <code>Date</code> object, or numeric milliseconds since epoch). <b>Note:</b> As per the OPC UA specification, timestamps must always represent UTC time.</li>
+        <li><code>value</code> — the historical value (coerced according to the tag's configured dataType, e.g. Float, Int32, Boolean).</li>
+        <li><code>statusCode</code> — standard node-opcua status code string (e.g. <code>"Good"</code>, <code>"Uncertain"</code>, <code>"Bad"</code>) or StatusCode number. Defaults to <code>"Good"</code> if omitted.</li>
+    </ul>
 </script>

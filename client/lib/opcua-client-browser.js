@@ -75,12 +75,13 @@ async function browseNode(session, root, options = {}) {
         .filter(Boolean);
     const uniqueTypeIds = [...new Set(typeIds)];
 
-    const attrsPerItem = options.readValuesRecursive !== false ? 3 : 2;
+    const attrsPerItem = options.readValuesRecursive !== false ? 4 : 3;
     const attributesToRead = [
         ...nodeIds.flatMap(nodeId => {
             const list = [
                 { nodeId, attributeId: AttributeIds.Description },
-                { nodeId, attributeId: AttributeIds.DataType }
+                { nodeId, attributeId: AttributeIds.DataType },
+                { nodeId, attributeId: AttributeIds.Historizing }
             ];
             if (options.readValuesRecursive !== false) {
                 list.push({ nodeId, attributeId: AttributeIds.Value });
@@ -136,8 +137,9 @@ async function browseNode(session, root, options = {}) {
 
         if (nodeClass === "Variable") {
             const dataTypeValue = dataValues[i * attrsPerItem + 1]?.value?.value;
+            const historizingValue = dataValues[i * attrsPerItem + 2]?.value?.value;
             const rawValueVariant = options.readValuesRecursive !== false
-                ? dataValues[i * attrsPerItem + 2]?.value
+                ? dataValues[i * attrsPerItem + 3]?.value
                 : undefined;
             let rawValue = rawValueVariant?.value;
 
@@ -156,6 +158,7 @@ async function browseNode(session, root, options = {}) {
                 item.dataType = "Enumeration";
             }
 
+            item.historizing = Boolean(historizingValue);
             item.value = options.readValuesRecursive !== false ? (rawValue ?? "") : null;
 
             if (options.readValuesRecursive !== false) {
@@ -276,6 +279,7 @@ async function mapReference(session, reference) {
     if (nodeClass === "Variable") {
         item.value = await readValue(session, childNodeId);
         item.dataType = await readDataType(session, childNodeId);
+        item.historizing = await readHistorizing(session, childNodeId);
         return item;
     }
 
@@ -393,6 +397,19 @@ async function readDataType(session, nodeId) {
         return value.toString();
     } catch (error) {
         return "";
+    }
+}
+
+async function readHistorizing(session, nodeId) {
+    try {
+        const dataValue = await session.read({
+            nodeId,
+            attributeId: AttributeIds.Historizing
+        });
+        const value = dataValue && dataValue.value ? dataValue.value.value : null;
+        return Boolean(value);
+    } catch (error) {
+        return false;
     }
 }
 
@@ -595,13 +612,14 @@ async function browseRecursiveNode(session, root, options = {}) {
         }
 
         const BATCH_SIZE = 100;
-        const attrsPerItem = options.readValuesRecursive !== false ? 3 : 2;
+        const attrsPerItem = options.readValuesRecursive !== false ? 4 : 3;
         for (let i = 0; i < allItems.length; i += BATCH_SIZE) {
             const chunk = allItems.slice(i, i + BATCH_SIZE);
             const attributesToRead = chunk.flatMap(item => {
                 const list = [
                     { nodeId: item.nodeID, attributeId: AttributeIds.Description },
-                    { nodeId: item.nodeID, attributeId: AttributeIds.DataType }
+                    { nodeId: item.nodeID, attributeId: AttributeIds.DataType },
+                    { nodeId: item.nodeID, attributeId: AttributeIds.Historizing }
                 ];
                 if (options.readValuesRecursive !== false) {
                     list.push({ nodeId: item.nodeID, attributeId: AttributeIds.Value });
@@ -619,8 +637,9 @@ async function browseRecursiveNode(session, root, options = {}) {
 
                     if (item.nodeClass === "Variable") {
                         const dataTypeValue = dataValues[index * attrsPerItem + 1]?.value?.value;
+                        const historizingValue = dataValues[index * attrsPerItem + 2]?.value?.value;
                         const rawValueVariant = options.readValuesRecursive !== false
-                            ? dataValues[index * attrsPerItem + 2]?.value
+                            ? dataValues[index * attrsPerItem + 3]?.value
                             : undefined;
                         let rawValue = rawValueVariant?.value;
 
@@ -639,6 +658,7 @@ async function browseRecursiveNode(session, root, options = {}) {
                             item.dataType = "Enumeration";
                         }
 
+                        item.historizing = Boolean(historizingValue);
                         item.value = options.readValuesRecursive !== false ? (rawValue ?? "") : null;
 
                         if (options.readValuesRecursive !== false) {

@@ -287,7 +287,8 @@
             displayName: variable && variable.displayName ? String(variable.displayName) : "",
             nodeId: variable && variable.nodeId ? String(variable.nodeId) : "",
             namespaceId: normalizeNamespaceId(variable && variable.namespaceId),
-            accessPermission: normalizeAccessPermissionValues(variable && (variable.accessPermission || variable.accessPermissions))
+            accessPermission: normalizeAccessPermissionValues(variable && (variable.accessPermission || variable.accessPermissions)),
+            historizing: !!(variable && variable.historizing)
         };
     }
     function normalizeAlarm(alarm) {
@@ -1013,6 +1014,7 @@
             dataType: kind === "enum-variable" ? (getDefinedEnumerationNames()[0] || "") : "Int32",
             value: "",
             access: "readwrite",
+            historizing: false,
             accessPermission: ["public"],
             objectsType: "",
             alarmType: "levelAlarm",
@@ -1085,6 +1087,7 @@
                 type: pendingCreate.dataType,
                 value: pendingCreate.value,
                 access: pendingCreate.access || "readwrite",
+                historizing: !!pendingCreate.historizing,
                 accessPermission: pendingCreate.accessPermission,
                 nodeId: customNodeId
             }));
@@ -1152,6 +1155,7 @@
                 panel.append('<div class="form-row"><label>dataType</label>' + typeHtml + '</div>');
                 panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-create-value"></div>');
                 panel.append('<div class="form-row"><label>Access</label><select id="opcua-create-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
+                panel.append('<div class="form-row"><label for="opcua-create-historizing">Historizing</label><input type="checkbox" id="opcua-create-historizing" style="width: auto; flex: 0 0 auto; min-width: 0;"></div>');
             }
             if (pendingCreate.kind === "objecttype") {
                 panel.append('<div class="form-row"><label>objectsType</label>' + buildObjectTypeSelect("opcua-create-objectstype", pendingCreate.objectsType || "") + '</div>');
@@ -1190,6 +1194,7 @@
             $("#opcua-create-value").val(pendingCreate.value);
             $("#opcua-create-objectstype").val(pendingCreate.objectsType);
             $("#opcua-create-access").val(pendingCreate.access || "readwrite");
+            $("#opcua-create-historizing").prop("checked", !!pendingCreate.historizing);
             $("#opcua-create-alarm-type").val(pendingCreate.alarmType);
             $("#opcua-create-variable-nodeid").val(pendingCreate.variableNodeId);
             $("#opcua-create-severity").val(pendingCreate.severity);
@@ -1290,6 +1295,7 @@
             }
             panel.append('<div class="form-row"><label>Value</label><input type="text" id="opcua-detail-value"></div>');
             panel.append('<div class="form-row"><label>Access</label><select id="opcua-detail-access"><option value="readwrite">readwrite</option><option value="readonly">readonly</option></select></div>');
+            panel.append('<div class="form-row"><label for="opcua-detail-historizing">Historizing</label><input type="checkbox" id="opcua-detail-historizing" style="width: auto; flex: 0 0 auto; min-width: 0;"></div>');
         }
         if (nodeClass === "Method") {
             panel.append('<hr style="margin:8px 0; border-color:#e3e3e3;">');
@@ -1367,7 +1373,7 @@
         $("#opcua-detail-displayname").val(item.displayName || "");
         $("#opcua-detail-accesspermission").val(normalizeAccessPermissionValues(item.accessPermission));
         if (nodeClass === "ObjectType") { $("#opcua-detail-objectstype").val(item.objectsType || ""); }
-        if (nodeClass === "Variable") { $("#opcua-detail-type").val(item.type || "Int32"); $("#opcua-detail-value").val(item.value !== undefined ? item.value : ""); $("#opcua-detail-access").val(item.access || "readwrite"); }
+        if (nodeClass === "Variable") { $("#opcua-detail-type").val(item.type || "Int32"); $("#opcua-detail-value").val(item.value !== undefined ? item.value : ""); $("#opcua-detail-access").val(item.access || "readwrite"); $("#opcua-detail-historizing").prop("checked", !!item.historizing); }
         if (nodeClass === "Alarm") {
             $("#opcua-detail-alarm-type").val(item.type || "levelAlarm");
             $("#opcua-detail-variable-nodeid").val(item.variableNodeId || "");
@@ -1977,6 +1983,7 @@
     $(document).on("change", "#opcua-detail-objectstype", function () { updateNode(selectedPath, { objectsType: $(this).val() }); });
     $(document).on("change", "#opcua-detail-type", function () { updateNode(selectedPath, { type: $(this).val() }); });
     $(document).on("change", "#opcua-detail-access", function () { updateNode(selectedPath, { access: $(this).val() }); });
+    $(document).on("change", "#opcua-detail-historizing", function () { updateNode(selectedPath, { historizing: $(this).is(":checked") }); });
     $(document).on("input", "#opcua-detail-value", function () { updateNode(selectedPath, { value: $(this).val() }); });
     $(document).on("change", "#opcua-detail-alarm-type", function () {
         updateNode(selectedPath, { type: $(this).val() });
@@ -2029,6 +2036,7 @@
     $(document).on("input", "#opcua-create-value", function () { if (pendingCreate) pendingCreate.value = $(this).val(); });
     $(document).on("change", "#opcua-create-objectstype", function () { if (pendingCreate) pendingCreate.objectsType = $(this).val(); });
     $(document).on("change", "#opcua-create-access", function () { if (pendingCreate) pendingCreate.access = $(this).val(); });
+    $(document).on("change", "#opcua-create-historizing", function () { if (pendingCreate) pendingCreate.historizing = $(this).is(":checked"); });
     $(document).on("change", "#opcua-create-alarm-type", function () {
         if (pendingCreate) {
             pendingCreate.alarmType = $(this).val();

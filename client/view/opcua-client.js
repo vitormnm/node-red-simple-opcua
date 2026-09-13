@@ -161,6 +161,7 @@
             item.browseName,
             item.nodeID,
             item.nodeClass,
+            item.historizing ? "historizing" : "",
             item.dataType,
             item.description
         ].filter(Boolean).join(" ").toLowerCase();
@@ -483,10 +484,18 @@
             ? '<div class="opcua-tree-actions"><a href="#" class="editor-button editor-button-small opcua-client-toggle-tag" data-nodeid="' + escapeHtml(nodeId) + '" data-path="' + escapeHtml(path) + '"><i class="fa ' + (selectedIndex >= 0 ? 'fa-minus' : 'fa-plus') + '"></i> ' + (selectedIndex >= 0 ? 'Remove' : 'Add') + '</a></div>'
             : '';
 
+        var typeLabel = escapeHtml(item.nodeClass || "");
+        if (item.historizing) {
+            typeLabel += " | Historizing";
+        }
+        if (item.dataType) {
+            typeLabel += " | " + escapeHtml(item.dataType);
+        }
+
         row.innerHTML = indents + twisty
             + '<span class="opcua-tree-icon"><i class="fa ' + browseIconFor(item) + '"></i></span>'
             + '<span class="opcua-tree-label">' + escapeHtml(item.displayName || item.browseName || item.nodeID) + '</span>'
-            + '<span class="opcua-tree-type">' + escapeHtml(item.nodeClass || "") + (item.dataType ? " | " + escapeHtml(item.dataType) : "") + '</span>'
+            + '<span class="opcua-tree-type">' + typeLabel + '</span>'
             + '<span class="opcua-client-nodeid-label">' + escapeHtml(nodeId) + '</span>'
             + actions;
         frag.appendChild(row);
@@ -561,10 +570,18 @@
             ? '<div class="opcua-tree-actions"><a href="#" class="editor-button editor-button-small opcua-client-toggle-tag" data-nodeid="' + escapeHtml(nodeId) + '" data-path="' + escapeHtml(path) + '"><i class="fa ' + (selectedIndex >= 0 ? 'fa-minus' : 'fa-plus') + '"></i> ' + (selectedIndex >= 0 ? 'Remove' : 'Add') + '</a></div>'
             : '';
 
+        var typeLabel = escapeHtml(item.nodeClass || "");
+        if (item.historizing) {
+            typeLabel += " | Historizing";
+        }
+        if (item.dataType) {
+            typeLabel += " | " + escapeHtml(item.dataType);
+        }
+
         row.innerHTML = indents + twisty
             + '<span class="opcua-tree-icon"><i class="fa ' + browseIconFor(item) + '"></i></span>'
             + '<span class="opcua-tree-label">' + escapeHtml(item.displayName || item.browseName || item.nodeID) + '</span>'
-            + '<span class="opcua-tree-type">' + escapeHtml(item.nodeClass || "") + (item.dataType ? " | " + escapeHtml(item.dataType) : "") + '</span>'
+            + '<span class="opcua-tree-type">' + typeLabel + '</span>'
             + '<span class="opcua-client-nodeid-label">' + escapeHtml(nodeId) + '</span>'
             + actions;
         frag.appendChild(row);
@@ -619,6 +636,7 @@
             nodeClass: item.nodeClass || "",
             typeDefinition: item.typeDefinition || item.typeDefinitionName || "",
             hasTypeDefinition: item.hasTypeDefinition || null,
+            historizing: !!item.historizing,
             valueProperty: item.valueProperty || "payload",
             valuePropertyType: item.valuePropertyType || "msg"
         };

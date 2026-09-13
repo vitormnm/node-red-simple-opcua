@@ -1,12 +1,31 @@
 "use strict";
 
+const { AttributeIds } = require("node-opcua");
 const { dataValueToItemResult, resolveNodeId, enrichItemResultWithEnumeration } = require("../opcua-client-utils");
+
+const READ_BATCH_SIZE = 100;
 
 class OpcUaClientReadService {
     async execute(node, msg, session, itemsResolver) {
         const items = itemsResolver.ensureClientItems(node, msg, "OPC UA read");
         const nodeIds = items.map((item) => resolveNodeId(item));
-        const values = await session.readVariableValue(nodeIds);
+
+        const nodesToRead = nodeIds.map((nodeId) => ({
+            nodeId,
+            attributeId: AttributeIds.Value
+        }));
+
+        let values = [];
+        if (nodesToRead.length <= READ_BATCH_SIZE) {
+            const res = await session.read(nodesToRead);
+            values = Array.isArray(res) ? res : [res];
+        } else {
+            for (let i = 0; i < nodesToRead.length; i += READ_BATCH_SIZE) {
+                const batch = nodesToRead.slice(i, i + READ_BATCH_SIZE);
+                const res = await session.read(batch);
+                values = values.concat(Array.isArray(res) ? res : [res]);
+            }
+        }
         
         const cache = new Map();
         const results = [];
