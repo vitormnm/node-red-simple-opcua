@@ -6,6 +6,8 @@ const pendingCalls = new Map();
 const accessListeners = new Map();
 const childs = new Map();
 const activeAlarms = new Map();
+const historizingHandlers = new Map();
+const pendingHistorizingCalls = new Map();
 
 const serversNames = new Map(); //get serve name for opcua-server-io
 
@@ -150,6 +152,64 @@ function resolveMethodCall(callId, payload) {
     pendingCalls.delete(callId);
 }
 
+function registerHistorizingHandler(tagKey, nodeId) {
+    historizingHandlers.set(tagKey || "*", nodeId);
+}
+
+function unregisterHistorizingHandler(tagKey) {
+    historizingHandlers.delete(tagKey || "*");
+}
+
+function emitHistorizingRead(request) {
+    let nodeId = null;
+    if (request.nodeId && historizingHandlers.has(request.nodeId)) {
+        nodeId = historizingHandlers.get(request.nodeId);
+    } else if (request.tagPath && historizingHandlers.has(request.tagPath)) {
+        nodeId = historizingHandlers.get(request.tagPath);
+    } else if (historizingHandlers.has("*")) {
+        nodeId = historizingHandlers.get("*");
+    }
+
+    if (!nodeId) {
+        const pending = pendingHistorizingCalls.get(request.callId);
+        if (pending) {
+            pending.reject(new Error("No handler registered for historizing read of " + (request.nodeId || request.tagPath)));
+            pendingHistorizingCalls.delete(request.callId);
+        }
+        return;
+    }
+
+    process.send({
+        type: "sendHistorizingRead",
+        data: request,
+        nodeId: nodeId
+    });
+}
+
+function waitForHistorizingResponse(callId) {
+    return new Promise((resolve, reject) => {
+        pendingHistorizingCalls.set(callId, { resolve, reject });
+
+        setTimeout(() => {
+            if (pendingHistorizingCalls.has(callId)) {
+                pendingHistorizingCalls.delete(callId);
+                reject(new Error("Timeout waiting historizing response"));
+            }
+        }, 10000);
+    });
+}
+
+function resolveHistorizingResponse(callId, payload) {
+    const pending = pendingHistorizingCalls.get(callId);
+
+    if (!pending) {
+        return;
+    }
+
+    pending.resolve(payload);
+    pendingHistorizingCalls.delete(callId);
+}
+
 function registerAccessListener(listenerId, node) {
     accessListeners.set(listenerId, node);
 }
@@ -268,6 +328,11 @@ module.exports = {
     emitMethodCall,
     waitForMethodResponse,
     resolveMethodCall,
+    registerHistorizingHandler,
+    unregisterHistorizingHandler,
+    emitHistorizingRead,
+    waitForHistorizingResponse,
+    resolveHistorizingResponse,
     registerAccessListener,
     unregisterAccessListener,
     emitTagAccess,

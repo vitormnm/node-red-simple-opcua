@@ -7,6 +7,9 @@ const {
     VariantArrayType,
     sanitizeNodeIdPath,
     DataType,
+    DataValue,
+    HistoryReadResult,
+    HistoryData,
     coerceNodeId,
     PermissionType,
     resolveNodeId
@@ -1340,6 +1343,9 @@ class OpcUaAddressSpaceBuilder {
             if (initialValue !== undefined) {
                 record.setRuntimeValue(initialValue);
             }
+            if (variableConfig.historizing) {
+                this.setupHistorizing(existingNode, variableConfig, path, nodeId);
+            }
             this.wrapVariableNode(existingNode, path, nodeId, browseName, state);
             return;
         }
@@ -1509,7 +1515,137 @@ class OpcUaAddressSpaceBuilder {
         };
         this.variableStore.set(path, record);
         this.variableNodeIdStore.set(record.nodeIdKey, record);
+        if (variableConfig.historizing) {
+            this.setupHistorizing(variableNode, variableConfig, path, nodeId);
+        }
         this.wrapVariableNode(variableNode, path, nodeId, browseName, state);
+    }
+
+    setupHistorizing(variableNode, variableConfig, path, nodeId) {
+        if (!variableConfig || !variableConfig.historizing) {
+            return;
+        }
+
+        try {
+            const addressSpace = this.server.engine.addressSpace;
+            if (!variableNode.$historicalDataConfiguration && !variableNode.historizing) {
+                addressSpace.installHistoricalDataNode(variableNode);
+            }
+        } catch (e) {
+            // Node might already have historical configuration or partial installation
+        }
+
+        variableNode.historizing = true;
+        variableNode.accessLevel = (variableNode.accessLevel || 0) | 0x01 | 0x04;
+        if (variableNode.userAccessLevel !== undefined) {
+            variableNode.userAccessLevel = (variableNode.userAccessLevel || 0) | 0x01 | 0x04;
+        }
+
+        variableNode._historyRead = (context, historyReadDetails, indexRange, dataEncoding, continuationData, callback) => {
+            const callId = Date.now() + "_" + Math.random();
+            const username = (context && context.session && context.session.userIdentityToken && context.session.userIdentityToken.userName)
+                ? context.session.userIdentityToken.userName
+                : "anonymous";
+
+            const startTime = (historyReadDetails && historyReadDetails.startTime) ? historyReadDetails.startTime : null;
+            const endTime = (historyReadDetails && historyReadDetails.endTime) ? historyReadDetails.endTime : null;
+            const numValuesPerNode = (historyReadDetails && historyReadDetails.numValuesPerNode !== undefined) ? historyReadDetails.numValuesPerNode : 0;
+            const returnBounds = (historyReadDetails && historyReadDetails.returnBounds !== undefined) ? !!historyReadDetails.returnBounds : false;
+            const isReadModified = (historyReadDetails && historyReadDetails.isReadModified !== undefined) ? !!historyReadDetails.isReadModified : false;
+
+            const nodeIdStr = (typeof nodeId === "string") ? nodeId : (nodeId ? nodeId.toString() : "");
+
+            this.registry.emitHistorizingRead({
+                serverName: this.serverName,
+                nodeId: nodeIdStr,
+                tagPath: path,
+                callId,
+                startTime,
+                endTime,
+                numValuesPerNode,
+                returnBounds,
+                isReadModified,
+                users: [{ name: username, groups: this.getUserGroups(username) }]
+            });
+
+            this.registry.waitForHistorizingResponse(callId)
+                .then((payload) => {
+                    let items = [];
+                    if (Array.isArray(payload)) {
+                        items = payload;
+                    } else if (payload && Array.isArray(payload.history)) {
+                        items = payload.history;
+                    } else if (payload && Array.isArray(payload.data)) {
+                        items = payload.data;
+                    }
+
+                    const dataValues = [];
+                    const record = this.variableStore.get(path) || this.variableNodeIdStore.get(this.normalizeNodeIdKey(nodeId));
+                    const varType = (record && record.type) || variableConfig.type || "Float";
+                    const isArray = record ? record.isArray : false;
+                    const dataType = DATA_TYPE_MAP[varType] || DataType.Float;
+
+                    for (const item of items) {
+                        if (!item || typeof item !== "object") continue;
+
+                        let timestamp = new Date();
+                        if (item.timestamp) {
+                            timestamp = new Date(item.timestamp);
+                            if (Number.isNaN(timestamp.getTime())) {
+                                timestamp = new Date();
+                            }
+                        } else if (item.sourceTimestamp) {
+                            timestamp = new Date(item.sourceTimestamp);
+                            if (Number.isNaN(timestamp.getTime())) {
+                                timestamp = new Date();
+                            }
+                        }
+
+                        let sc = StatusCodes.Good;
+                        if (item.statusCode) {
+                            if (typeof item.statusCode === "string") {
+                                sc = StatusCodes[item.statusCode] || StatusCodes.Good;
+                            } else if (typeof item.statusCode === "number") {
+                                sc = StatusCodes.makeStatusCode(item.statusCode);
+                            } else if (item.statusCode && typeof item.statusCode.value !== "undefined") {
+                                sc = item.statusCode;
+                            }
+                        } else if (item.status) {
+                            if (typeof item.status === "string") {
+                                sc = StatusCodes[item.status] || StatusCodes.Good;
+                            }
+                        }
+
+                        const coercedValue = this.coerceValue(item.value, varType, isArray);
+                        const variantOptions = {
+                            dataType: dataType,
+                            value: coercedValue
+                        };
+                        if (isArray) {
+                            variantOptions.arrayType = VariantArrayType.Array;
+                        }
+
+                        dataValues.push(new DataValue({
+                            value: new Variant(variantOptions),
+                            statusCode: sc,
+                            sourceTimestamp: timestamp,
+                            sourcePicoseconds: 0,
+                            serverTimestamp: timestamp,
+                            serverPicoseconds: 0
+                        }));
+                    }
+
+                    callback(null, new HistoryReadResult({
+                        statusCode: StatusCodes.Good,
+                        historyData: new HistoryData({ dataValues })
+                    }));
+                })
+                .catch(() => {
+                    callback(null, new HistoryReadResult({
+                        statusCode: StatusCodes.BadInternalError
+                    }));
+                });
+        };
     }
 
 

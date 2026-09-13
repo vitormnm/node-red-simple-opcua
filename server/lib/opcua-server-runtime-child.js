@@ -888,6 +888,37 @@ class OpcUaServerProcess {
     }
 
     /**
+     * tags historicas opc ua
+     */
+    registerHistorizingInput(nodeConfig, nodeId) {
+        const tagKey = (nodeConfig && (nodeConfig.tagNodeId || nodeConfig.tagPath)) ? (nodeConfig.tagNodeId || nodeConfig.tagPath) : "*";
+        registry.registerHistorizingHandler(tagKey, nodeId);
+        if (nodeConfig && nodeConfig.tagNodeId && nodeConfig.tagPath) {
+            registry.registerHistorizingHandler(nodeConfig.tagPath, nodeId);
+        }
+    }
+
+    handleHistorizingOutput(msg, nodeId) {
+        resolveRegisteredServer(this.node, msg, registry);
+
+        if (!msg._callId) {
+            throw new Error("Missing _callId for OPC UA history read response");
+        }
+
+        registry.resolveHistorizingResponse(msg._callId, msg.payload);
+
+        process.send({
+            type: "status",
+            data: {
+                fill: "green",
+                shape: "dot",
+                text: "history sent"
+            },
+            nodeId: nodeId
+        });
+    }
+
+    /**
      * Garante que o servidor está pronto
      */
     async ensureReady() {
@@ -1300,6 +1331,14 @@ process.on("message", async (msg) => {
 
             case "handleMethodOutput":
                 serverProcess.handleMethodOutput(msg.msg, msg.nodeId)
+                break;
+
+            case "registerHistorizingInput":
+                serverProcess.registerHistorizingInput(msg.node, msg.nodeId)
+                break;
+
+            case "handleHistorizingOutput":
+                serverProcess.handleHistorizingOutput(msg.msg, msg.nodeId)
                 break;
 
             case "buildServerSnapshot":

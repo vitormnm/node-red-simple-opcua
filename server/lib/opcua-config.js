@@ -446,7 +446,8 @@ class OpcUaServerConfigParser {
             displayName: variableConfig.displayName || name,
             nodeId: this.normalizeOptionalNodeId(variableConfig.nodeId),
             namespaceId: this.normalizeNamespaceId(variableConfig.namespaceId),
-            accessPermission: this.normalizeAccessPermissions(variableConfig.accessPermission || variableConfig.accessPermissions)
+            accessPermission: this.normalizeAccessPermissions(variableConfig.accessPermission || variableConfig.accessPermissions),
+            historizing: Boolean(variableConfig.historizing)
         };
     }
 

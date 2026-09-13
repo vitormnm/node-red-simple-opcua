@@ -50,6 +50,9 @@ module.exports = function (RED) {
         if (node.mode === "method-input") {
             registerMethodInput(node);
         }
+        if (node.mode === "read-historizing-input") {
+            registerHistorizingInput(node);
+        }
         if (node.mode === "events") {
             registerEvents(node, { throwOnError: false, waitForServer: true, timeoutMs: 5000, silentOnError: true });
         }
@@ -86,6 +89,13 @@ module.exports = function (RED) {
                 }
                 else if (node.mode === "method-output") {
                     await handleMethodOutput(node, msg, send);
+                    done();
+                    if (msg && msg._msgid) {
+                        node._pendingDoneCallbacks.delete(msg._msgid);
+                    }
+                }
+                else if (node.mode === "read-historizing-output") {
+                    await handleHistorizingOutput(node, msg, send);
                     done();
                     if (msg && msg._msgid) {
                         node._pendingDoneCallbacks.delete(msg._msgid);
@@ -153,6 +163,10 @@ module.exports = function (RED) {
 
             if (node.mode === "method-input") {
                 registry.unregisterMethodHandler(node.methodName);
+            }
+            if (node.mode === "read-historizing-input") {
+                const tagKey = node.tagNodeId || node.tagPath || "*";
+                registry.unregisterHistorizingHandler(tagKey);
             }
             if (node.mode === "events") {
                 registry.unregisterAccessListener(node.id);
@@ -269,6 +283,45 @@ module.exports = function (RED) {
                 });
             }
 
+            if (msg.type === "sendHistorizingRead") {
+
+                node.status({
+                    fill: "blue",
+                    shape: "dot",
+                    text: "history read called"
+                });
+
+                node.send({
+                    topic: msg.data.nodeId,
+                    payload: {
+                        nodeId: msg.data.nodeId,
+                        path: msg.data.tagPath,
+                        startTime: msg.data.startTime,
+                        endTime: msg.data.endTime,
+                        numValuesPerNode: msg.data.numValuesPerNode,
+                        returnBounds: msg.data.returnBounds,
+                        isReadModified: msg.data.isReadModified
+                    },
+                    startTime: msg.data.startTime,
+                    endTime: msg.data.endTime,
+                    opcua: {
+                        server: msg.data.serverName,
+                        tag: msg.data.tagPath || msg.data.nodeId,
+                        nodeId: msg.data.nodeId,
+                        tagPath: msg.data.tagPath,
+                        historyDetails: {
+                            startTime: msg.data.startTime,
+                            endTime: msg.data.endTime,
+                            numValuesPerNode: msg.data.numValuesPerNode,
+                            returnBounds: msg.data.returnBounds,
+                            isReadModified: msg.data.isReadModified
+                        },
+                        users: Array.isArray(msg.data.users) ? msg.data.users : []
+                    },
+                    _callId: msg.data.callId
+                });
+            }
+
         }
     }
 
@@ -317,6 +370,17 @@ module.exports = function (RED) {
             },
             nodeId: node.id
 
+        }, { throwOnError: false, waitForServer: true, timeoutMs: 5000, silentOnError: true });
+    }
+
+    async function registerHistorizingInput(node) {
+        await sendToChild(node, {
+            type: "registerHistorizingInput",
+            node: {
+                tagPath: node.tagPath,
+                tagNodeId: node.tagNodeId
+            },
+            nodeId: node.id
         }, { throwOnError: false, waitForServer: true, timeoutMs: 5000, silentOnError: true });
     }
 
@@ -439,6 +503,15 @@ module.exports = function (RED) {
         }, { waitForServer: true, timeoutMs: 5000 });
     }
 
+    async function handleHistorizingOutput(node, msg, send) {
+        await sendToChild(node, {
+            type: "handleHistorizingOutput",
+            msg: msg,
+            node: node.id,
+            nodeId: node.id,
+        }, { waitForServer: true, timeoutMs: 5000 });
+    }
+
     function buildIoMessage(node, msg) {
         const nextMsg = Object.assign({}, msg);
         nextMsg.opcuaServerIo = {
@@ -489,6 +562,10 @@ module.exports = function (RED) {
 
         if (node.mode === "method-input") {
             registerMethodInput(node);
+        }
+
+        if (node.mode === "read-historizing-input") {
+            registerHistorizingInput(node);
         }
 
         if (node.mode === "events") {

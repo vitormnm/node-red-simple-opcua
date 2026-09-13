@@ -3,7 +3,9 @@
         function updateModeUi(node) {
             var mode = $("#node-input-mode").val() || "read";
             var identifierType = $("#node-input-identifierType").val() || "path";
-            var isTagMode = mode === "read" || mode === "write" || mode === "event" || mode === "activeAlarms";
+            var isHistorizingInput = mode === "read-historizing-input";
+            var isHistorizingOutput = mode === "read-historizing-output";
+            var isTagMode = mode === "read" || mode === "write" || mode === "event" || mode === "activeAlarms" || isHistorizingInput;
             var isMethodMode = mode === "method-input" || mode === "method-output";
             var isEventsMode = mode === "events";
 
@@ -15,13 +17,13 @@
 
             node.mode = mode;
             node.identifierType = identifierType;
-            if (mode === "method-input") {
+            if (mode === "method-input" || mode === "read-historizing-input") {
                 node.inputs = 0;
                 node.outputs = 1;
             } else if (mode === "events") {
                 node.inputs = 0;
                 node.outputs = 1;
-            } else if (mode === "method-output") {
+            } else if (mode === "method-output" || mode === "read-historizing-output") {
                 node.inputs = 1;
                 node.outputs = 0;
             } else {
@@ -134,13 +136,13 @@
                 this.serverRef = $("#node-input-serverRef").typedInput("value") || "";
                 this.identifierType = $("#node-input-identifierType").val() || "path";
 
-                if (mode === "method-input") {
+                if (mode === "method-input" || mode === "read-historizing-input") {
                     this.inputs = 0;
                     this.outputs = 1;
                 } else if (mode === "events") {
                     this.inputs = 0;
                     this.outputs = 1;
-                } else if (mode === "method-output") {
+                } else if (mode === "method-output" || mode === "read-historizing-output") {
                     this.inputs = 1;
                     this.outputs = 0;
                 } else {
@@ -175,6 +177,8 @@
             <option value="validateLogin">Validate Login</option>
             <option value="method-input">Method Input</option>
             <option value="method-output">Method Output</option>
+            <option value="read-historizing-input">Read Historizing Input</option>
+            <option value="read-historizing-output">Read Historizing Output</option>
         </select>
     </div>
     <div class="form-row opcua-server-io-events-row">
